@@ -1,0 +1,11 @@
+{
+  "name": "adoptalove",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Monorepo para AdoptaLove.",
+  "scripts": {
+    "install:all": "npm install --prefix frontend && npm install --prefix backend",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "dev:backend": "npm run dev --prefix backend"
+  }
+}
