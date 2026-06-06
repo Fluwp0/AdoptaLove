@@ -110,7 +110,7 @@ async function updateAdoptionRequestStatus(id, estado) {
     await connection.beginTransaction();
 
     const [rows] = await connection.query(
-      `SELECT id, mascota_id
+      `SELECT id, adoptante_usuario_id, mascota_id
       FROM solicitudes_adopcion
       WHERE id = ?
       LIMIT 1`,
@@ -137,6 +137,34 @@ async function updateAdoptionRequestStatus(id, estado) {
         SET estado = ?
         WHERE id = ?`,
         ['adoptada', solicitud.mascota_id]
+      );
+
+      await connection.query(
+        `INSERT IGNORE INTO adopciones
+          (
+            solicitud_adopcion_id,
+            adoptante_usuario_id,
+            mascota_id,
+            estado,
+            observaciones
+          )
+        VALUES (?, ?, ?, ?, ?)`,
+        [
+          solicitud.id,
+          solicitud.adoptante_usuario_id,
+          solicitud.mascota_id,
+          'activa',
+          'Adopción generada automáticamente al aprobar la solicitud.'
+        ]
+      );
+
+      await connection.query(
+        `UPDATE solicitudes_adopcion
+        SET estado = ?
+        WHERE mascota_id = ?
+          AND id <> ?
+          AND estado IN (?, ?)`,
+        ['rechazada', solicitud.mascota_id, solicitud.id, 'pendiente', 'en_revision']
       );
     }
 
