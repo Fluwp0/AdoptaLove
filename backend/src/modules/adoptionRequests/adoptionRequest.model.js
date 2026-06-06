@@ -103,10 +103,59 @@ async function createAdoptionRequest({ adoptanteUsuarioId, mascotaId, mensaje })
   return findAdoptionRequestById(result.insertId);
 }
 
+async function updateAdoptionRequestStatus(id, estado) {
+  const connection = await db.getConnection();
+
+  try {
+    await connection.beginTransaction();
+
+    const [rows] = await connection.query(
+      `SELECT id, mascota_id
+      FROM solicitudes_adopcion
+      WHERE id = ?
+      LIMIT 1`,
+      [id]
+    );
+
+    const solicitud = rows[0];
+
+    if (!solicitud) {
+      await connection.rollback();
+      return null;
+    }
+
+    await connection.query(
+      `UPDATE solicitudes_adopcion
+      SET estado = ?
+      WHERE id = ?`,
+      [estado, id]
+    );
+
+    if (estado === 'aprobada') {
+      await connection.query(
+        `UPDATE mascotas
+        SET estado = ?
+        WHERE id = ?`,
+        ['adoptada', solicitud.mascota_id]
+      );
+    }
+
+    await connection.commit();
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
+
+  return findAdoptionRequestDetailById(id);
+}
+
 module.exports = {
   createAdoptionRequest,
   findAdoptionRequestDetailById,
   findAdoptionRequests,
   findPetById,
-  findUserById
+  findUserById,
+  updateAdoptionRequestStatus
 };

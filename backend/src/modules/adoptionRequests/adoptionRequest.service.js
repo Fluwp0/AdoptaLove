@@ -1,5 +1,12 @@
 const adoptionRequestModel = require('./adoptionRequest.model');
 
+const ALLOWED_STATUS_UPDATES = new Set([
+  'aprobada',
+  'rechazada',
+  'en_revision',
+  'pendiente'
+]);
+
 function createServiceError(statusCode, message) {
   const error = new Error(message);
   error.statusCode = statusCode;
@@ -60,8 +67,33 @@ async function getAdoptionRequestById(id) {
   return adoptionRequestModel.findAdoptionRequestDetailById(solicitudId);
 }
 
+async function updateAdoptionRequestStatus(id, payload = {}) {
+  const solicitudId = Number(id);
+  const estado = typeof payload.estado === 'string' ? payload.estado.trim() : '';
+
+  if (!Number.isInteger(solicitudId) || solicitudId <= 0) {
+    throw createServiceError(404, 'Solicitud no encontrada');
+  }
+
+  if (!ALLOWED_STATUS_UPDATES.has(estado)) {
+    throw createServiceError(400, 'Estado inválido');
+  }
+
+  const solicitud = await adoptionRequestModel.updateAdoptionRequestStatus(
+    solicitudId,
+    estado
+  );
+
+  if (!solicitud) {
+    throw createServiceError(404, 'Solicitud no encontrada');
+  }
+
+  return solicitud;
+}
+
 module.exports = {
   createAdoptionRequest,
   getAdoptionRequestById,
-  getAdoptionRequests
+  getAdoptionRequests,
+  updateAdoptionRequestStatus
 };

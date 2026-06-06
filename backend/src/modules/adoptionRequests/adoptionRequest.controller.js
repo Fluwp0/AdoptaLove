@@ -54,8 +54,32 @@ async function getAdoptionRequestById(req, res, next) {
   }
 }
 
+async function updateAdoptionRequestStatus(req, res, next) {
+  try {
+    const solicitud = await adoptionRequestService.updateAdoptionRequestStatus(
+      req.params.id,
+      req.body
+    );
+
+    return res.json({
+      status: 'ok',
+      data: solicitud
+    });
+  } catch (error) {
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({
+        status: 'error',
+        message: error.message
+      });
+    }
+
+    return next(error);
+  }
+}
+
 module.exports = {
   createAdoptionRequest,
   getAdoptionRequestById,
-  listAdoptionRequests
+  listAdoptionRequests,
+  updateAdoptionRequestStatus
 };
