@@ -46,4 +46,22 @@ async function createAdoptionRequest(payload = {}) {
   });
 }
 
-module.exports = { createAdoptionRequest };
+async function getAdoptionRequests() {
+  return adoptionRequestModel.findAdoptionRequests();
+}
+
+async function getAdoptionRequestById(id) {
+  const solicitudId = Number(id);
+
+  if (!Number.isInteger(solicitudId) || solicitudId <= 0) {
+    return null;
+  }
+
+  return adoptionRequestModel.findAdoptionRequestDetailById(solicitudId);
+}
+
+module.exports = {
+  createAdoptionRequest,
+  getAdoptionRequestById,
+  getAdoptionRequests
+};
