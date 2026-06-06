@@ -138,7 +138,7 @@ CREATE TABLE IF NOT EXISTS preguntas_compatibilidad (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   pregunta VARCHAR(255) NOT NULL,
   tipo_respuesta ENUM('texto', 'opcion_unica', 'opcion_multiple', 'numero', 'booleano') NOT NULL,
-  opciones JSON NULL,
+  opciones LONGTEXT NULL,
   peso DECIMAL(5,2) NOT NULL DEFAULT 1.00,
   estado ENUM('activa', 'inactiva') NOT NULL DEFAULT 'activa',
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -152,7 +152,7 @@ CREATE TABLE IF NOT EXISTS respuestas_compatibilidad (
   pregunta_id BIGINT UNSIGNED NOT NULL,
   respuesta_texto TEXT NULL,
   respuesta_numero DECIMAL(10,2) NULL,
-  respuesta_json JSON NULL,
+  respuesta_json LONGTEXT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   CONSTRAINT fk_respuestas_compatibilidad_usuario

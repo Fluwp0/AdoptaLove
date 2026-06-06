@@ -74,3 +74,6 @@ Incluye las tablas principales:
 - `donaciones`: donaciones simuladas asociadas opcionalmente a usuarios.
 - `chatbot_preguntas` y `chatbot_respuestas`: preguntas frecuentes almacenadas en base de datos para el chatbot inicial.
 - `preguntas_compatibilidad` y `respuestas_compatibilidad`: formulario base para calcular compatibilidad entre adoptantes y mascotas.
+
+Los campos que guardan respuestas estructuradas se almacenan como `LONGTEXT`
+para mejorar la compatibilidad con MySQL Workbench.
