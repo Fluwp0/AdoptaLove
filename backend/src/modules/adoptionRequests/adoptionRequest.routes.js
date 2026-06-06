@@ -1,7 +1,8 @@
 const { Router } = require('express');
+const { createAdoptionRequest } = require('./adoptionRequest.controller');
 
 const router = Router();
 
-// TODO: agregar rutas de solicitudes de adopcion.
+router.post('/', createAdoptionRequest);
 
 module.exports = router;

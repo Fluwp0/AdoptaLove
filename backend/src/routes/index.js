@@ -15,6 +15,7 @@ router.use('/auth', authRoutes);
 router.use('/users', userRoutes);
 router.use('/mascotas', petRoutes);
 router.use('/pets', petRoutes);
+router.use('/solicitudes-adopcion', adoptionRequestRoutes);
 router.use('/adoption-requests', adoptionRequestRoutes);
 router.use('/adoptions', adoptionRoutes);
 router.use('/compatibility', compatibilityRoutes);
