@@ -1,8 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { apiClient } from '../services/apiClient';
 
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api';
-
 const FILTERS = [
   { label: 'Todos', value: 'all' },
   { label: 'Perros', value: 'perro' },
@@ -228,9 +226,7 @@ export function HomePage() {
 
                   <a
                     className="pet-detail-link"
-                    href={`${API_URL}/mascotas/${pet.id}`}
-                    rel="noreferrer"
-                    target="_blank"
+                    href={`/mascotas/${pet.id}`}
                   >
                     Ver detalle
                   </a>
