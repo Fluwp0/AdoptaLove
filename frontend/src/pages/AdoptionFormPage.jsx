@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { apiClient } from '../services/apiClient';
-import { currentUser } from '../services/currentUser';
+import { getCurrentUser } from '../services/authSession';
 
 const INITIAL_FORM = {
   homeType: '',
@@ -81,6 +81,7 @@ export function AdoptionFormPage({ petId }) {
   const [submitStatus, setSubmitStatus] = useState('idle');
   const [submitFeedback, setSubmitFeedback] = useState('');
 
+  const currentUser = getCurrentUser();
   const hasCurrentUser = Boolean(currentUser?.id);
 
   useEffect(() => {
@@ -205,14 +206,17 @@ export function AdoptionFormPage({ petId }) {
               <span>01</span>
               <div>
                 <h3>Información de tu perfil</h3>
-                <p>Estos datos vienen del usuario demo mientras integramos login real.</p>
+                <p>Estos datos vienen de tu sesión actual en AdoptaLove.</p>
               </div>
             </div>
 
             {!hasCurrentUser && (
-              <p className="adoption-feedback adoption-feedback-error">
-                Debes iniciar sesión para postular a una adopción.
-              </p>
+              <div className="adoption-login-required">
+                <p className="adoption-feedback adoption-feedback-error">
+                  Debes iniciar sesión para postular a una adopción.
+                </p>
+                <a href="/login">Iniciar sesión</a>
+              </div>
             )}
 
             {hasCurrentUser && (
@@ -224,6 +228,10 @@ export function AdoptionFormPage({ petId }) {
                 <div>
                   <dt>Correo electrónico</dt>
                   <dd>{currentUser.email}</dd>
+                </div>
+                <div>
+                  <dt>RUT</dt>
+                  <dd>{currentUser.rut || 'No indicado'}</dd>
                 </div>
                 <div>
                   <dt>Teléfono</dt>

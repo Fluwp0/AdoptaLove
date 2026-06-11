@@ -1,6 +1,17 @@
+import { useEffect, useState } from 'react';
 import logoAdoptaLove from '../../assets/logo-adoptalove.png';
+import { clearSession, getCurrentUser, onSessionChange } from '../../services/authSession';
 
 export function AppLayout({ children }) {
+  const [user, setUser] = useState(getCurrentUser());
+
+  useEffect(() => onSessionChange(setUser), []);
+
+  function handleLogout() {
+    clearSession();
+    window.location.href = '/';
+  }
+
   return (
     <div className="app-shell">
       <header className="app-header">
@@ -22,8 +33,20 @@ export function AppLayout({ children }) {
         </nav>
 
         <div className="header-actions">
-          <a className="header-button header-button-ghost" href="/">Iniciar sesión</a>
-          <a className="header-button header-button-solid" href="/">Registrarse</a>
+          {user ? (
+            <>
+              <span className="header-user">Hola, {user.nombre}</span>
+              <a className="header-button header-button-ghost" href="/perfil">Mi perfil</a>
+              <button className="header-button header-button-solid" onClick={handleLogout} type="button">
+                Cerrar sesión
+              </button>
+            </>
+          ) : (
+            <>
+              <a className="header-button header-button-ghost" href="/login">Iniciar sesión</a>
+              <a className="header-button header-button-solid" href="/registro">Registrarse</a>
+            </>
+          )}
         </div>
       </header>
       <main>{children}</main>

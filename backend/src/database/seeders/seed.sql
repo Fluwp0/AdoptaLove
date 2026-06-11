@@ -1,13 +1,13 @@
 USE adoptalove;
 
-INSERT IGNORE INTO usuarios
-(id, nombre, email, password_hash, telefono, direccion, rol, estado)
+INSERT IGNORE INTO usuarios 
+(id, nombre, email, rut, password_hash, telefono, direccion, rol, estado)
 VALUES
-(1, 'Administrador AdoptaLove', 'admin@adoptalove.cl', 'hash_admin_demo', '+56911111111', 'Santiago, Chile', 'administrador', 'activo'),
-(2, 'Fundación Patitas Felices', 'contacto@patitasfelices.cl', 'hash_fundacion_demo', '+56922222222', 'Providencia, Santiago', 'fundacion', 'activo'),
-(3, 'Fundación Huellitas', 'contacto@huellitas.cl', 'hash_fundacion_demo', '+56933333333', 'Maipú, Santiago', 'fundacion', 'activo'),
-(4, 'Ana Morales', 'ana.morales@gmail.com', 'hash_adoptante_demo', '+56944444444', 'Ñuñoa, Santiago', 'adoptante', 'activo'),
-(5, 'Carlos Rojas', 'carlos.rojas@gmail.com', 'hash_adoptante_demo', '+56955555555', 'La Florida, Santiago', 'adoptante', 'activo');
+(1, 'Administrador AdoptaLove', 'admin@adoptalove.cl', '12.345.678-5', 'hash_admin_demo', '+56911111111', 'Santiago, Chile', 'administrador', 'activo'),
+(2, 'Fundación Patitas Felices', 'contacto@patitasfelices.cl', '9.876.543-3', 'hash_fundacion_demo', '+56922222222', 'Providencia, Santiago', 'fundacion', 'activo'),
+(3, 'Fundación Huellitas', 'contacto@huellitas.cl', '11.222.333-9', 'hash_fundacion_demo', '+56933333333', 'Maipú, Santiago', 'fundacion', 'activo'),
+(4, 'Ana Morales', 'ana.morales@gmail.com', '15.444.333-9', 'hash_adoptante_demo', '+56944444444', 'Ñuñoa, Santiago', 'adoptante', 'activo'),
+(5, 'Carlos Rojas', 'carlos.rojas@gmail.com', '17.666.555-6', 'hash_adoptante_demo', '+56955555555', 'La Florida, Santiago', 'adoptante', 'activo');
 
 INSERT IGNORE INTO mascotas
 (id, publicado_por_usuario_id, nombre, especie, raza, sexo, edad_anios, tamano, descripcion, foto_url, estado)

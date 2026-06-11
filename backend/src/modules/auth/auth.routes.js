@@ -1,7 +1,11 @@
 const { Router } = require('express');
+const authController = require('./auth.controller');
+const { requireAuth } = require('../../middlewares/authMiddleware');
 
 const router = Router();
 
-// TODO: agregar rutas de login, registro y refresh token.
+router.post('/register', authController.register);
+router.post('/login', authController.login);
+router.get('/me', requireAuth, authController.me);
 
 module.exports = router;

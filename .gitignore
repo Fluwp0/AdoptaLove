@@ -88,6 +88,7 @@ Thumbs.db
 # Database dumps
 *.sql
 !backend/src/database/schema.sql
+!backend/src/database/migrations/001_add_rut_to_usuarios.sql
 !backend/src/database/seeders/seed.sql
 *.sqlite
 *.sqlite3
