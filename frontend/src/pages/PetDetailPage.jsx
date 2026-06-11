@@ -157,9 +157,9 @@ export function PetDetailPage({ petId }) {
         <aside className="detail-sidebar" aria-label="Acciones de adopción">
           <div className="adoption-card">
             <p>¿Quieres adoptar a {pet.nombre}?</p>
-            <button className="detail-primary-action" type="button">
+            <a className="detail-primary-action" href={`/mascotas/${pet.id}/postular`}>
               Postular adopción
-            </button>
+            </a>
             <a className="detail-secondary-action" href="/">
               Volver a compañeros
             </a>
