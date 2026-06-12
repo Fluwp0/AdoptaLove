@@ -1,7 +1,9 @@
 const { Router } = require('express');
+const compatibilityController = require('./compatibility.controller');
 
 const router = Router();
 
-// TODO: agregar rutas de match de compatibilidad.
+router.get('/questions', compatibilityController.getQuestions);
+router.post('/match', compatibilityController.matchPets);
 
 module.exports = router;

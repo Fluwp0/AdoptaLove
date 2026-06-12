@@ -4,6 +4,9 @@ import { clearSession, getCurrentUser, onSessionChange } from '../../services/au
 
 export function AppLayout({ children }) {
   const [user, setUser] = useState(getCurrentUser());
+  const currentPath = window.location.pathname;
+  const isHomeActive = currentPath === '/' || currentPath.startsWith('/mascotas');
+  const isCompatibilityActive = currentPath.startsWith('/compatibilidad');
 
   useEffect(() => onSessionChange(setUser), []);
 
@@ -27,7 +30,20 @@ export function AppLayout({ children }) {
 
         <nav className="main-nav" aria-label="Navegación principal">
           <a href="/">Inicio</a>
-          <a className="active" href="/">Compañeros disponibles</a>
+          <a
+            aria-current={isHomeActive ? 'page' : undefined}
+            className={isHomeActive ? 'active' : ''}
+            href="/"
+          >
+            Compañeros disponibles
+          </a>
+          <a
+            aria-current={isCompatibilityActive ? 'page' : undefined}
+            className={isCompatibilityActive ? 'active' : ''}
+            href="/compatibilidad"
+          >
+            Encuentra tu match
+          </a>
           <a href="/">Sobre nosotros</a>
           <a href="/">Contacto</a>
         </nav>
@@ -35,7 +51,7 @@ export function AppLayout({ children }) {
         <div className="header-actions">
           {user ? (
             <>
-              <span className="header-user">Hola, {user.nombre}</span>
+              <span className="header-user" title={`Hola, ${user.nombre}`}>Hola, {user.nombre}</span>
               <a className="header-button header-button-ghost" href="/perfil">Mi perfil</a>
               <button className="header-button header-button-solid" onClick={handleLogout} type="button">
                 Cerrar sesión
