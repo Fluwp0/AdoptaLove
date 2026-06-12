@@ -1,7 +1,14 @@
 const { Router } = require('express');
+const {
+  createDonation,
+  getDonationSummary,
+  listDonations
+} = require('./donation.controller');
 
 const router = Router();
 
-// TODO: agregar rutas de donaciones.
+router.get('/', listDonations);
+router.get('/summary', getDonationSummary);
+router.post('/', createDonation);
 
 module.exports = router;

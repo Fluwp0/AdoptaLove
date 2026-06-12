@@ -7,6 +7,7 @@ export function AppLayout({ children }) {
   const currentPath = window.location.pathname;
   const isHomeActive = currentPath === '/' || currentPath.startsWith('/mascotas');
   const isCompatibilityActive = currentPath.startsWith('/compatibilidad');
+  const isDonationsActive = currentPath.startsWith('/donaciones');
 
   useEffect(() => onSessionChange(setUser), []);
 
@@ -43,6 +44,13 @@ export function AppLayout({ children }) {
             href="/compatibilidad"
           >
             Encuentra tu match
+          </a>
+          <a
+            aria-current={isDonationsActive ? 'page' : undefined}
+            className={isDonationsActive ? 'active' : ''}
+            href="/donaciones"
+          >
+            Donaciones
           </a>
           <a href="/">Sobre nosotros</a>
           <a href="/">Contacto</a>
