@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS mascotas (
   descripcion TEXT NULL,
   foto_url VARCHAR(500) NULL,
   estado ENUM('disponible', 'en_revision', 'adoptada', 'inactiva') NOT NULL DEFAULT 'disponible',
+  eliminada_at DATETIME NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   CONSTRAINT fk_mascotas_publicado_por

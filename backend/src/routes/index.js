@@ -8,6 +8,7 @@ const compatibilityRoutes = require('../modules/compatibility/compatibility.rout
 const chatbotRoutes = require('../modules/chatbot/chatbot.routes');
 const donationRoutes = require('../modules/donations/donation.routes');
 const adminRoutes = require('../modules/admin/admin.routes');
+const foundationRoutes = require('../modules/foundation/foundation.routes');
 
 const router = Router();
 
@@ -22,5 +23,7 @@ router.use('/compatibility', compatibilityRoutes);
 router.use('/chatbot', chatbotRoutes);
 router.use('/donations', donationRoutes);
 router.use('/admin', adminRoutes);
+router.use('/foundation', foundationRoutes);
+router.use('/fundacion', foundationRoutes);
 
 module.exports = router;

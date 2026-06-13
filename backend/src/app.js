@@ -1,4 +1,5 @@
 const express = require('express');
+const path = require('path');
 const cors = require('cors');
 const env = require('./config/env');
 const db = require('./config/database');
@@ -9,6 +10,7 @@ const app = express();
 
 app.use(cors({ origin: env.corsOrigin }));
 app.use(express.json());
+app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
 app.get('/api/health', (_req, res) => {
   res.json({ status: 'ok', app: 'AdoptaLove API' });

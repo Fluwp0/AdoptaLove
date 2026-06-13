@@ -3,6 +3,7 @@ import { AdoptionFormPage } from '../pages/AdoptionFormPage';
 import { ChatbotPage } from '../pages/ChatbotPage';
 import { CompatibilityQuizPage } from '../pages/CompatibilityQuizPage';
 import { DonationsPage } from '../pages/DonationsPage';
+import { FoundationDashboardPage } from '../pages/FoundationDashboardPage';
 import { HomePage } from '../pages/HomePage';
 import { LoginPage } from '../pages/LoginPage';
 import { PetDetailPage } from '../pages/PetDetailPage';
@@ -26,6 +27,8 @@ export function AppRoutes() {
         <CompatibilityQuizPage />
       ) : path === '/donaciones' ? (
         <DonationsPage />
+      ) : path === '/fundacion' || path === '/panel-fundacion' ? (
+        <FoundationDashboardPage />
       ) : path === '/chatbot' ? (
         <ChatbotPage />
       ) : adoptionFormMatch ? (
