@@ -14,5 +14,7 @@ module.exports = {
   jwt: {
     secret: process.env.JWT_SECRET || 'change_me',
     expiresIn: process.env.JWT_EXPIRES_IN || '1d'
-  }
+  },
+  openaiApiKey: process.env.OPENAI_API_KEY || '',
+  openaiModel: process.env.OPENAI_MODEL || 'gpt-4.1-mini'
 };

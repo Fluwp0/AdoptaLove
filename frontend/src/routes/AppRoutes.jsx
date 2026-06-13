@@ -1,5 +1,6 @@
 import { AppLayout } from '../components/layout/AppLayout';
 import { AdoptionFormPage } from '../pages/AdoptionFormPage';
+import { ChatbotPage } from '../pages/ChatbotPage';
 import { CompatibilityQuizPage } from '../pages/CompatibilityQuizPage';
 import { DonationsPage } from '../pages/DonationsPage';
 import { HomePage } from '../pages/HomePage';
@@ -25,6 +26,8 @@ export function AppRoutes() {
         <CompatibilityQuizPage />
       ) : path === '/donaciones' ? (
         <DonationsPage />
+      ) : path === '/chatbot' ? (
+        <ChatbotPage />
       ) : adoptionFormMatch ? (
         <AdoptionFormPage petId={adoptionFormMatch[1]} />
       ) : petDetailMatch ? (

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import logoAdoptaLove from '../../assets/logo-adoptalove.png';
+import { ChatbotWidget } from '../ChatbotWidget';
 import { clearSession, getCurrentUser, onSessionChange } from '../../services/authSession';
 
 export function AppLayout({ children }) {
@@ -74,6 +75,7 @@ export function AppLayout({ children }) {
         </div>
       </header>
       <main>{children}</main>
+      <ChatbotWidget />
     </div>
   );
 }

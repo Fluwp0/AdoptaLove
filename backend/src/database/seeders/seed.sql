@@ -40,7 +40,10 @@ VALUES
 (1, '¿Cómo puedo adoptar una mascota?', 'adopcion', 'activa'),
 (2, '¿Qué necesito para postular a una adopción?', 'adopcion', 'activa'),
 (3, '¿Puedo donar a una fundación?', 'donaciones', 'activa'),
-(4, '¿Cómo cuido a un perro recién adoptado?', 'cuidados', 'activa');
+(4, '¿Cómo cuido a un perro recién adoptado?', 'cuidados', 'activa'),
+(5, '¿Para qué sirve el quiz de compatibilidad?', 'compatibilidad', 'activa'),
+(6, '¿Cómo contacto a una fundación?', 'adopcion', 'activa'),
+(7, '¿Cómo funcionan las donaciones?', 'donaciones', 'activa');
 
 INSERT IGNORE INTO chatbot_respuestas
 (id, pregunta_id, respuesta, estado)
@@ -48,7 +51,10 @@ VALUES
 (1, 1, 'Debes elegir una mascota disponible, completar la solicitud y esperar la revisión de la fundación.', 'activa'),
 (2, 2, 'Necesitas tus datos personales, información de tu hogar y una explicación de por qué quieres adoptar.', 'activa'),
 (3, 3, 'Sí, puedes realizar una donación desde la sección de donaciones de la plataforma.', 'activa'),
-(4, 4, 'Dale tiempo para adaptarse, prepara agua, comida, cama y agenda una revisión veterinaria.', 'activa');
+(4, 4, 'Dale tiempo para adaptarse, prepara agua, comida, cama y agenda una revisión veterinaria.', 'activa'),
+(5, 5, 'El quiz de compatibilidad te ayuda a encontrar mascotas que podrían adaptarse mejor a tu hogar, tu tiempo disponible y tus preferencias.', 'activa'),
+(6, 6, 'Puedes contactar a una fundación desde el detalle de una mascota o completando una postulación para que revisen tu solicitud.', 'activa'),
+(7, 7, 'Las donaciones de AdoptaLove ayudan a mantener la plataforma activa para que más fundaciones publiquen mascotas y lleguen a más adoptantes.', 'activa');
 
 INSERT IGNORE INTO preguntas_compatibilidad
 (id, pregunta, tipo_respuesta, opciones, peso, estado)

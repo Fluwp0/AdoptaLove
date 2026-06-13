@@ -1,7 +1,12 @@
 const { Router } = require('express');
+const {
+  askQuestion,
+  listQuestions
+} = require('./chatbot.controller');
 
 const router = Router();
 
-// TODO: agregar rutas de chatbot.
+router.get('/questions', listQuestions);
+router.post('/ask', askQuestion);
 
 module.exports = router;
