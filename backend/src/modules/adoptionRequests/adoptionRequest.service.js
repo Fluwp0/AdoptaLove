@@ -6,6 +6,10 @@ const ALLOWED_STATUS_UPDATES = new Set([
   'en_revision',
   'pendiente'
 ]);
+const ACTIVE_ADOPTION_STATUSES = new Set(['pendiente', 'en_revision']);
+const ACTIVE_ADOPTION_MESSAGE =
+  'Ya tienes una postulaci?n en proceso. Debes esperar a que sea aprobada, rechazada o cancelarla desde tu perfil para poder postular a otra mascota.';
+const ADOPTER_CANCEL_REASON = 'Postulaci?n cancelada por el adoptante.';
 
 function createServiceError(statusCode, message) {
   const error = new Error(message);
@@ -23,11 +27,10 @@ function parseRequiredId(value, fieldName) {
   return id;
 }
 
-async function createAdoptionRequest(payload = {}) {
-  const adoptanteUsuarioId = parseRequiredId(
-    payload.adoptante_usuario_id,
-    'adoptante_usuario_id'
-  );
+async function createAdoptionRequest(payload = {}, authenticatedUser = null) {
+  const adoptanteUsuarioId = authenticatedUser?.id
+    ? parseRequiredId(authenticatedUser.id, 'adoptante_usuario_id')
+    : parseRequiredId(payload.adoptante_usuario_id, 'adoptante_usuario_id');
   const mascotaId = parseRequiredId(payload.mascota_id, 'mascota_id');
   const mensaje =
     typeof payload.mensaje === 'string' && payload.mensaje.trim()
@@ -38,6 +41,14 @@ async function createAdoptionRequest(payload = {}) {
 
   if (!usuario) {
     throw createServiceError(404, 'Usuario no encontrado');
+  }
+
+  const activeRequest = await adoptionRequestModel.findActiveAdoptionRequestByUserId(
+    adoptanteUsuarioId
+  );
+
+  if (activeRequest) {
+    throw createServiceError(409, ACTIVE_ADOPTION_MESSAGE);
   }
 
   const mascota = await adoptionRequestModel.findPetById(mascotaId);
@@ -51,6 +62,18 @@ async function createAdoptionRequest(payload = {}) {
     mascotaId,
     mensaje
   });
+}
+
+async function getAdoptionRequestsForUser(authenticatedUser = {}) {
+  const userId = parseRequiredId(authenticatedUser.id, 'usuario_id');
+
+  return adoptionRequestModel.findAdoptionRequestsByUserId(userId);
+}
+
+async function getActiveAdoptionRequestForUser(authenticatedUser = {}) {
+  const userId = parseRequiredId(authenticatedUser.id, 'usuario_id');
+
+  return adoptionRequestModel.findActiveAdoptionRequestByUserId(userId);
 }
 
 async function getAdoptionRequests() {
@@ -91,9 +114,35 @@ async function updateAdoptionRequestStatus(id, payload = {}) {
   return solicitud;
 }
 
+async function cancelOwnAdoptionRequest(id, authenticatedUser = {}) {
+  const solicitudId = Number(id);
+  const userId = parseRequiredId(authenticatedUser.id, 'usuario_id');
+
+  if (!Number.isInteger(solicitudId) || solicitudId <= 0) {
+    throw createServiceError(404, 'Solicitud no encontrada');
+  }
+
+  const solicitud = await adoptionRequestModel.cancelOwnActiveAdoptionRequest(
+    solicitudId,
+    userId,
+    ADOPTER_CANCEL_REASON
+  );
+
+  if (!solicitud) {
+    throw createServiceError(400, 'Solo puedes cancelar una postulaci?n activa propia.');
+  }
+
+  return solicitud;
+}
+
 module.exports = {
+  ACTIVE_ADOPTION_STATUSES,
+  ACTIVE_ADOPTION_MESSAGE,
+  cancelOwnAdoptionRequest,
   createAdoptionRequest,
+  getActiveAdoptionRequestForUser,
   getAdoptionRequestById,
+  getAdoptionRequestsForUser,
   getAdoptionRequests,
   updateAdoptionRequestStatus
 };

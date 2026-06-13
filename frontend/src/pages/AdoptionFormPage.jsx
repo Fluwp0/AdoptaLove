@@ -14,6 +14,13 @@ const INITIAL_FORM = {
   canCoverCosts: '',
   acceptsFollowUp: ''
 };
+const ACTIVE_APPLICATION_MESSAGE =
+  'Ya tienes una postulaci?n en proceso. Debes esperar a que sea aprobada, rechazada o cancelarla desde tu perfil para poder postular a otra mascota.';
+const ACTIVE_APPLICATION_STATUSES = new Set(['pendiente', 'en_revision']);
+
+function isActiveApplication(application) {
+  return ACTIVE_APPLICATION_STATUSES.has(application?.estado);
+}
 
 function formatAge(age) {
   if (age === null || age === undefined) {
@@ -80,6 +87,8 @@ export function AdoptionFormPage({ petId }) {
   const [form, setForm] = useState(INITIAL_FORM);
   const [submitStatus, setSubmitStatus] = useState('idle');
   const [submitFeedback, setSubmitFeedback] = useState('');
+  const [activeApplication, setActiveApplication] = useState(null);
+  const [activeApplicationStatus, setActiveApplicationStatus] = useState('idle');
 
   const currentUser = getCurrentUser();
   const hasCurrentUser = Boolean(currentUser?.id);
@@ -104,6 +113,32 @@ export function AdoptionFormPage({ petId }) {
         if (isMounted) {
           setLoadError(error.message);
           setLoadStatus('error');
+        }
+
+        return;
+      }
+
+      if (hasCurrentUser) {
+        setActiveApplicationStatus('loading');
+
+        try {
+          const activeResponse = await apiClient('/solicitudes-adopcion/me/activa');
+          const activePayload = await activeResponse.json();
+
+          if (!activeResponse.ok) {
+            throw new Error(activePayload.message || 'No se pudo revisar tu postulaci?n activa.');
+          }
+
+          if (isMounted) {
+            setActiveApplication(isActiveApplication(activePayload.data) ? activePayload.data : null);
+            setActiveApplicationStatus('success');
+          }
+        } catch (activeError) {
+          if (isMounted) {
+            setSubmitStatus('error');
+            setSubmitFeedback(activeError.message);
+            setActiveApplicationStatus('error');
+          }
         }
       }
     }
@@ -137,6 +172,12 @@ export function AdoptionFormPage({ petId }) {
       return;
     }
 
+    if (isActiveApplication(activeApplication)) {
+      setSubmitStatus('error');
+      setSubmitFeedback(ACTIVE_APPLICATION_MESSAGE);
+      return;
+    }
+
     setSubmitStatus('submitting');
     setSubmitFeedback('Enviando solicitud...');
 
@@ -156,6 +197,7 @@ export function AdoptionFormPage({ petId }) {
       }
 
       setForm(INITIAL_FORM);
+      setActiveApplication(payload.data);
       setSubmitStatus('success');
       setSubmitFeedback('Tu solicitud de adopción fue enviada correctamente.');
     } catch (error) {
@@ -242,6 +284,18 @@ export function AdoptionFormPage({ petId }) {
                   <dd>{currentUser.direccion}</dd>
                 </div>
               </dl>
+            )}
+
+            {hasCurrentUser && activeApplicationStatus === 'loading' && (
+              <p className="adoption-feedback adoption-feedback-submitting">
+                Revisando si tienes una postulaci?n activa...
+              </p>
+            )}
+
+            {hasCurrentUser && isActiveApplication(activeApplication) && (
+              <p className="adoption-feedback adoption-feedback-error">
+                {ACTIVE_APPLICATION_MESSAGE}
+              </p>
             )}
           </section>
 
@@ -429,7 +483,7 @@ export function AdoptionFormPage({ petId }) {
 
           <button
             className="adoption-submit-button"
-            disabled={submitStatus === 'submitting' || !hasCurrentUser}
+            disabled={submitStatus === 'submitting' || !hasCurrentUser || isActiveApplication(activeApplication)}
             type="submit"
           >
             {submitStatus === 'submitting'

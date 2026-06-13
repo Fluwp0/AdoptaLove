@@ -47,6 +47,7 @@ CREATE TABLE IF NOT EXISTS solicitudes_adopcion (
   mascota_id BIGINT UNSIGNED NOT NULL,
   mensaje TEXT NULL,
   estado ENUM('pendiente', 'en_revision', 'aprobada', 'rechazada', 'cancelada') NOT NULL DEFAULT 'pendiente',
+  motivo_estado TEXT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   CONSTRAINT fk_solicitudes_adoptante

@@ -1496,6 +1496,43 @@ button.header-button {
   color: var(--pink);
 }
 
+.profile-adoption-card { background: linear-gradient(135deg, #fff8fb 0%, #ffffff 62%); border: 2px solid #ffd1df; border-radius: 22px; box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8); display: grid; gap: 1rem; margin-top: 1.4rem; padding: 1.1rem; }
+.profile-adoption-heading { align-items: flex-start; display: flex; gap: 1rem; justify-content: space-between; }
+.profile-adoption-heading h3, .profile-adoption-process h4, .profile-adoption-empty, .profile-adoption-feedback, .profile-adoption-reason, .profile-cancel-modal h3, .profile-cancel-modal p { margin: 0; }
+.profile-adoption-heading h3 { color: #3b3037; font-size: 1.25rem; }
+.profile-adoption-refresh { background: #fff1f6; border: 2px solid #ffd1df; border-radius: 999px; color: var(--pink); cursor: pointer; font-weight: 950; min-height: 38px; padding: 0 0.9rem; white-space: nowrap; }
+.profile-adoption-empty { background: #fff1f6; border: 1px solid #ffd1df; border-radius: 16px; color: var(--muted); font-weight: 850; line-height: 1.5; padding: 0.9rem 1rem; }
+.profile-adoption-process { align-items: stretch; display: grid; gap: 1rem; grid-template-columns: 132px minmax(0, 1fr); }
+.profile-adoption-image, .profile-adoption-placeholder { aspect-ratio: 1; border-radius: 18px; min-width: 0; width: 100%; }
+.profile-adoption-image { border: 2px solid #ffe1ea; object-fit: cover; }
+.profile-adoption-placeholder { align-items: center; background: linear-gradient(135deg, #fff1f6, #ffe8f0); border: 2px dashed #ffbfd3; color: var(--pink); display: flex; font-size: 2rem; font-weight: 950; justify-content: center; }
+.profile-adoption-detail { display: grid; gap: 0.9rem; min-width: 0; }
+.profile-adoption-title-row { align-items: flex-start; display: flex; gap: 0.8rem; justify-content: space-between; }
+.profile-adoption-title-row h4 { color: #3b3037; font-size: 1.2rem; line-height: 1.2; overflow-wrap: anywhere; }
+.profile-adoption-title-row p { color: var(--muted); font-weight: 800; line-height: 1.4; margin: 0.25rem 0 0; }
+.profile-adoption-status { border-radius: 999px; font-size: 0.78rem; font-weight: 950; line-height: 1.2; padding: 0.42rem 0.7rem; text-align: center; white-space: nowrap; }
+.profile-adoption-status-pendiente, .profile-adoption-status-en_revision { background: #fff1f6; color: var(--pink); }
+.profile-adoption-status-aprobada { background: #eefbf2; color: #227a43; }
+.profile-adoption-status-rechazada, .profile-adoption-status-cancelada { background: #fff0f2; color: #b32645; }
+.profile-adoption-meta { display: grid; gap: 0.7rem; grid-template-columns: repeat(3, minmax(0, 1fr)); margin: 0; }
+.profile-adoption-meta div { background: rgba(255, 255, 255, 0.78); border: 1px solid #ffe1ea; border-radius: 14px; padding: 0.65rem; }
+.profile-adoption-meta dt { color: var(--muted); font-size: 0.75rem; font-weight: 900; text-transform: uppercase; }
+.profile-adoption-meta dd { color: #3b3037; font-weight: 950; margin: 0.2rem 0 0; }
+.profile-adoption-reason { background: #fff; border-left: 4px solid var(--pink); border-radius: 14px; color: var(--muted); line-height: 1.45; padding: 0.8rem; }
+.profile-adoption-reason strong { color: #3b3037; }
+.profile-cancel-application-button { background: #fff; border: 2px solid #ff9fba; border-radius: 15px; color: #b32645; cursor: pointer; font-weight: 950; justify-self: start; min-height: 44px; padding: 0 1rem; }
+.profile-adoption-feedback { background: #eefbf2; border-radius: 14px; color: #227a43; font-weight: 850; line-height: 1.45; padding: 0.8rem 0.9rem; }
+.profile-adoption-feedback-error { background: #fff0f2; color: #b32645; }
+.profile-modal-backdrop { align-items: center; background: rgba(59, 48, 55, 0.34); display: flex; inset: 0; justify-content: center; padding: 1rem; position: fixed; z-index: 1100; }
+.profile-cancel-modal { background: #fff; border: 2px solid #ffd1df; border-radius: 24px; box-shadow: 0 28px 60px rgba(59, 48, 55, 0.24); max-width: 460px; padding: 1.4rem; width: min(100%, 460px); }
+.profile-cancel-modal h3 { color: #3b3037; font-size: 1.35rem; }
+.profile-cancel-modal p { color: var(--muted); line-height: 1.55; margin-top: 0.7rem; }
+.profile-cancel-modal-actions { display: grid; gap: 0.75rem; grid-template-columns: 1fr 1fr; margin-top: 1.2rem; }
+.profile-modal-primary, .profile-modal-secondary { border-radius: 15px; cursor: pointer; font-weight: 950; min-height: 48px; padding: 0 1rem; }
+.profile-modal-primary { background: var(--pink); border: 2px solid var(--pink); color: #fff; }
+.profile-modal-secondary { background: #fff; border: 2px solid #ffd1df; color: var(--pink); }
+.profile-modal-primary:disabled, .profile-modal-secondary:disabled { cursor: not-allowed; opacity: 0.65; }
+
 .chatbot-page {
   margin: 0 auto;
   max-width: 1240px;
@@ -3110,6 +3147,14 @@ button.header-button {
   .pet-detail-page {
     padding: 2rem 1rem 3rem;
   }
+
+  .profile-adoption-heading,
+  .profile-adoption-title-row { align-items: stretch; flex-direction: column; }
+  .profile-adoption-process { grid-template-columns: 1fr; }
+  .profile-adoption-image, .profile-adoption-placeholder { max-height: 240px; }
+  .profile-adoption-meta, .profile-cancel-modal-actions { grid-template-columns: 1fr; }
+  .profile-adoption-status, .profile-cancel-application-button, .profile-adoption-refresh { justify-self: stretch; width: 100%; }
+
 
   .detail-hero {
     align-items: flex-start;

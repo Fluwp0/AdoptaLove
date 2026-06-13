@@ -32,6 +32,7 @@ async function findAdoptionRequestById(id) {
       mascota_id,
       mensaje,
       estado,
+      motivo_estado,
       created_at,
       updated_at
     FROM solicitudes_adopcion
@@ -52,6 +53,7 @@ async function findAdoptionRequests() {
       m.nombre AS mascota_nombre,
       m.especie AS mascota_especie,
       s.estado,
+      s.motivo_estado,
       s.mensaje,
       s.created_at AS fecha_creacion
     FROM solicitudes_adopcion s
@@ -75,7 +77,13 @@ async function findAdoptionRequestDetailById(id) {
       s.mascota_id,
       m.nombre AS mascota_nombre,
       m.especie AS mascota_especie,
+      m.raza AS mascota_raza,
+      m.edad_anios AS mascota_edad_anios,
+      m.edad_meses AS mascota_edad_meses,
+      m.tamano AS mascota_tamano,
+      m.foto_url AS mascota_foto_url,
       s.estado,
+      s.motivo_estado,
       s.mensaje,
       s.created_at AS fecha_creacion,
       s.updated_at
@@ -90,6 +98,63 @@ async function findAdoptionRequestDetailById(id) {
   );
 
   return rows[0] || null;
+}
+
+async function findAdoptionRequestsByUserId(userId) {
+  const [rows] = await db.query(
+    `SELECT
+      s.id,
+      s.adoptante_usuario_id,
+      s.mascota_id,
+      m.nombre AS mascota_nombre,
+      m.especie AS mascota_especie,
+      m.raza AS mascota_raza,
+      m.edad_anios AS mascota_edad_anios,
+      m.edad_meses AS mascota_edad_meses,
+      m.tamano AS mascota_tamano,
+      m.foto_url AS mascota_foto_url,
+      s.estado,
+      s.motivo_estado,
+      s.mensaje,
+      s.created_at AS fecha_creacion,
+      s.updated_at
+    FROM solicitudes_adopcion s
+    INNER JOIN mascotas m
+      ON s.mascota_id = m.id
+    WHERE s.adoptante_usuario_id = ?
+    ORDER BY s.created_at DESC, s.id DESC`,
+    [userId]
+  );
+
+  return rows;
+}
+
+async function findActiveAdoptionRequestByUserId(userId) {
+  const [rows] = await db.query(
+    `SELECT
+      s.id,
+      s.adoptante_usuario_id,
+      s.mascota_id,
+      m.nombre AS mascota_nombre,
+      m.especie AS mascota_especie,
+      s.estado,
+      s.created_at AS fecha_creacion
+    FROM solicitudes_adopcion s
+    INNER JOIN mascotas m
+      ON s.mascota_id = m.id
+    WHERE s.adoptante_usuario_id = ?
+    ORDER BY s.created_at DESC, s.id DESC
+    LIMIT 1`,
+    [userId]
+  );
+
+  const latestRequest = rows[0] || null;
+
+  if (!latestRequest || !['pendiente', 'en_revision'].includes(latestRequest.estado)) {
+    return null;
+  }
+
+  return latestRequest;
 }
 
 async function createAdoptionRequest({ adoptanteUsuarioId, mascotaId, mensaje }) {
@@ -179,10 +244,30 @@ async function updateAdoptionRequestStatus(id, estado) {
   return findAdoptionRequestDetailById(id);
 }
 
+async function cancelOwnActiveAdoptionRequest(id, userId, motivoEstado) {
+  const [result] = await db.query(
+    `UPDATE solicitudes_adopcion
+    SET estado = ?, motivo_estado = ?
+    WHERE id = ?
+      AND adoptante_usuario_id = ?
+      AND estado IN ('pendiente', 'en_revision')`,
+    ['rechazada', motivoEstado, id, userId]
+  );
+
+  if (result.affectedRows === 0) {
+    return null;
+  }
+
+  return findAdoptionRequestDetailById(id);
+}
+
 module.exports = {
+  cancelOwnActiveAdoptionRequest,
   createAdoptionRequest,
   findAdoptionRequestDetailById,
   findAdoptionRequests,
+  findAdoptionRequestsByUserId,
+  findActiveAdoptionRequestByUserId,
   findPetById,
   findUserById,
   updateAdoptionRequestStatus
