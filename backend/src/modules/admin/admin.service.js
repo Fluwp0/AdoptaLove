@@ -359,9 +359,10 @@ async function getMetrics(user) {
 async function listUsers(user, query = {}) {
   ensureAdmin(user);
   const pagination = parsePagination(query);
+  const search = cleanText(query.search ?? query.q ?? '', 120).toLowerCase();
   const [items, total] = await Promise.all([
-    adminModel.findUsers(pagination),
-    adminModel.countUsers()
+    adminModel.findUsers({ ...pagination, search }),
+    adminModel.countUsers({ search })
   ]);
   const totalPages = Math.max(1, Math.ceil(total / pagination.limit));
 

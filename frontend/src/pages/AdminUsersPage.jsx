@@ -192,12 +192,15 @@ export function AdminUsersPage() {
   const currentUser = getCurrentUser();
   const isAdmin = ADMIN_ROLES.has(currentUser?.rol);
   const [users, setUsers] = useState([]);
+  const [usersPage, setUsersPage] = useState(1);
   const [pagination, setPagination] = useState({
     limit: USERS_PER_PAGE,
     page: 1,
     total: 0,
     totalPages: 1
   });
+  const [userSearchDraft, setUserSearchDraft] = useState('');
+  const [userSearch, setUserSearch] = useState('');
   const [form, setForm] = useState(EMPTY_USER_FORM);
   const [editForm, setEditForm] = useState(EMPTY_USER_FORM);
   const [editingUser, setEditingUser] = useState(null);
@@ -213,8 +216,9 @@ export function AdminUsersPage() {
   const isLoading = status === 'loading';
   const isSaving = status === 'saving';
   const isDeleting = status === 'deleting';
-  const currentPage = pagination.page;
+  const currentPage = pagination.page || usersPage;
   const totalPages = Math.max(1, pagination.totalPages || 1);
+  const hasUserSearch = userSearch.trim().length > 0;
 
   const roleDescription = useMemo(() => {
     if (form.rol === 'fundacion') {
@@ -224,7 +228,7 @@ export function AdminUsersPage() {
     return 'Completa los datos base para crear una cuenta desde administración.';
   }, [form.rol]);
 
-  async function loadUsers(page = currentPage) {
+  async function loadUsers(page = usersPage, search = userSearch) {
     if (!isAdmin) {
       return;
     }
@@ -232,7 +236,16 @@ export function AdminUsersPage() {
     setStatus('loading');
 
     try {
-      const response = await apiClient(`/admin/users?page=${page}&limit=${USERS_PER_PAGE}`);
+      const params = new URLSearchParams({
+        limit: String(USERS_PER_PAGE),
+        page: String(page)
+      });
+
+      if (search.trim()) {
+        params.set('search', search.trim());
+      }
+
+      const response = await apiClient(`/admin/users?${params.toString()}`);
       const payload = await response.json();
 
       if (!response.ok) {
@@ -254,9 +267,24 @@ export function AdminUsersPage() {
   }
 
   useEffect(() => {
-    loadUsers(1);
+    loadUsers(usersPage, userSearch);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentUser?.id, currentUser?.rol]);
+  }, [currentUser?.id, currentUser?.rol, usersPage, userSearch]);
+
+  useEffect(() => {
+    if (!isAdmin) {
+      return undefined;
+    }
+
+    const debounceId = setTimeout(() => {
+      setUsersPage(1);
+      setUserSearch(userSearchDraft);
+    }, 300);
+
+    return () => {
+      clearTimeout(debounceId);
+    };
+  }, [isAdmin, userSearchDraft]);
 
   function updateFormField(field, value) {
     setForm((currentForm) => ({
@@ -390,7 +418,8 @@ function validateFoundationFields(currentForm) {
       setForm(EMPTY_USER_FORM);
       setFeedback(payload.message || 'Usuario creado correctamente.');
       setStatus('idle');
-      await loadUsers(1);
+      setUsersPage(1);
+      await loadUsers(1, userSearch);
     } catch (error) {
       setStatus('error');
       setFeedback(error.message);
@@ -432,7 +461,7 @@ function validateFoundationFields(currentForm) {
       setEditingUser(null);
       setFeedback(payload.message || 'Usuario actualizado correctamente.');
       setStatus('idle');
-      await loadUsers(currentPage);
+      await loadUsers(currentPage, userSearch);
     } catch (error) {
       setStatus('error');
       setFeedback(error.message);
@@ -472,11 +501,25 @@ function validateFoundationFields(currentForm) {
       setDeleteState({ motivo: '', step: null, user: null });
       setFeedback(payload.message || 'Usuario desactivado correctamente.');
       setStatus('idle');
-      await loadUsers(currentPage);
+      await loadUsers(currentPage, userSearch);
     } catch (error) {
       setStatus('error');
       setFeedback(error.message);
     }
+  }
+
+  function handleUserSearch(event) {
+    event.preventDefault();
+    setExpandedActionsId(null);
+    setUsersPage(1);
+    setUserSearch(userSearchDraft);
+  }
+
+  function clearUserSearch() {
+    setUserSearchDraft('');
+    setUserSearch('');
+    setUsersPage(1);
+    setExpandedActionsId(null);
   }
 
   function renderFoundationFields(currentForm, onChange) {
@@ -718,10 +761,38 @@ function validateFoundationFields(currentForm) {
             </div>
           </div>
 
+          <form className="admin-publication-toolbar" onSubmit={handleUserSearch}>
+            <label>
+              Buscar usuarios actuales
+              <input
+                onChange={(event) => setUserSearchDraft(event.target.value)}
+                placeholder="Buscar por nombre, correo, RUT, rol, ciudad o comuna"
+                value={userSearchDraft}
+              />
+            </label>
+            <div>
+              <button className="admin-secondary-button" disabled={isLoading} type="submit">
+                Buscar
+              </button>
+              <button
+                className="admin-secondary-button"
+                disabled={isLoading && !hasUserSearch && !userSearchDraft}
+                onClick={clearUserSearch}
+                type="button"
+              >
+                Limpiar
+              </button>
+            </div>
+          </form>
+
           {isLoading ? (
             <p className="admin-empty-state">Cargando usuarios...</p>
           ) : users.length === 0 ? (
-            <p className="admin-empty-state">No hay usuarios registrados para mostrar.</p>
+            <p className="admin-empty-state">
+              {hasUserSearch
+                ? 'No se encontraron usuarios con ese criterio.'
+                : 'No hay usuarios registrados para mostrar.'}
+            </p>
           ) : (
             <div className="admin-user-list">
               {users.map((user) => (
@@ -770,7 +841,7 @@ function validateFoundationFields(currentForm) {
             <button
               className="admin-secondary-button"
               disabled={currentPage <= 1 || isLoading}
-              onClick={() => loadUsers(currentPage - 1)}
+              onClick={() => setUsersPage(currentPage - 1)}
               type="button"
             >
               Anterior
@@ -779,7 +850,7 @@ function validateFoundationFields(currentForm) {
             <button
               className="admin-secondary-button"
               disabled={currentPage >= totalPages || isLoading}
-              onClick={() => loadUsers(currentPage + 1)}
+              onClick={() => setUsersPage(currentPage + 1)}
               type="button"
             >
               Siguiente
@@ -879,4 +950,3 @@ function validateFoundationFields(currentForm) {
     </section>
   );
 }
-

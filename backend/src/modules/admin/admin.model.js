@@ -201,22 +201,63 @@ async function getMetrics() {
   };
 }
 
-async function countUsers() {
+function removeDiacritics(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+}
+
+function buildUserSearch(search = '') {
+  const term = String(search || '').trim().toLowerCase();
+
+  if (!term) {
+    return {
+      clause: '',
+      params: []
+    };
+  }
+
+  const likeTerm = `%${term}%`;
+  const normalizedTerm = removeDiacritics(term);
+  const normalizedRutTerm = normalizedTerm.replace(/[.\-\s]/g, '');
+  const roleLikeTerm = `%${normalizedTerm}%`;
+  const rutLikeTerm = normalizedRutTerm ? `%${normalizedRutTerm}%` : likeTerm;
+
+  return {
+    clause: `
+    WHERE (
+      LOWER(COALESCE(nombre, '')) LIKE ?
+      OR LOWER(COALESCE(email, '')) LIKE ?
+      OR LOWER(${NORMALIZED_RUT_SQL}) LIKE ?
+      OR LOWER(COALESCE(rol, '')) LIKE ?
+      OR LOWER(COALESCE(ciudad, '')) LIKE ?
+      OR LOWER(COALESCE(comuna, '')) LIKE ?
+    )`,
+    params: [likeTerm, likeTerm, rutLikeTerm, roleLikeTerm, likeTerm, likeTerm]
+  };
+}
+
+async function countUsers({ search = '' } = {}) {
+  const searchFilter = buildUserSearch(search);
   const [[row]] = await db.query(
     `SELECT COUNT(*) AS total
-    FROM usuarios`
+    FROM usuarios
+    ${searchFilter.clause}`,
+    searchFilter.params
   );
 
   return Number(row?.total || 0);
 }
 
-async function findUsers({ limit, offset }) {
+async function findUsers({ limit, offset, search = '' }) {
+  const searchFilter = buildUserSearch(search);
   const [rows] = await db.query(
     `SELECT ${PUBLIC_USER_FIELDS}
     FROM usuarios
+    ${searchFilter.clause}
     ORDER BY created_at DESC, id DESC
     LIMIT ? OFFSET ?`,
-    [limit, offset]
+    [...searchFilter.params, limit, offset]
   );
 
   return rows;
