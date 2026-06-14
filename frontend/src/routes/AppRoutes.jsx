@@ -1,4 +1,5 @@
 import { AppLayout } from '../components/layout/AppLayout';
+import { AdminDashboardPage } from '../pages/AdminDashboardPage';
 import { AdoptionFormPage } from '../pages/AdoptionFormPage';
 import { ChatbotPage } from '../pages/ChatbotPage';
 import { CompatibilityQuizPage } from '../pages/CompatibilityQuizPage';
@@ -27,6 +28,8 @@ export function AppRoutes() {
         <CompatibilityQuizPage />
       ) : path === '/donaciones' ? (
         <DonationsPage />
+      ) : path === '/admin' || path === '/admin/inicio' || path === '/admin/usuarios' || path === '/admin/publicaciones' || path === '/admin/modificaciones' ? (
+        <AdminDashboardPage />
       ) : path === '/fundacion' || path === '/panel-fundacion' ? (
         <FoundationDashboardPage />
       ) : path === '/chatbot' ? (

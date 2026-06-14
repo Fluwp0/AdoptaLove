@@ -42,7 +42,8 @@ async function findPetsByOwner(userId = null) {
     `SELECT
       m.id,
       m.publicado_por_usuario_id,
-      u.nombre AS publicada_por,
+      m.publicado_por_nombre,
+      COALESCE(NULLIF(m.publicado_por_nombre, ''), u.nombre) AS publicada_por,
       m.nombre,
       m.especie,
       m.raza,
@@ -72,6 +73,7 @@ async function findPetById(id) {
     `SELECT
       id,
       publicado_por_usuario_id,
+      publicado_por_nombre,
       nombre,
       especie,
       raza,
