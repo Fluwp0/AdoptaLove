@@ -134,13 +134,13 @@ async function register(payload = {}) {
   const existingUser = await authModel.findUserByEmail(email);
 
   if (existingUser) {
-    throw createServiceError(409, 'El email ya está registrado');
+    throw createServiceError(409, 'Ya existe un usuario registrado con este correo electrónico.');
   }
 
   const existingRut = await authModel.findUserByRut(rut);
 
   if (existingRut) {
-    throw createServiceError(409, 'El RUT ya está registrado');
+    throw createServiceError(409, 'Ya existe un usuario registrado con este RUT.');
   }
 
   const passwordHash = await bcrypt.hash(password, PASSWORD_SALT_ROUNDS);
@@ -209,6 +209,7 @@ async function getUserById(id) {
 module.exports = {
   formatRut,
   getUserById,
+  isStrongPassword,
   isValidRut,
   login,
   register,

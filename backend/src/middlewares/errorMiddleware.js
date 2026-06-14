@@ -1,8 +1,12 @@
 function errorHandler(err, _req, res, _next) {
-  const statusCode = err.statusCode || 500;
+  const statusCode = err.statusCode || (err.code === 'LIMIT_FILE_SIZE' ? 400 : 500);
+  const message =
+    err.code === 'LIMIT_FILE_SIZE'
+      ? 'La imagen no puede superar los 3 MB.'
+      : err.message || 'Internal server error';
 
   res.status(statusCode).json({
-    message: err.message || 'Internal server error'
+    message
   });
 }
 

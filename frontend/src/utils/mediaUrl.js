@@ -1,5 +1,8 @@
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api';
-const API_ORIGIN = API_URL.replace(/\/api\/?$/, '');
+const API_URL = import.meta.env.VITE_API_URL ?? '/api';
+const isAbsoluteApiUrl = /^https?:\/\//i.test(API_URL);
+const API_ORIGIN = isAbsoluteApiUrl
+  ? API_URL.replace(/\/api\/?$/, '')
+  : (import.meta.env.VITE_API_ORIGIN ?? '');
 
 export function getMediaUrl(url = '') {
   if (!url) {
@@ -12,6 +15,10 @@ export function getMediaUrl(url = '') {
 
   if (url.startsWith('/uploads')) {
     return `${API_ORIGIN}${url}`;
+  }
+
+  if (url.startsWith('uploads/')) {
+    return `${API_ORIGIN}/${url}`;
   }
 
   return url;

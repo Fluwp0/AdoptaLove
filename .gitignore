@@ -89,8 +89,13 @@ Thumbs.db
 *.sql
 !backend/src/database/schema.sql
 !backend/src/database/migrations/001_add_rut_to_usuarios.sql
+!backend/src/database/migrations/002_pet_review_age_uploads.sql
 !backend/src/database/migrations/003_adoption_request_status_reason.sql
 !backend/src/database/migrations/004_pet_soft_delete.sql
+!backend/src/database/migrations/005_admin_pet_publisher_name.sql
+!backend/src/database/migrations/006_admin_user_management.sql
+!backend/src/database/migrations/007_pet_review_reason.sql
+!backend/src/database/migrations/008_pet_modification_requests.sql
 !backend/src/database/seeders/seed.sql
 *.sqlite
 *.sqlite3

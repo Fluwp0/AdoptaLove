@@ -1,5 +1,8 @@
-import { AppLayout } from '../components/layout/AppLayout';
+﻿import { AppLayout } from '../components/layout/AppLayout';
 import { AdminDashboardPage } from '../pages/AdminDashboardPage';
+import { AdminModificationsPage } from '../pages/AdminModificationsPage';
+import { AdminPublicationsPage } from '../pages/AdminPublicationsPage';
+import { AdminUsersPage } from '../pages/AdminUsersPage';
 import { AdoptionFormPage } from '../pages/AdoptionFormPage';
 import { ChatbotPage } from '../pages/ChatbotPage';
 import { CompatibilityQuizPage } from '../pages/CompatibilityQuizPage';
@@ -28,7 +31,13 @@ export function AppRoutes() {
         <CompatibilityQuizPage />
       ) : path === '/donaciones' ? (
         <DonationsPage />
-      ) : path === '/admin' || path === '/admin/inicio' || path === '/admin/usuarios' || path === '/admin/publicaciones' || path === '/admin/modificaciones' ? (
+      ) : path === '/admin/usuarios' ? (
+        <AdminUsersPage />
+      ) : path === '/admin/publicaciones' ? (
+        <AdminPublicationsPage />
+      ) : path === '/admin/modificaciones' ? (
+        <AdminModificationsPage />
+      ) : path === '/admin' || path === '/admin/inicio' ? (
         <AdminDashboardPage />
       ) : path === '/fundacion' || path === '/panel-fundacion' ? (
         <FoundationDashboardPage />
@@ -44,3 +53,4 @@ export function AppRoutes() {
     </AppLayout>
   );
 }
+

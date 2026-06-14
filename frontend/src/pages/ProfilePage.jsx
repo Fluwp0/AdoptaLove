@@ -1,51 +1,64 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { apiClient } from '../services/apiClient';
 import { clearSession, getCurrentUser, getToken, saveSession } from '../services/authSession';
+import { displayText } from '../utils/displayText';
+import { getMediaUrl } from '../utils/mediaUrl';
+import { formatPetAge } from '../utils/petDisplay';
 
 const ACTIVE_ADOPTION_STATUSES = new Set(['pendiente', 'en_revision']);
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/api';
-
-function cleanText(value, fallback = '') {
-  return typeof value === 'string' && value.trim() ? value.trim() : fallback;
-}
-
-function getProfileMediaUrl(url = '') {
-  if (!url) return '';
-  if (/^https?:\/\//i.test(url)) return url;
-  const apiBase = API_URL.replace(/\/api\/?$/, '');
-  return `${apiBase}${url.startsWith('/') ? url : `/${url}`}`;
-}
 
 function formatApplicationStatus(status = '') {
-  const labels = { aprobada: 'Aprobada', cancelada: 'Cancelada', en_revision: 'En revisi?n de administrador', pendiente: 'En revisi?n de fundaci?n', rechazada: 'Rechazada' };
-  return labels[status] || status.replace(/_/g, ' ');
-}
+  const labels = {
+    aprobada: 'Aprobada',
+    cancelada: 'Cancelada',
+    en_revision: 'En revisión de administrador',
+    pendiente: 'En revisión de fundación',
+    rechazada: 'Rechazada'
+  };
 
-function formatPetAge(yearsValue, monthsValue) {
-  const years = Number.isInteger(Number(yearsValue)) ? Number(yearsValue) : null;
-  const months = Number.isInteger(Number(monthsValue)) ? Number(monthsValue) : null;
-  const parts = [];
-  if (years === null && months === null) return 'Edad no indicada';
-  if (years > 0) parts.push(years === 1 ? '1 a?o' : `${years} a?os`);
-  if (months > 0) parts.push(months === 1 ? '1 mes' : `${months} meses`);
-  if (parts.length === 0 && years === 0 && months === 0) return '0 meses';
-  return parts.join(' y ') || 'Edad no indicada';
+  return labels[status] || displayText(status).replace(/_/g, ' ');
 }
 
 function formatPetSize(size = '') {
-  const labels = { grande: 'Grande', mediano: 'Mediano', pequeno: 'Peque?o' };
-  return labels[size] || cleanText(size, 'Tama?o no indicado');
+  const labels = {
+    grande: 'Grande',
+    mediano: 'Mediano',
+    pequeno: 'Pequeño'
+  };
+
+  return labels[size] || displayText(size, 'Tamaño no indicado') || 'Tamaño no indicado';
 }
 
 function formatApplicationDate(value) {
-  if (!value) return 'Fecha no disponible';
-  return new Intl.DateTimeFormat('es-CL', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(value));
+  if (!value) {
+    return 'Fecha no disponible';
+  }
+
+  return new Intl.DateTimeFormat('es-CL', {
+    dateStyle: 'medium',
+    timeStyle: 'short'
+  }).format(new Date(value));
 }
 
 function PetProcessImage({ name, url }) {
   const [hasError, setHasError] = useState(false);
-  if (!url || hasError) return <div className="profile-adoption-placeholder" aria-hidden="true">?</div>;
-  return <img alt={`Foto de ${name}`} className="profile-adoption-image" onError={() => setHasError(true)} src={getProfileMediaUrl(url)} />;
+
+  if (!url || hasError) {
+    return (
+      <div className="profile-adoption-placeholder" aria-hidden="true">
+        ♡
+      </div>
+    );
+  }
+
+  return (
+    <img
+      alt={`Foto de ${name}`}
+      className="profile-adoption-image"
+      onError={() => setHasError(true)}
+      src={getMediaUrl(url)}
+    />
+  );
 }
 
 export function ProfilePage() {
@@ -92,7 +105,11 @@ export function ProfilePage() {
             try {
               const adoptionResponse = await apiClient('/solicitudes-adopcion/me');
               const adoptionPayload = await adoptionResponse.json();
-              if (!adoptionResponse.ok) throw new Error(adoptionPayload.message || 'No se pudieron cargar tus postulaciones.');
+
+              if (!adoptionResponse.ok) {
+                throw new Error(adoptionPayload.message || 'No se pudieron cargar tus postulaciones.');
+              }
+
               if (isMounted) {
                 setAdoptionRequests(adoptionPayload.data ?? []);
                 setAdoptionStatus('success');
@@ -128,10 +145,15 @@ export function ProfilePage() {
   async function refreshAdoptionRequests() {
     setAdoptionStatus('loading');
     setAdoptionFeedback('');
+
     try {
       const response = await apiClient('/solicitudes-adopcion/me');
       const payload = await response.json();
-      if (!response.ok) throw new Error(payload.message || 'No se pudieron cargar tus postulaciones.');
+
+      if (!response.ok) {
+        throw new Error(payload.message || 'No se pudieron cargar tus postulaciones.');
+      }
+
       setAdoptionRequests(payload.data ?? []);
       setAdoptionStatus('success');
     } catch (error) {
@@ -141,15 +163,29 @@ export function ProfilePage() {
   }
 
   async function confirmCancelApplication() {
-    if (!cancelTarget?.id) return;
+    if (!cancelTarget?.id) {
+      return;
+    }
+
     setCancelStatus('submitting');
     setAdoptionFeedback('');
+
     try {
-      const response = await apiClient(`/solicitudes-adopcion/${cancelTarget.id}/cancelar`, { method: 'PATCH' });
+      const response = await apiClient(`/solicitudes-adopcion/${cancelTarget.id}/cancelar`, {
+        method: 'PATCH'
+      });
       const payload = await response.json();
-      if (!response.ok) throw new Error(payload.message || 'No se pudo cancelar la postulaci?n.');
-      setAdoptionRequests((currentRequests) => currentRequests.map((request) => request.id === payload.data.id ? payload.data : request));
-      setAdoptionFeedback('Tu postulaci?n fue cancelada correctamente.');
+
+      if (!response.ok) {
+        throw new Error(payload.message || 'No se pudo cancelar la postulación.');
+      }
+
+      setAdoptionRequests((currentRequests) =>
+        currentRequests.map((request) =>
+          request.id === payload.data.id ? payload.data : request
+        )
+      );
+      setAdoptionFeedback('Tu postulación fue cancelada correctamente.');
       setCancelTarget(null);
     } catch (error) {
       setAdoptionFeedback(error.message);
@@ -185,7 +221,7 @@ export function ProfilePage() {
     return (
       <section className="auth-page">
         <div className="profile-card">
-          <p className="auth-feedback auth-feedback-error">{feedback}</p>
+          <p className="auth-feedback auth-feedback-error">{displayText(feedback)}</p>
           <button className="auth-submit-button" onClick={handleLogout} type="button">
             Volver a iniciar sesión
           </button>
@@ -199,7 +235,7 @@ export function ProfilePage() {
       <div className="profile-layout">
         <div className="profile-card">
           <p className="section-kicker">Mi perfil</p>
-          <h2>Hola, {user.nombre}</h2>
+          <h2>Hola, {displayText(user.nombre)}</h2>
           <p className="auth-subtitle">
             Estos son los datos que se usarán para tus postulaciones de adopción.
           </p>
@@ -207,7 +243,7 @@ export function ProfilePage() {
           <dl className="profile-summary-card profile-summary-card-wide">
             <div>
               <dt>Nombre completo</dt>
-              <dd>{user.nombre}</dd>
+              <dd>{displayText(user.nombre)}</dd>
             </div>
             <div>
               <dt>Correo electrónico</dt>
@@ -223,7 +259,7 @@ export function ProfilePage() {
             </div>
             <div>
               <dt>Dirección</dt>
-              <dd>{user.direccion || 'No indicada'}</dd>
+              <dd>{displayText(user.direccion, 'No indicada') || 'No indicada'}</dd>
             </div>
             <div>
               <dt>Rol</dt>
@@ -232,29 +268,99 @@ export function ProfilePage() {
           </dl>
 
           {isAdopter && (
-            <section className="profile-adoption-card" aria-label="Mi proceso de adopci?n">
+            <section className="profile-adoption-card" aria-label="Mi proceso de adopción">
               <div className="profile-adoption-heading">
-                <div><p className="section-kicker">Mi proceso de adopci?n</p><h3>Estado de mi postulaci?n</h3></div>
-                <button className="profile-adoption-refresh" onClick={refreshAdoptionRequests} type="button">Actualizar</button>
+                <div>
+                  <p className="section-kicker">Mi proceso de adopción</p>
+                  <h3>Estado de mi postulación</h3>
+                </div>
+                <button
+                  className="profile-adoption-refresh"
+                  onClick={refreshAdoptionRequests}
+                  type="button"
+                >
+                  Actualizar
+                </button>
               </div>
-              {adoptionStatus === 'loading' && <p className="profile-adoption-empty">Cargando tus postulaciones...</p>}
-              {adoptionStatus === 'error' && <p className="profile-adoption-feedback profile-adoption-feedback-error">{adoptionFeedback}</p>}
-              {adoptionStatus !== 'loading' && !latestAdoptionRequest && <p className="profile-adoption-empty">A?n no tienes postulaciones activas.</p>}
+
+              {adoptionStatus === 'loading' && (
+                <p className="profile-adoption-empty">Cargando tus postulaciones...</p>
+              )}
+
+              {adoptionStatus === 'error' && (
+                <p className="profile-adoption-feedback profile-adoption-feedback-error">
+                  {displayText(adoptionFeedback)}
+                </p>
+              )}
+
+              {adoptionStatus !== 'loading' && !latestAdoptionRequest && (
+                <p className="profile-adoption-empty">Aún no tienes postulaciones activas.</p>
+              )}
+
               {latestAdoptionRequest && (
                 <article className="profile-adoption-process">
-                  <PetProcessImage name={cleanText(latestAdoptionRequest.mascota_nombre)} url={latestAdoptionRequest.mascota_foto_url} />
+                  <PetProcessImage
+                    name={displayText(latestAdoptionRequest.mascota_nombre)}
+                    url={latestAdoptionRequest.mascota_foto_url}
+                  />
                   <div className="profile-adoption-detail">
                     <div className="profile-adoption-title-row">
-                      <div><h4>{cleanText(latestAdoptionRequest.mascota_nombre)}</h4><p>{cleanText(latestAdoptionRequest.mascota_especie)}{latestAdoptionRequest.mascota_raza ? ` ? ${cleanText(latestAdoptionRequest.mascota_raza)}` : ''}</p></div>
-                      <span className={`profile-adoption-status profile-adoption-status-${latestAdoptionRequest.estado}`}>{formatApplicationStatus(latestAdoptionRequest.estado)}</span>
+                      <div>
+                        <h4>{displayText(latestAdoptionRequest.mascota_nombre)}</h4>
+                        <p>
+                          {displayText(latestAdoptionRequest.mascota_especie)}
+                          {latestAdoptionRequest.mascota_raza
+                            ? ` · ${displayText(latestAdoptionRequest.mascota_raza)}`
+                            : ''}
+                        </p>
+                      </div>
+                      <span className={`profile-adoption-status profile-adoption-status-${latestAdoptionRequest.estado}`}>
+                        {formatApplicationStatus(latestAdoptionRequest.estado)}
+                      </span>
                     </div>
-                    <dl className="profile-adoption-meta"><div><dt>Edad</dt><dd>{formatPetAge(latestAdoptionRequest.mascota_edad_anios, latestAdoptionRequest.mascota_edad_meses)}</dd></div><div><dt>Tama?o</dt><dd>{formatPetSize(latestAdoptionRequest.mascota_tamano)}</dd></div><div><dt>Fecha de postulaci?n</dt><dd>{formatApplicationDate(latestAdoptionRequest.fecha_creacion)}</dd></div></dl>
-                    {latestAdoptionRequest.motivo_estado && <p className="profile-adoption-reason"><strong>Motivo:</strong> {latestAdoptionRequest.motivo_estado}</p>}
-                    {hasActiveAdoptionRequest && <button className="profile-cancel-application-button" onClick={() => setCancelTarget(latestAdoptionRequest)} type="button">Cancelar postulaci?n</button>}
+
+                    <dl className="profile-adoption-meta">
+                      <div>
+                        <dt>Edad</dt>
+                        <dd>
+                          {formatPetAge(
+                            latestAdoptionRequest.mascota_edad_anios,
+                            latestAdoptionRequest.mascota_edad_meses
+                          )}
+                        </dd>
+                      </div>
+                      <div>
+                        <dt>Tamaño</dt>
+                        <dd>{formatPetSize(latestAdoptionRequest.mascota_tamano)}</dd>
+                      </div>
+                      <div>
+                        <dt>Fecha de postulación</dt>
+                        <dd>{formatApplicationDate(latestAdoptionRequest.fecha_creacion)}</dd>
+                      </div>
+                    </dl>
+
+                    {latestAdoptionRequest.motivo_estado && (
+                      <p className="profile-adoption-reason">
+                        <strong>Motivo:</strong> {displayText(latestAdoptionRequest.motivo_estado)}
+                      </p>
+                    )}
+
+                    {hasActiveAdoptionRequest && (
+                      <button
+                        className="profile-cancel-application-button"
+                        onClick={() => setCancelTarget(latestAdoptionRequest)}
+                        type="button"
+                      >
+                        Cancelar postulación
+                      </button>
+                    )}
                   </div>
                 </article>
               )}
-              {adoptionFeedback && adoptionStatus !== 'error' && <p className="profile-adoption-feedback">{adoptionFeedback}</p>}
+
+              {adoptionFeedback && adoptionStatus !== 'error' && (
+                <p className="profile-adoption-feedback">{displayText(adoptionFeedback)}</p>
+              )}
             </section>
           )}
 
@@ -279,11 +385,28 @@ export function ProfilePage() {
       {cancelTarget && (
         <div className="profile-modal-backdrop" role="presentation">
           <section className="profile-cancel-modal" role="dialog" aria-modal="true">
-            <h3>Confirmar cancelaci?n de postulaci?n</h3>
-            <p>?Est?s seguro de que deseas cancelar esta postulaci?n? Esta acci?n dejar? la solicitud como rechazada.</p>
+            <h3>Confirmar cancelación de postulación</h3>
+            <p>
+              ¿Estás seguro de que deseas cancelar esta postulación? Esta acción dejará
+              la solicitud como rechazada.
+            </p>
             <div className="profile-cancel-modal-actions">
-              <button className="profile-modal-secondary" disabled={cancelStatus === 'submitting'} onClick={() => setCancelTarget(null)} type="button">Mantener postulaci?n vigente</button>
-              <button className="profile-modal-primary" disabled={cancelStatus === 'submitting'} onClick={confirmCancelApplication} type="button">{cancelStatus === 'submitting' ? 'Cancelando...' : 'Confirmar cancelaci?n'}</button>
+              <button
+                className="profile-modal-secondary"
+                disabled={cancelStatus === 'submitting'}
+                onClick={() => setCancelTarget(null)}
+                type="button"
+              >
+                Mantener postulación vigente
+              </button>
+              <button
+                className="profile-modal-primary"
+                disabled={cancelStatus === 'submitting'}
+                onClick={confirmCancelApplication}
+                type="button"
+              >
+                {cancelStatus === 'submitting' ? 'Cancelando...' : 'Confirmar cancelación'}
+              </button>
             </div>
           </section>
         </div>
@@ -291,3 +414,4 @@ export function ProfilePage() {
     </section>
   );
 }
+

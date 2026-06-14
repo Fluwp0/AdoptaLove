@@ -1,5 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+﻿import { useEffect, useMemo, useState } from 'react';
 import { apiClient } from '../services/apiClient';
+import { displayText } from '../utils/displayText';
+import { getMediaUrl } from '../utils/mediaUrl';
+import { formatPetAge } from '../utils/petDisplay';
 
 const FILTERS = [
   { label: 'Todos', value: 'all' },
@@ -7,14 +10,6 @@ const FILTERS = [
   { label: 'Gatos', value: 'gato' },
   { label: 'Otros', value: 'otros' }
 ];
-
-function formatAge(age) {
-  if (age === null || age === undefined) {
-    return 'Edad no indicada';
-  }
-
-  return age === 1 ? '1 año' : `${age} años`;
-}
 
 function formatStatus(status = '') {
   return status
@@ -26,8 +21,17 @@ function formatStatus(status = '') {
 function PetImage({ name, url }) {
   const [hasError, setHasError] = useState(false);
 
+  useEffect(() => {
+    setHasError(false);
+  }, [url]);
+
   if (!url || hasError) {
-    return <div className="pet-image-placeholder">Sin imagen</div>;
+    return (
+      <div className="pet-image-placeholder">
+        <span aria-hidden="true">♡</span>
+        <strong>Sin imagen</strong>
+      </div>
+    );
   }
 
   return (
@@ -35,7 +39,7 @@ function PetImage({ name, url }) {
       alt={`Foto de ${name}`}
       className="pet-image"
       onError={() => setHasError(true)}
-      src={url}
+      src={getMediaUrl(url)}
     />
   );
 }
@@ -76,7 +80,7 @@ function matchesSearch(pet, searchTerm) {
     pet.publicada_por
   ]
     .filter(Boolean)
-    .some((value) => value.toLowerCase().includes(normalizedTerm));
+    .some((value) => displayText(value).toLowerCase().includes(normalizedTerm));
 }
 
 export function HomePage() {
@@ -185,12 +189,12 @@ export function HomePage() {
             {visiblePets.map((pet) => (
               <article className="pet-card" key={pet.id}>
                 <div className="pet-image-wrap">
-                  <PetImage name={pet.nombre} url={pet.foto_url} />
+                  <PetImage name={displayText(pet.nombre)} url={pet.foto_url} />
                   <span className={`pet-status pet-status-${pet.estado}`}>
                     {formatStatus(pet.estado)}
                   </span>
                   <button
-                    aria-label={`Guardar ${pet.nombre} como favorito`}
+                    aria-label={`Guardar ${displayText(pet.nombre)} como favorito`}
                     className="favorite-button"
                     type="button"
                   >
@@ -201,20 +205,20 @@ export function HomePage() {
                 <div className="pet-card-body">
                   <div className="pet-title-row">
                     <div>
-                      <h3>{pet.nombre}</h3>
-                      <p>{pet.especie}</p>
+                      <h3>{displayText(pet.nombre)}</h3>
+                      <p>{displayText(pet.especie)}</p>
                     </div>
-                    <span>{pet.publicada_por}</span>
+                    <span>{displayText(pet.publicada_por)}</span>
                   </div>
 
                   <p className="pet-quick-info">
-                    {formatAge(pet.edad_anios)} <span>•</span> {formatStatus(pet.tamano)}
+                    {formatPetAge(pet.edad_anios, pet.edad_meses)} <span>•</span> {formatStatus(pet.tamano)}
                   </p>
 
                   <dl className="pet-facts">
                     <div>
                       <dt>Raza</dt>
-                      <dd>{pet.raza || 'No indicada'}</dd>
+                      <dd>{displayText(pet.raza, 'No indicada') || 'No indicada'}</dd>
                     </div>
                     <div>
                       <dt>Sexo</dt>
@@ -222,7 +226,7 @@ export function HomePage() {
                     </div>
                   </dl>
 
-                  <p className="pet-description">{pet.descripcion}</p>
+                  <p className="pet-description">{displayText(pet.descripcion)}</p>
 
                   <a
                     className="pet-detail-link"

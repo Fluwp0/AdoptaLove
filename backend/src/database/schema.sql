@@ -8,12 +8,19 @@ CREATE TABLE IF NOT EXISTS usuarios (
   id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   nombre VARCHAR(120) NOT NULL,
   email VARCHAR(160) NOT NULL UNIQUE,
-  rut VARCHAR(12) NOT NULL UNIQUE,
+  rut VARCHAR(12) NULL UNIQUE,
   password_hash VARCHAR(255) NOT NULL,
   telefono VARCHAR(30) NULL,
   direccion VARCHAR(255) NULL,
+  ciudad VARCHAR(120) NULL,
+  comuna VARCHAR(120) NULL,
+  numeracion VARCHAR(40) NULL,
+  red_social_tipo VARCHAR(40) NULL,
+  red_social_valor VARCHAR(255) NULL,
   rol ENUM('adoptante', 'fundacion', 'administrador') NOT NULL DEFAULT 'adoptante',
   estado ENUM('activo', 'inactivo', 'suspendido') NOT NULL DEFAULT 'activo',
+  eliminado_at DATETIME NULL,
+  motivo_eliminacion TEXT NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -27,10 +34,12 @@ CREATE TABLE IF NOT EXISTS mascotas (
   raza VARCHAR(120) NULL,
   sexo ENUM('macho', 'hembra', 'desconocido') NOT NULL DEFAULT 'desconocido',
   edad_anios TINYINT UNSIGNED NULL,
+  edad_meses TINYINT UNSIGNED NULL,
   tamano ENUM('pequeno', 'mediano', 'grande') NOT NULL DEFAULT 'mediano',
   descripcion TEXT NULL,
   foto_url VARCHAR(500) NULL,
-  estado ENUM('disponible', 'en_revision', 'adoptada', 'inactiva') NOT NULL DEFAULT 'disponible',
+  estado ENUM('disponible', 'en_revision', 'rechazada', 'adoptada', 'inactiva') NOT NULL DEFAULT 'en_revision',
+  motivo_revision TEXT NULL,
   eliminada_at DATETIME NULL,
   created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -41,6 +50,34 @@ CREATE TABLE IF NOT EXISTS mascotas (
   INDEX idx_mascotas_publicado_por (publicado_por_usuario_id),
   INDEX idx_mascotas_estado (estado),
   INDEX idx_mascotas_especie (especie)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS mascota_modificaciones (
+  id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  mascota_id BIGINT UNSIGNED NOT NULL,
+  fundacion_usuario_id BIGINT UNSIGNED NOT NULL,
+  datos_propuestos LONGTEXT NOT NULL,
+  estado ENUM('en_revision', 'aprobada', 'rechazada', 'descartada') NOT NULL DEFAULT 'en_revision',
+  estado_mascota_anterior VARCHAR(40) NOT NULL DEFAULT 'disponible',
+  motivo_revision TEXT NULL,
+  revisado_por_usuario_id BIGINT UNSIGNED NULL,
+  created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_mascota_modificaciones_mascota
+    FOREIGN KEY (mascota_id) REFERENCES mascotas(id)
+    ON UPDATE CASCADE
+    ON DELETE RESTRICT,
+  CONSTRAINT fk_mascota_modificaciones_fundacion
+    FOREIGN KEY (fundacion_usuario_id) REFERENCES usuarios(id)
+    ON UPDATE CASCADE
+    ON DELETE RESTRICT,
+  CONSTRAINT fk_mascota_modificaciones_revisor
+    FOREIGN KEY (revisado_por_usuario_id) REFERENCES usuarios(id)
+    ON UPDATE CASCADE
+    ON DELETE SET NULL,
+  INDEX idx_mascota_modificaciones_mascota (mascota_id),
+  INDEX idx_mascota_modificaciones_fundacion (fundacion_usuario_id),
+  INDEX idx_mascota_modificaciones_estado (estado)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS solicitudes_adopcion (

@@ -1,6 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+﻿import { useEffect, useMemo, useState } from 'react';
 import { apiClient } from '../services/apiClient';
 import { getCurrentUser } from '../services/authSession';
+import { displayText } from '../utils/displayText';
+import { getMediaUrl } from '../utils/mediaUrl';
+import { formatPetAge } from '../utils/petDisplay';
 
 const ICONS = {
   bird: '🐦',
@@ -16,14 +19,6 @@ const ICONS = {
   spark: '✦',
   turtle: '🐢'
 };
-
-function formatAge(age) {
-  if (age === null || age === undefined) {
-    return 'Edad no indicada';
-  }
-
-  return age === 1 ? '1 año' : `${age} años`;
-}
 
 function formatStatus(status = '') {
   return status
@@ -52,7 +47,7 @@ function RecommendationImage({ name, url }) {
       alt={`Foto de ${name}`}
       className="quiz-pet-image"
       onError={() => setHasError(true)}
-      src={url}
+      src={getMediaUrl(url)}
     />
   );
 }
@@ -306,20 +301,20 @@ export function CompatibilityQuizPage() {
           {recommendations.map((pet) => (
             <article className="quiz-recommendation-card" key={pet.id}>
               <div className="quiz-pet-image-wrap">
-                <RecommendationImage name={pet.nombre} url={pet.foto_url} />
+                <RecommendationImage name={displayText(pet.nombre)} url={pet.foto_url} />
                 <span className="quiz-score">{pet.compatibility_score}% match</span>
               </div>
               <div className="quiz-recommendation-body">
                 <div>
-                  <h3>{pet.nombre}</h3>
+                  <h3>{displayText(pet.nombre)}</h3>
                   <p>
-                    {pet.especie} <span>•</span> {formatAge(pet.edad_anios)} <span>•</span>{' '}
+                    {displayText(pet.especie)} <span>•</span> {formatPetAge(pet.edad_anios, pet.edad_meses)} <span>•</span>{' '}
                     {formatStatus(pet.tamano)}
                   </p>
                 </div>
                 <ul>
                   {(pet.compatibility_reasons ?? []).map((reason) => (
-                    <li key={reason}>{reason}</li>
+                    <li key={reason}>{displayText(reason)}</li>
                   ))}
                 </ul>
                 <a className="pet-detail-link" href={`/mascotas/${pet.id}`}>
@@ -444,3 +439,4 @@ export function CompatibilityQuizPage() {
     </section>
   );
 }
+

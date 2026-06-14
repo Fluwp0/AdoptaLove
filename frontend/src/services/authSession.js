@@ -1,4 +1,4 @@
-const TOKEN_KEY = 'adoptalove_token';
+﻿const TOKEN_KEY = 'adoptalove_token';
 const USER_KEY = 'adoptalove_user';
 const SESSION_EVENT = 'adoptalove-session-changed';
 
@@ -54,3 +54,4 @@ export function onSessionChange(callback) {
     window.removeEventListener('storage', handleChange);
   };
 }
+

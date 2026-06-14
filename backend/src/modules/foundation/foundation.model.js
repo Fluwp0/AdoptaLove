@@ -1,11 +1,59 @@
 const db = require('../../config/database');
 
+let hasPetModificationPreviousStatusColumnCache = null;
+
 function buildOwnerWhere(userId, alias = 'm') {
   return userId ? ` AND ${alias}.publicado_por_usuario_id = ?` : '';
 }
 
 function buildOwnerParams(userId) {
   return userId ? [userId] : [];
+}
+
+function parseModificationData(value) {
+  if (!value) {
+    return {};
+  }
+
+  if (typeof value === 'object') {
+    return value;
+  }
+
+  try {
+    return JSON.parse(value);
+  } catch (_error) {
+    return {};
+  }
+}
+
+function mapModificationRow(row) {
+  if (!row) {
+    return null;
+  }
+
+  return {
+    ...row,
+    datos_propuestos: parseModificationData(row.datos_propuestos)
+  };
+}
+
+async function hasPetModificationPreviousStatusColumn() {
+  if (hasPetModificationPreviousStatusColumnCache === true) {
+    return true;
+  }
+
+  const [[row]] = await db.query(
+    `SELECT COUNT(*) AS total
+    FROM INFORMATION_SCHEMA.COLUMNS
+    WHERE TABLE_SCHEMA = DATABASE()
+      AND TABLE_NAME = ?
+      AND COLUMN_NAME = ?`,
+    ['mascota_modificaciones', 'estado_mascota_anterior']
+  );
+
+  const exists = Number(row?.total || 0) > 0;
+  hasPetModificationPreviousStatusColumnCache = exists ? true : null;
+  return exists;
 }
 
 async function getDashboardSummary(userId = null) {
@@ -162,6 +210,148 @@ async function updatePet(id, pet) {
   );
 
   return findPetById(id);
+}
+
+async function createPetModificationRequest(request) {
+  const hasPreviousStatusColumn = await hasPetModificationPreviousStatusColumn();
+  const connection = await db.getConnection();
+
+  try {
+    await connection.beginTransaction();
+
+    const [pendingRows] = await connection.query(
+      `SELECT
+        id,
+        mascota_id,
+        fundacion_usuario_id,
+        datos_propuestos,
+        estado,
+        ${hasPreviousStatusColumn ? 'estado_mascota_anterior' : "'disponible' AS estado_mascota_anterior"},
+        motivo_revision,
+        revisado_por_usuario_id,
+        created_at,
+        updated_at
+      FROM mascota_modificaciones
+      WHERE mascota_id = ?
+        AND fundacion_usuario_id = ?
+        AND estado = ?
+      ORDER BY updated_at DESC, id DESC
+      LIMIT 1
+      FOR UPDATE`,
+      [request.mascotaId, request.fundacionUsuarioId, 'en_revision']
+    );
+
+    let modificationId = pendingRows[0]?.id || null;
+
+    if (modificationId) {
+      await connection.query(
+        `UPDATE mascota_modificaciones
+        SET
+          datos_propuestos = ?,
+          motivo_revision = NULL,
+          revisado_por_usuario_id = NULL
+        WHERE id = ?`,
+        [JSON.stringify(request.datosPropuestos), modificationId]
+      );
+    } else {
+      const insertColumns = [
+        'mascota_id',
+        'fundacion_usuario_id',
+        'datos_propuestos',
+        'estado'
+      ];
+      const insertValues = [
+        request.mascotaId,
+        request.fundacionUsuarioId,
+        JSON.stringify(request.datosPropuestos),
+        'en_revision'
+      ];
+
+      if (hasPreviousStatusColumn) {
+        insertColumns.push('estado_mascota_anterior');
+        insertValues.push(request.estadoMascotaAnterior || 'disponible');
+      }
+
+      const [result] = await connection.query(
+        `INSERT INTO mascota_modificaciones
+          (${insertColumns.join(', ')})
+        VALUES (${insertColumns.map(() => '?').join(', ')})`,
+        insertValues
+      );
+
+      modificationId = result.insertId;
+    }
+
+    await connection.query(
+      `UPDATE mascotas
+      SET estado = ?
+      WHERE id = ?
+        AND eliminada_at IS NULL`,
+      ['en_revision', request.mascotaId]
+    );
+
+    await connection.commit();
+
+    return findPetModificationRequestById(modificationId);
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
+}
+
+async function findPendingPetModificationRequest(mascotaId, fundacionUsuarioId) {
+  const previousStatusSelect = (await hasPetModificationPreviousStatusColumn())
+    ? 'estado_mascota_anterior'
+    : "'disponible' AS estado_mascota_anterior";
+  const [rows] = await db.query(
+    `SELECT
+      id,
+      mascota_id,
+      fundacion_usuario_id,
+      datos_propuestos,
+      estado,
+      ${previousStatusSelect},
+      motivo_revision,
+      revisado_por_usuario_id,
+      created_at,
+      updated_at
+    FROM mascota_modificaciones
+    WHERE mascota_id = ?
+      AND fundacion_usuario_id = ?
+      AND estado = ?
+    ORDER BY updated_at DESC, id DESC
+    LIMIT 1`,
+    [mascotaId, fundacionUsuarioId, 'en_revision']
+  );
+
+  return mapModificationRow(rows[0]);
+}
+
+async function findPetModificationRequestById(id) {
+  const previousStatusSelect = (await hasPetModificationPreviousStatusColumn())
+    ? 'estado_mascota_anterior'
+    : "'disponible' AS estado_mascota_anterior";
+  const [rows] = await db.query(
+    `SELECT
+      id,
+      mascota_id,
+      fundacion_usuario_id,
+      datos_propuestos,
+      estado,
+      ${previousStatusSelect},
+      motivo_revision,
+      revisado_por_usuario_id,
+      created_at,
+      updated_at
+    FROM mascota_modificaciones
+    WHERE id = ?
+    LIMIT 1`,
+    [id]
+  );
+
+  return mapModificationRow(rows[0]);
 }
 
 async function updatePetStatus(id, estado) {
@@ -329,9 +519,12 @@ async function updateAdoptionRequestStatus(id, estado, motivoEstado = null) {
 }
 
 module.exports = {
+  createPetModificationRequest,
   createPet,
   findAdoptionRequestById,
   findAdoptionRequestsByOwner,
+  findPendingPetModificationRequest,
+  findPetModificationRequestById,
   findPetById,
   findPetsByOwner,
   getDashboardSummary,

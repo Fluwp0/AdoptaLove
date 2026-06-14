@@ -8,8 +8,8 @@ const ALLOWED_STATUS_UPDATES = new Set([
 ]);
 const ACTIVE_ADOPTION_STATUSES = new Set(['pendiente', 'en_revision']);
 const ACTIVE_ADOPTION_MESSAGE =
-  'Ya tienes una postulaci?n en proceso. Debes esperar a que sea aprobada, rechazada o cancelarla desde tu perfil para poder postular a otra mascota.';
-const ADOPTER_CANCEL_REASON = 'Postulaci?n cancelada por el adoptante.';
+  'Ya tienes una postulación en proceso. Debes esperar a que sea aprobada, rechazada o cancelarla desde tu perfil para poder postular a otra mascota.';
+const ADOPTER_CANCEL_REASON = 'Postulación cancelada por el adoptante.';
 
 function createServiceError(statusCode, message) {
   const error = new Error(message);
@@ -55,6 +55,10 @@ async function createAdoptionRequest(payload = {}, authenticatedUser = null) {
 
   if (!mascota) {
     throw createServiceError(404, 'Mascota no encontrada');
+  }
+
+  if (mascota.estado !== 'disponible') {
+    throw createServiceError(400, 'Solo puedes postular a mascotas disponibles.');
   }
 
   return adoptionRequestModel.createAdoptionRequest({
@@ -129,7 +133,7 @@ async function cancelOwnAdoptionRequest(id, authenticatedUser = {}) {
   );
 
   if (!solicitud) {
-    throw createServiceError(400, 'Solo puedes cancelar una postulaci?n activa propia.');
+    throw createServiceError(400, 'Solo puedes cancelar una postulación activa propia.');
   }
 
   return solicitud;

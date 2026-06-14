@@ -1,4 +1,4 @@
-﻿import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { apiClient } from '../services/apiClient';
 import { getCurrentUser } from '../services/authSession';
 import { getMediaUrl } from '../utils/mediaUrl';
@@ -27,55 +27,15 @@ const EMPTY_ADMIN_PET_FORM = {
   tamano: 'mediano',
   sexo: 'desconocido',
   descripcion: '',
-  foto_url: ''
+  foto_url: '',
+  estado: 'disponible'
 };
-
-const SECTION_COPY = {
-  usuarios: {
-    title: 'Administración de usuarios',
-    text: 'Sección en preparación para la siguiente parte.'
-  },
-  publicaciones: {
-    title: 'Publicaciones',
-    text: 'Sección en preparación para revisar publicaciones en detalle.'
-  },
-  modificaciones: {
-    title: 'Modificaciones de publicaciones',
-    text: 'Sección en preparación para revisar cambios enviados por fundaciones.'
-  }
-};
-
-function getAdminSection() {
-  const path = window.location.pathname;
-
-  if (path.startsWith('/admin/usuarios')) {
-    return 'usuarios';
-  }
-
-  if (path.startsWith('/admin/publicaciones')) {
-    return 'publicaciones';
-  }
-
-  if (path.startsWith('/admin/modificaciones')) {
-    return 'modificaciones';
-  }
-
-  return 'inicio';
-}
 
 function countWords(value = '') {
   return value
     .trim()
     .split(/\s+/)
     .filter(Boolean).length;
-}
-
-function formatMoney(value) {
-  return new Intl.NumberFormat('es-CL', {
-    currency: 'CLP',
-    maximumFractionDigits: 0,
-    style: 'currency'
-  }).format(Number(value || 0));
 }
 
 function displayText(value, fallback = 'No indicado') {
@@ -131,43 +91,48 @@ function validateImageFile(file) {
   return '';
 }
 
-function metricCards(metrics) {
-  return [
-    {
-      label: 'Usuarios registrados',
-      value: metrics?.usuariosRegistrados ?? 0
-    },
-    {
-      label: 'Mascotas publicadas',
-      value: metrics?.mascotasPublicadas ?? 0
-    },
-    {
-      label: 'Mascotas disponibles',
-      value: metrics?.mascotasDisponibles ?? 0
-    },
-    {
-      label: 'Postulaciones total',
-      value: metrics?.postulacionesTotal ?? 0
-    },
-    {
-      label: 'Postulaciones pendientes',
-      value: metrics?.postulacionesPendientes ?? 0
-    },
-    {
-      label: 'Total donado',
-      value: formatMoney(metrics?.totalDonado ?? 0)
-    }
-  ];
+function mapPublicationToForm(publication) {
+  return {
+    publicado_por_nombre: publication.publicado_por_nombre || publication.publicada_por || '',
+    nombre: publication.nombre || '',
+    especie: publication.especie || '',
+    raza: publication.raza || '',
+    edad_anios: publication.edad_anios ?? '',
+    edad_meses: publication.edad_meses ?? '',
+    tamano: publication.tamano || 'mediano',
+    sexo: publication.sexo || 'desconocido',
+    descripcion: publication.descripcion || '',
+    foto_url: publication.foto_url || '',
+    estado: publication.estado || 'disponible'
+  };
 }
 
-export function AdminDashboardPage() {
+function PublicationImage({ name, url }) {
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    setHasError(false);
+  }, [url]);
+
+  if (!url || hasError) {
+    return <span>AL</span>;
+  }
+
+  return (
+    <img
+      alt={name}
+      onError={() => setHasError(true)}
+      src={getMediaUrl(url)}
+    />
+  );
+}
+
+export function AdminPublicationsPage() {
   const currentUser = getCurrentUser();
   const isAdmin = ADMIN_ROLES.has(currentUser?.rol);
-  const section = getAdminSection();
-  const [metrics, setMetrics] = useState(null);
-  const [loadStatus, setLoadStatus] = useState('idle');
   const [feedback, setFeedback] = useState('');
   const [form, setForm] = useState(EMPTY_ADMIN_PET_FORM);
+  const [editingPublication, setEditingPublication] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
   const [imagePreview, setImagePreview] = useState('');
   const [submitStatus, setSubmitStatus] = useState('idle');
@@ -187,36 +152,18 @@ export function AdminDashboardPage() {
   const [reviewReason, setReviewReason] = useState('');
   const [reviewError, setReviewError] = useState('');
   const [reviewStatus, setReviewStatus] = useState('idle');
+  const [deleteModal, setDeleteModal] = useState(null);
+  const [deleteStatus, setDeleteStatus] = useState('idle');
 
-  const cards = useMemo(() => metricCards(metrics), [metrics]);
   const nameLength = form.nombre.length;
   const descriptionWordCount = countWords(form.descripcion);
   const isSubmitting = submitStatus === 'submitting';
   const isReviewing = reviewStatus === 'submitting';
-
-  async function loadMetrics() {
-    if (!isAdmin) {
-      return;
-    }
-
-    setLoadStatus('loading');
-    setFeedback('');
-
-    try {
-      const response = await apiClient('/admin/metrics');
-      const payload = await response.json();
-
-      if (!response.ok) {
-        throw new Error(payload.message || 'No se pudieron cargar las métricas.');
-      }
-
-      setMetrics(payload.data ?? null);
-      setLoadStatus('success');
-    } catch (error) {
-      setLoadStatus('error');
-      setFeedback(error.message);
-    }
-  }
+  const isDeleting = deleteStatus === 'deleting';
+  const publicationCountLabel = useMemo(
+    () => `${publicationsPagination.total || 0} publicaciones encontradas`,
+    [publicationsPagination.total]
+  );
 
   async function loadPublications(page = publicationsPage, search = publicationSearch) {
     if (!isAdmin) {
@@ -236,7 +183,7 @@ export function AdminDashboardPage() {
         params.set('search', search.trim());
       }
 
-      const response = await apiClient(`/admin/pets/review?${params.toString()}`);
+      const response = await apiClient(`/admin/pets?${params.toString()}`);
       const payload = await response.json();
 
       if (!response.ok) {
@@ -258,19 +205,13 @@ export function AdminDashboardPage() {
   }
 
   useEffect(() => {
-    if (section === 'inicio') {
-      loadMetrics();
-    } else if (section === 'publicaciones') {
-      loadPublications(publicationsPage, publicationSearch);
-    } else {
-      setLoadStatus('idle');
-    }
+    loadPublications(publicationsPage, publicationSearch);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentUser?.id, currentUser?.rol, section, publicationsPage, publicationSearch]);
+  }, [currentUser?.id, currentUser?.rol, publicationsPage, publicationSearch]);
 
   useEffect(() => {
     if (!selectedImage) {
-      setImagePreview('');
+      setImagePreview(editingPublication?.foto_url || '');
       return undefined;
     }
 
@@ -280,7 +221,7 @@ export function AdminDashboardPage() {
     return () => {
       URL.revokeObjectURL(previewUrl);
     };
-  }, [selectedImage]);
+  }, [editingPublication?.foto_url, selectedImage]);
 
   function updateFormField(field, value) {
     setForm((currentForm) => ({
@@ -291,9 +232,19 @@ export function AdminDashboardPage() {
 
   function resetForm() {
     setForm(EMPTY_ADMIN_PET_FORM);
+    setEditingPublication(null);
     setSelectedImage(null);
     setImagePreview('');
     setSubmitStatus('idle');
+  }
+
+  function startEditing(publication) {
+    setEditingPublication(publication);
+    setForm(mapPublicationToForm(publication));
+    setSelectedImage(null);
+    setImagePreview(publication.foto_url || '');
+    setFeedback('');
+    window.scrollTo({ behavior: 'smooth', top: 0 });
   }
 
   function handleImageFile(file) {
@@ -331,6 +282,7 @@ export function AdminDashboardPage() {
     formData.append('tamano', form.tamano);
     formData.append('sexo', form.sexo);
     formData.append('descripcion', form.descripcion.trim());
+    formData.append('estado', form.estado);
     formData.append('foto_url', form.foto_url || '');
 
     if (selectedImage) {
@@ -343,12 +295,6 @@ export function AdminDashboardPage() {
   async function handleSubmit(event) {
     event.preventDefault();
     setFeedback('');
-
-    if (!form.publicado_por_nombre.trim()) {
-      setSubmitStatus('error');
-      setFeedback('Publicado por / Fundación o responsable es obligatorio.');
-      return;
-    }
 
     if (!form.nombre.trim() || !form.especie.trim()) {
       setSubmitStatus('error');
@@ -400,19 +346,23 @@ export function AdminDashboardPage() {
     setSubmitStatus('submitting');
 
     try {
-      const response = await apiClient('/admin/pets', {
-        method: 'POST',
+      const endpoint = editingPublication
+        ? `/admin/pets/${editingPublication.id}`
+        : '/admin/pets';
+      const response = await apiClient(endpoint, {
+        method: editingPublication ? 'PUT' : 'POST',
         body: buildPetFormData()
       });
       const payload = await response.json();
 
       if (!response.ok) {
-        throw new Error(payload.message || 'No se pudo publicar la mascota.');
+        throw new Error(payload.message || 'No se pudo guardar la publicación.');
       }
 
       resetForm();
       setSubmitStatus('success');
-      setFeedback(payload.message || 'Mascota publicada correctamente desde el panel administrador.');
+      setFeedback(payload.message || 'Publicación guardada correctamente.');
+      await loadPublications(publicationsPage, publicationSearch);
     } catch (error) {
       setSubmitStatus('error');
       setFeedback(error.message);
@@ -484,14 +434,82 @@ export function AdminDashboardPage() {
     }
   }
 
-  function renderPublishForm() {
+  async function confirmDeletePublication() {
+    if (!deleteModal?.id) {
+      return;
+    }
+
+    setDeleteStatus('deleting');
+    setFeedback('');
+
+    try {
+      const response = await apiClient(`/admin/pets/${deleteModal.id}`, {
+        method: 'DELETE'
+      });
+      const payload = await response.json();
+
+      if (!response.ok) {
+        throw new Error(payload.message || 'No se pudo eliminar la publicación.');
+      }
+
+      setDeleteModal(null);
+      setFeedback(payload.message || 'Publicación eliminada correctamente.');
+      await loadPublications(publicationsPage, publicationSearch);
+    } catch (error) {
+      setFeedback(error.message);
+    } finally {
+      setDeleteStatus('idle');
+    }
+  }
+
+  if (!currentUser?.id) {
     return (
+      <section className="admin-page">
+        <div className="admin-access-card">
+          <span>AD</span>
+          <h2>Inicia sesión para acceder al panel administrador</h2>
+          <p>Esta sección está disponible solo para administradores de AdoptaLove.</p>
+          <a className="admin-primary-link" href="/login">Iniciar sesión</a>
+        </div>
+      </section>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <section className="admin-page">
+        <div className="admin-access-card">
+          <span>AD</span>
+          <h2>Panel no disponible</h2>
+          <p>Solo usuarios con rol administrador pueden acceder a esta sección.</p>
+          <a className="admin-primary-link" href="/">Volver al inicio</a>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="admin-page">
+      <div className="admin-hero">
+        <div>
+          <p className="section-kicker">Panel administrador</p>
+          <h2>Publicaciones</h2>
+          <p>Crea, edita, elimina y revisa publicaciones nuevas enviadas por fundaciones.</p>
+        </div>
+      </div>
+
+      {feedback && (
+        <p className={submitStatus === 'error' || publicationsStatus === 'error' ? 'admin-feedback admin-feedback-error' : 'admin-feedback'}>
+          {feedback}
+        </p>
+      )}
+
       <form className="admin-form-card" onSubmit={handleSubmit}>
         <div className="admin-section-heading">
-          <span>PM</span>
+          <span>{editingPublication ? 'ED' : 'PM'}</span>
           <div>
-            <h3>Publicar mascota como administrador</h3>
-            <p>Esta publicación se crea directamente como disponible en el catálogo público.</p>
+            <h3>{editingPublication ? `Editar publicación de ${displayText(editingPublication.nombre)}` : 'Publicar mascota como administrador'}</h3>
+            <p>El administrador puede crear y modificar publicaciones directamente.</p>
           </div>
         </div>
 
@@ -581,10 +599,19 @@ export function AdminDashboardPage() {
               <option value="hembra">Hembra</option>
             </select>
           </label>
-          <div className="admin-publish-note">
-            <strong>Publicación directa</strong>
-            <span>El administrador puede crear esta mascota como disponible sin revisión de fundación.</span>
-          </div>
+          <label>
+            Estado
+            <select
+              onChange={(event) => updateFormField('estado', event.target.value)}
+              value={form.estado}
+            >
+              <option value="disponible">Disponible</option>
+              <option value="en_revision">En revisión</option>
+              <option value="rechazada">Rechazada</option>
+              <option value="adoptada">Adoptada</option>
+              <option value="inactiva">Inactiva</option>
+            </select>
+          </label>
         </div>
 
         <div
@@ -602,6 +629,9 @@ export function AdminDashboardPage() {
           <div>
             <strong>Arrastra o selecciona una imagen de tu computadora</strong>
             <p>JPG, JPEG, PNG o WEBP. Tamaño máximo: 3 MB.</p>
+            {editingPublication?.foto_url && !selectedImage && (
+              <p>Si no seleccionas una nueva imagen, se mantendrá la imagen actual.</p>
+            )}
             <label className="admin-file-button">
               Seleccionar imagen
               <input
@@ -627,24 +657,20 @@ export function AdminDashboardPage() {
 
         <div className="admin-form-actions">
           <button className="admin-secondary-button" onClick={resetForm} type="button">
-            Limpiar
+            {editingPublication ? 'Cancelar edición' : 'Limpiar'}
           </button>
           <button className="admin-primary-button" disabled={isSubmitting} type="submit">
-            {isSubmitting ? 'Publicando...' : 'Publicar mascota'}
+            {isSubmitting ? 'Guardando...' : editingPublication ? 'Guardar cambios' : 'Publicar mascota'}
           </button>
         </div>
       </form>
-    );
-  }
 
-  function renderPublicationsReview() {
-    return (
       <section className="admin-form-card admin-publications-panel">
         <div className="admin-section-heading">
-          <span>RV</span>
+          <span>PB</span>
           <div>
-            <h3>Revisión de publicaciones</h3>
-            <p>Aprueba o rechaza publicaciones enviadas por fundaciones antes de mostrarlas en el catálogo público.</p>
+            <h3>Listado de publicaciones</h3>
+            <p>{publicationCountLabel}. Las publicaciones en revisión de fundaciones mantienen aprobar/rechazar.</p>
           </div>
         </div>
 
@@ -672,23 +698,19 @@ export function AdminDashboardPage() {
         )}
 
         {publicationsStatus !== 'loading' && publications.length === 0 && (
-          <p className="admin-empty-state">No hay publicaciones para revisar con esos filtros.</p>
+          <p className="admin-empty-state">No hay publicaciones con esos filtros.</p>
         )}
 
         {publicationsStatus !== 'loading' && publications.length > 0 && (
           <div className="admin-publication-list">
             {publications.map((publication) => {
               const isExpanded = expandedPublicationId === publication.id;
-              const isPending = publication.estado === 'en_revision';
+              const canReview = publication.estado === 'en_revision' && publication.publicador_rol === 'fundacion';
 
               return (
                 <article className="admin-publication-card" key={publication.id}>
                   <div className="admin-publication-image">
-                    {publication.foto_url ? (
-                      <img alt={publication.nombre} src={getMediaUrl(publication.foto_url)} />
-                    ) : (
-                      <span>AL</span>
-                    )}
+                    <PublicationImage name={displayText(publication.nombre)} url={publication.foto_url} />
                   </div>
                   <div className="admin-publication-summary">
                     <div className="admin-publication-title-row">
@@ -703,7 +725,8 @@ export function AdminDashboardPage() {
                       </span>
                     </div>
                     <div className="admin-publication-meta">
-                      <span>Fundación: {displayText(publication.publicada_por)}</span>
+                      <span>Publicado por: {displayText(publication.publicada_por)}</span>
+                      <span>Origen: {publication.publicador_rol === 'fundacion' ? 'Fundación' : 'Administrador'}</span>
                       <span>Actualizada: {formatDate(publication.updated_at)}</span>
                     </div>
                     {publication.motivo_revision && (
@@ -727,7 +750,7 @@ export function AdminDashboardPage() {
                             <dd>{displayText(publication.sexo)}</dd>
                           </div>
                           <div>
-                            <dt>Correo fundación</dt>
+                            <dt>Correo publicador</dt>
                             <dd>{displayText(publication.fundacion_email)}</dd>
                           </div>
                         </dl>
@@ -744,21 +767,37 @@ export function AdminDashboardPage() {
                       {isExpanded ? 'Ocultar detalle' : 'Ver detalle'}
                     </button>
                     <button
-                      className="admin-primary-button"
-                      disabled={!isPending}
-                      onClick={() => openReviewModal(publication, 'approve')}
+                      className="admin-secondary-button"
+                      onClick={() => startEditing(publication)}
                       type="button"
                     >
-                      Aprobar
+                      Editar
                     </button>
                     <button
                       className="admin-secondary-button admin-danger-button"
-                      disabled={!isPending}
-                      onClick={() => openReviewModal(publication, 'reject')}
+                      onClick={() => setDeleteModal(publication)}
                       type="button"
                     >
-                      Rechazar
+                      Eliminar
                     </button>
+                    {canReview && (
+                      <>
+                        <button
+                          className="admin-primary-button"
+                          onClick={() => openReviewModal(publication, 'approve')}
+                          type="button"
+                        >
+                          Aprobar
+                        </button>
+                        <button
+                          className="admin-secondary-button admin-danger-button"
+                          onClick={() => openReviewModal(publication, 'reject')}
+                          type="button"
+                        >
+                          Rechazar
+                        </button>
+                      </>
+                    )}
                   </div>
                 </article>
               );
@@ -791,164 +830,70 @@ export function AdminDashboardPage() {
           </button>
         </div>
       </section>
-    );
-  }
 
-  if (!currentUser?.id) {
-    return (
-      <section className="admin-page">
-        <div className="admin-access-card">
-          <span>AD</span>
-          <h2>Inicia sesión para acceder al panel administrador</h2>
-          <p>Esta sección está disponible solo para administradores de AdoptaLove.</p>
-          <a className="admin-primary-link" href="/login">Iniciar sesión</a>
-        </div>
-      </section>
-    );
-  }
-
-  if (!isAdmin) {
-    return (
-      <section className="admin-page">
-        <div className="admin-access-card">
-          <span>AD</span>
-          <h2>Panel no disponible</h2>
-          <p>Solo usuarios con rol administrador pueden acceder a esta sección.</p>
-          <a className="admin-primary-link" href="/">Volver al inicio</a>
-        </div>
-      </section>
-    );
-  }
-
-  if (section === 'publicaciones') {
-    const copy = SECTION_COPY.publicaciones;
-
-    return (
-      <section className="admin-page">
-        <div className="admin-hero">
-          <div>
-            <p className="section-kicker">Panel administrador</p>
-            <h2>{copy.title}</h2>
-            <p>Publica mascotas desde administración y revisa las publicaciones enviadas por fundaciones.</p>
-          </div>
-        </div>
-
-        {feedback && (
-          <p className={
-            submitStatus === 'error' || publicationsStatus === 'error'
-              ? 'admin-feedback admin-feedback-error'
-              : 'admin-feedback'
-          }>
-            {feedback}
-          </p>
-        )}
-
-        {renderPublishForm()}
-
-        {renderPublicationsReview()}
-
-        {reviewModal && (
-          <div className="admin-modal-backdrop">
-            <div className="admin-modal">
-              <h3>
-                {reviewModal.action === 'approve'
-                  ? 'Confirmar aprobación'
-                  : 'Confirmar rechazo'}
-              </h3>
-              <p>
-                Escribe el motivo que quedará asociado a la publicación de{' '}
-                <strong>{displayText(reviewModal.publication.nombre)}</strong>.
-              </p>
-              <label className="admin-modal-field">
-                Motivo de revisión
-                <textarea
-                  onChange={(event) => setReviewReason(event.target.value)}
-                  placeholder="Ej: La publicación cumple con la información requerida."
-                  value={reviewReason}
-                />
-              </label>
-              {reviewError && (
-                <p className="admin-modal-error">{reviewError}</p>
-              )}
-              <div className="admin-modal-actions">
-                <button
-                  className="admin-secondary-button"
-                  disabled={isReviewing}
-                  onClick={closeReviewModal}
-                  type="button"
-                >
-                  Cancelar
-                </button>
-                <button
-                  className={
-                    reviewModal.action === 'approve'
-                      ? 'admin-primary-button'
-                      : 'admin-secondary-button admin-danger-button'
-                  }
-                  disabled={isReviewing}
-                  onClick={confirmReviewAction}
-                  type="button"
-                >
-                  {isReviewing
-                    ? 'Guardando...'
-                    : reviewModal.action === 'approve'
-                      ? 'Confirmar aprobación'
-                      : 'Confirmar rechazo'}
-                </button>
-              </div>
+      {reviewModal && (
+        <div className="admin-modal-backdrop">
+          <div className="admin-modal">
+            <h3>{reviewModal.action === 'approve' ? 'Confirmar aprobación' : 'Confirmar rechazo'}</h3>
+            <p>
+              Escribe el motivo que quedará asociado a la publicación de{' '}
+              <strong>{displayText(reviewModal.publication.nombre)}</strong>.
+            </p>
+            <label className="admin-modal-field">
+              Motivo de revisión
+              <textarea
+                onChange={(event) => setReviewReason(event.target.value)}
+                placeholder="Ej: La publicación cumple con la información requerida."
+                value={reviewReason}
+              />
+            </label>
+            {reviewError && <p className="admin-modal-error">{reviewError}</p>}
+            <div className="admin-modal-actions">
+              <button className="admin-secondary-button" disabled={isReviewing} onClick={closeReviewModal} type="button">
+                Cancelar
+              </button>
+              <button
+                className={reviewModal.action === 'approve' ? 'admin-primary-button' : 'admin-secondary-button admin-danger-button'}
+                disabled={isReviewing}
+                onClick={confirmReviewAction}
+                type="button"
+              >
+                {isReviewing ? 'Guardando...' : reviewModal.action === 'approve' ? 'Confirmar aprobación' : 'Confirmar rechazo'}
+              </button>
             </div>
           </div>
-        )}
-      </section>
-    );
-  }
-
-  if (section !== 'inicio') {
-    const copy = SECTION_COPY[section];
-
-    return (
-      <section className="admin-page">
-        <div className="admin-hero">
-          <div>
-            <p className="section-kicker">Panel administrador</p>
-            <h2>{copy.title}</h2>
-            <p>{copy.text}</p>
-          </div>
         </div>
-        <article className="admin-placeholder-card">
-          <span>AD</span>
-          <h3>{copy.title}</h3>
-          <p>Sección en preparación para la siguiente parte.</p>
-        </article>
-      </section>
-    );
-  }
-
-  return (
-    <section className="admin-page">
-      <div className="admin-hero">
-        <div>
-          <p className="section-kicker">Panel administrador</p>
-          <h2>Inicio administrador</h2>
-          <p>Revisa el estado general de AdoptaLove con métricas actualizadas del sistema.</p>
-        </div>
-      </div>
-
-      {loadStatus === 'error' && feedback && (
-        <p className="admin-feedback admin-feedback-error">
-          {feedback}
-        </p>
       )}
 
-      <div className="admin-metrics-grid">
-        {cards.map((card) => (
-          <article className="admin-metric-card" key={card.label}>
-            <span>{card.label}</span>
-            <strong>{loadStatus === 'loading' ? '...' : card.value}</strong>
-          </article>
-        ))}
-      </div>
+      {deleteModal && (
+        <div className="admin-modal-backdrop">
+          <div className="admin-modal">
+            <h3>Confirmar eliminación de publicación</h3>
+            <p>
+              ¿Seguro que deseas eliminar la publicación de{' '}
+              <strong>{displayText(deleteModal.nombre)}</strong>? Dejará de aparecer en el catálogo público.
+            </p>
+            <div className="admin-modal-actions">
+              <button
+                className="admin-secondary-button"
+                disabled={isDeleting}
+                onClick={() => setDeleteModal(null)}
+                type="button"
+              >
+                Cancelar
+              </button>
+              <button
+                className="admin-secondary-button admin-danger-button"
+                disabled={isDeleting}
+                onClick={confirmDeletePublication}
+                type="button"
+              >
+                {isDeleting ? 'Eliminando...' : 'Confirmar eliminación'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
-

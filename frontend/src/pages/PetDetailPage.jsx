@@ -1,13 +1,8 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { apiClient } from '../services/apiClient';
-
-function formatAge(age) {
-  if (age === null || age === undefined) {
-    return 'Edad no indicada';
-  }
-
-  return age === 1 ? '1 año' : `${age} años`;
-}
+import { displayText } from '../utils/displayText';
+import { getMediaUrl } from '../utils/mediaUrl';
+import { formatPetAge } from '../utils/petDisplay';
 
 function formatStatus(status = '') {
   return status
@@ -19,8 +14,17 @@ function formatStatus(status = '') {
 function DetailImage({ name, url }) {
   const [hasError, setHasError] = useState(false);
 
+  useEffect(() => {
+    setHasError(false);
+  }, [url]);
+
   if (!url || hasError) {
-    return <div className="detail-image-placeholder">Sin imagen</div>;
+    return (
+      <div className="detail-image-placeholder">
+        <span aria-hidden="true">♡</span>
+        <strong>Sin imagen</strong>
+      </div>
+    );
   }
 
   return (
@@ -28,7 +32,7 @@ function DetailImage({ name, url }) {
       alt={`Foto de ${name}`}
       className="detail-image"
       onError={() => setHasError(true)}
-      src={url}
+      src={getMediaUrl(url)}
     />
   );
 }
@@ -81,7 +85,7 @@ export function PetDetailPage({ petId }) {
     return (
       <section className="pet-detail-page">
         <div className="detail-state detail-state-error">
-          <p>{errorMessage}</p>
+            <p>{displayText(errorMessage)}</p>
           <a className="detail-back-link" href="/">Volver a compañeros</a>
         </div>
       </section>
@@ -94,7 +98,7 @@ export function PetDetailPage({ petId }) {
         <a className="detail-back-link" href="/">Volver a compañeros</a>
         <div>
           <p className="section-kicker">Información compañero</p>
-          <h2>{pet.nombre}</h2>
+          <h2>{displayText(pet.nombre)}</h2>
           <p>
             Conoce sus datos principales antes de iniciar una postulación de
             adopción.
@@ -105,7 +109,7 @@ export function PetDetailPage({ petId }) {
       <div className="detail-layout">
         <div className="detail-main">
           <div className="detail-image-card">
-            <DetailImage name={pet.nombre} url={pet.foto_url} />
+            <DetailImage name={displayText(pet.nombre)} url={pet.foto_url} />
             <span className={`pet-status pet-status-${pet.estado}`}>
               {formatStatus(pet.estado)}
             </span>
@@ -114,24 +118,24 @@ export function PetDetailPage({ petId }) {
           <article className="detail-info-card">
             <div className="detail-title-row">
               <div>
-                <h3>{pet.nombre}</h3>
-                <p>{pet.especie}</p>
+                <h3>{displayText(pet.nombre)}</h3>
+                <p>{displayText(pet.especie)}</p>
               </div>
               <span>{formatStatus(pet.estado)}</span>
             </div>
 
             <p className="detail-published-by">
-              Publicada por <strong>{pet.publicada_por}</strong>
+              Publicada por <strong>{displayText(pet.publicada_por)}</strong>
             </p>
 
             <dl className="detail-facts">
               <div>
                 <dt>Especie</dt>
-                <dd>{pet.especie}</dd>
+                <dd>{displayText(pet.especie)}</dd>
               </div>
               <div>
                 <dt>Raza</dt>
-                <dd>{pet.raza || 'No indicada'}</dd>
+                <dd>{displayText(pet.raza, 'No indicada') || 'No indicada'}</dd>
               </div>
               <div>
                 <dt>Sexo</dt>
@@ -139,7 +143,7 @@ export function PetDetailPage({ petId }) {
               </div>
               <div>
                 <dt>Edad</dt>
-                <dd>{formatAge(pet.edad_anios)}</dd>
+                <dd>{formatPetAge(pet.edad_anios, pet.edad_meses)}</dd>
               </div>
               <div>
                 <dt>Tamaño</dt>
@@ -149,14 +153,14 @@ export function PetDetailPage({ petId }) {
 
             <div className="detail-description">
               <h4>Descripción</h4>
-              <p>{pet.descripcion || 'Aún no hay descripción disponible.'}</p>
+              <p>{displayText(pet.descripcion, 'Aún no hay descripción disponible.') || 'Aún no hay descripción disponible.'}</p>
             </div>
           </article>
         </div>
 
         <aside className="detail-sidebar" aria-label="Acciones de adopción">
           <div className="adoption-card">
-            <p>¿Quieres adoptar a {pet.nombre}?</p>
+            <p>¿Quieres adoptar a {displayText(pet.nombre)}?</p>
             <a className="detail-primary-action" href={`/mascotas/${pet.id}/postular`}>
               Postular adopción
             </a>
@@ -167,7 +171,7 @@ export function PetDetailPage({ petId }) {
 
           <div className="publisher-card">
             <span>Publicado por</span>
-            <strong>{pet.publicada_por}</strong>
+            <strong>{displayText(pet.publicada_por)}</strong>
             <p>
               Puedes revisar más compañeros disponibles en AdoptaLove.
             </p>

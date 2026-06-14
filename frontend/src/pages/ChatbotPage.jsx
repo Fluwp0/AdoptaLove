@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+﻿import { useEffect, useRef, useState } from 'react';
 import { apiClient } from '../services/apiClient';
 
 const INITIAL_MESSAGES = [
@@ -212,3 +212,4 @@ export function ChatbotPage() {
     </section>
   );
 }
+

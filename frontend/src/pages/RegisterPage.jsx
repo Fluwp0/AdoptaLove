@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { apiClient } from '../services/apiClient';
 import { saveSession } from '../services/authSession';
 
@@ -248,7 +248,7 @@ export function RegisterPage() {
                 <input
                   id="register-phone"
                   onChange={(event) => updateField('phone', event.target.value)}
-                  placeholder="982043779"
+                  placeholder="9 0000 0000"
                   type="tel"
                   value={form.phone}
                 />
@@ -378,3 +378,4 @@ export function RegisterPage() {
     </section>
   );
 }
+

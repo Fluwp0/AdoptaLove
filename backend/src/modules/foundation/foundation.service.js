@@ -237,6 +237,44 @@ async function updatePet(user, petId, payload, file = null) {
     uploadedImagePath: getUploadedImagePath(file)
   });
 
+  if (!isAdmin(user)) {
+    const foundationUserId = getUserId(user);
+    const pendingModification = await foundationModel.findPendingPetModificationRequest(
+      currentPet.id,
+      foundationUserId
+    );
+    const shouldCreateModificationRequest =
+      currentPet.estado === 'disponible' || Boolean(pendingModification);
+
+    if (!shouldCreateModificationRequest) {
+      return foundationModel.updatePet(currentPet.id, pet);
+    }
+
+    const modification = await foundationModel.createPetModificationRequest({
+      mascotaId: currentPet.id,
+      fundacionUsuarioId: foundationUserId,
+      estadoMascotaAnterior:
+        pendingModification?.estado_mascota_anterior || currentPet.estado || 'disponible',
+      datosPropuestos: {
+        descripcion: pet.descripcion,
+        edad_anios: pet.edadAnios,
+        edad_meses: pet.edadMeses,
+        especie: pet.especie,
+        foto_url: pet.fotoUrl,
+        nombre: pet.nombre,
+        raza: pet.raza,
+        sexo: pet.sexo,
+        tamano: pet.tamano
+      }
+    });
+
+    return {
+      ...currentPet,
+      estado: 'en_revision',
+      modificacion_en_revision: modification
+    };
+  }
+
   return foundationModel.updatePet(currentPet.id, pet);
 }
 

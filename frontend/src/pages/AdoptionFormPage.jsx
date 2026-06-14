@@ -1,6 +1,9 @@
-import { useEffect, useState } from 'react';
+﻿import { useEffect, useState } from 'react';
 import { apiClient } from '../services/apiClient';
 import { getCurrentUser } from '../services/authSession';
+import { displayText } from '../utils/displayText';
+import { getMediaUrl } from '../utils/mediaUrl';
+import { formatPetAge } from '../utils/petDisplay';
 
 const INITIAL_FORM = {
   homeType: '',
@@ -15,19 +18,11 @@ const INITIAL_FORM = {
   acceptsFollowUp: ''
 };
 const ACTIVE_APPLICATION_MESSAGE =
-  'Ya tienes una postulaci?n en proceso. Debes esperar a que sea aprobada, rechazada o cancelarla desde tu perfil para poder postular a otra mascota.';
+  'Ya tienes una postulación en proceso. Debes esperar a que sea aprobada, rechazada o cancelarla desde tu perfil para poder postular a otra mascota.';
 const ACTIVE_APPLICATION_STATUSES = new Set(['pendiente', 'en_revision']);
 
 function isActiveApplication(application) {
   return ACTIVE_APPLICATION_STATUSES.has(application?.estado);
-}
-
-function formatAge(age) {
-  if (age === null || age === undefined) {
-    return 'Edad no indicada';
-  }
-
-  return age === 1 ? '1 año' : `${age} años`;
 }
 
 function formatStatus(status = '') {
@@ -75,7 +70,7 @@ function PetImage({ name, url }) {
       alt={`Foto de ${name}`}
       className="adoption-pet-image"
       onError={() => setHasError(true)}
-      src={url}
+      src={getMediaUrl(url)}
     />
   );
 }
@@ -109,6 +104,7 @@ export function AdoptionFormPage({ petId }) {
           setPet(payload.data);
           setLoadStatus('success');
         }
+
       } catch (error) {
         if (isMounted) {
           setLoadError(error.message);
@@ -126,7 +122,7 @@ export function AdoptionFormPage({ petId }) {
           const activePayload = await activeResponse.json();
 
           if (!activeResponse.ok) {
-            throw new Error(activePayload.message || 'No se pudo revisar tu postulaci?n activa.');
+            throw new Error(activePayload.message || 'No se pudo revisar tu postulación activa.');
           }
 
           if (isMounted) {
@@ -218,7 +214,7 @@ export function AdoptionFormPage({ petId }) {
     return (
       <section className="adoption-page">
         <div className="detail-state detail-state-error">
-          <p>{loadError}</p>
+          <p>{displayText(loadError)}</p>
           <a className="detail-back-link" href="/">Volver a compañeros</a>
         </div>
       </section>
@@ -237,7 +233,7 @@ export function AdoptionFormPage({ petId }) {
           </p>
         </div>
         <a className="detail-back-link" href={`/mascotas/${pet.id}`}>
-          Volver a {pet.nombre}
+          Volver a {displayText(pet.nombre)}
         </a>
       </div>
 
@@ -265,7 +261,7 @@ export function AdoptionFormPage({ petId }) {
               <dl className="profile-summary-card">
                 <div>
                   <dt>Nombre completo</dt>
-                  <dd>{currentUser.nombre}</dd>
+                  <dd>{displayText(currentUser.nombre)}</dd>
                 </div>
                 <div>
                   <dt>Correo electrónico</dt>
@@ -281,14 +277,14 @@ export function AdoptionFormPage({ petId }) {
                 </div>
                 <div>
                   <dt>Dirección</dt>
-                  <dd>{currentUser.direccion}</dd>
+                  <dd>{displayText(currentUser.direccion)}</dd>
                 </div>
               </dl>
             )}
 
             {hasCurrentUser && activeApplicationStatus === 'loading' && (
               <p className="adoption-feedback adoption-feedback-submitting">
-                Revisando si tienes una postulaci?n activa...
+                Revisando si tienes una postulación activa...
               </p>
             )}
 
@@ -477,7 +473,7 @@ export function AdoptionFormPage({ petId }) {
 
           {submitFeedback && (
             <p className={`adoption-feedback adoption-feedback-${submitStatus}`}>
-              {submitFeedback}
+              {displayText(submitFeedback)}
             </p>
           )}
 
@@ -514,14 +510,14 @@ export function AdoptionFormPage({ petId }) {
           <div className="adoption-pet-card">
             <span>Mascota que te interesa</span>
             <div className="adoption-pet-image-wrap">
-              <PetImage name={pet.nombre} url={pet.foto_url} />
+              <PetImage name={displayText(pet.nombre)} url={pet.foto_url} />
             </div>
-            <h3>{pet.nombre}</h3>
+            <h3>{displayText(pet.nombre)}</h3>
             <p>
-              {pet.especie} <span>•</span> {formatAge(pet.edad_anios)} <span>•</span>{' '}
+              {displayText(pet.especie)} <span>•</span> {formatPetAge(pet.edad_anios, pet.edad_meses)} <span>•</span>{' '}
               {formatStatus(pet.tamano)}
             </p>
-            <small>Publicada por {pet.publicada_por}</small>
+            <small>Publicada por {displayText(pet.publicada_por)}</small>
           </div>
 
           <div className="adoption-help-card">
@@ -534,3 +530,4 @@ export function AdoptionFormPage({ petId }) {
     </section>
   );
 }
+

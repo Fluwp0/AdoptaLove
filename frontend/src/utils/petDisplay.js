@@ -1,4 +1,4 @@
-export function formatPetAge(yearsValue, monthsValue) {
+﻿export function formatPetAge(yearsValue, monthsValue) {
   const years = Number.isInteger(Number(yearsValue)) ? Number(yearsValue) : null;
   const months = Number.isInteger(Number(monthsValue)) ? Number(monthsValue) : null;
   const safeYears = years !== null && years >= 0 ? years : null;
@@ -23,3 +23,4 @@ export function formatPetAge(yearsValue, monthsValue) {
 
   return parts.join(' y ') || 'Edad no indicada';
 }
+

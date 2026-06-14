@@ -13,6 +13,14 @@ const PUBLIC_USER_FIELDS = `
   updated_at
 `;
 
+const NORMALIZED_RUT_SQL = `
+  UPPER(REPLACE(REPLACE(REPLACE(COALESCE(rut, ''), '.', ''), '-', ''), ' ', ''))
+`;
+
+const NORMALIZED_RUT_PARAM_SQL = `
+  UPPER(REPLACE(REPLACE(REPLACE(?, '.', ''), '-', ''), ' ', ''))
+`;
+
 async function createUser({ nombre, email, rut, passwordHash, telefono, direccion }) {
   const [result] = await db.query(
     `INSERT INTO usuarios
@@ -51,7 +59,7 @@ async function findUserByEmail(email) {
       ${PUBLIC_USER_FIELDS},
       password_hash
     FROM usuarios
-    WHERE email = ?
+    WHERE LOWER(TRIM(email)) = ?
     LIMIT 1`,
     [email]
   );
@@ -63,7 +71,7 @@ async function findUserByRut(rut) {
   const [rows] = await db.query(
     `SELECT ${PUBLIC_USER_FIELDS}
     FROM usuarios
-    WHERE rut = ?
+    WHERE ${NORMALIZED_RUT_SQL} = ${NORMALIZED_RUT_PARAM_SQL}
     LIMIT 1`,
     [rut]
   );

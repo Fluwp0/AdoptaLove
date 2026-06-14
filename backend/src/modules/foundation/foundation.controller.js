@@ -58,10 +58,13 @@ async function createPet(req, res, next) {
 async function updatePet(req, res, next) {
   try {
     const pet = await foundationService.updatePet(req.user, req.params.id, req.body, req.file);
+    const isModificationRequest = Boolean(pet?.modificacion_en_revision);
 
     return res.json({
       status: 'ok',
-      message: 'Tus cambios fueron enviados correctamente. Un administrador de AdoptaLove revisará la publicación antes de que sea visible para los adoptantes.',
+      message: isModificationRequest
+        ? 'Tus cambios fueron enviados correctamente. Un administrador de AdoptaLove revisará la modificación antes de aplicarla a la publicación.'
+        : 'Tus cambios fueron enviados correctamente. Un administrador de AdoptaLove revisará la publicación antes de que sea visible para los adoptantes.',
       data: pet
     });
   } catch (error) {
