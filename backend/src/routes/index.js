@@ -1,4 +1,5 @@
 const { Router } = require('express');
+const aboutRoutes = require('../modules/about/about.routes');
 const authRoutes = require('../modules/auth/auth.routes');
 const userRoutes = require('../modules/users/user.routes');
 const petRoutes = require('../modules/pets/pet.routes');
@@ -12,6 +13,7 @@ const foundationRoutes = require('../modules/foundation/foundation.routes');
 
 const router = Router();
 
+router.use('/about', aboutRoutes);
 router.use('/auth', authRoutes);
 router.use('/users', userRoutes);
 router.use('/mascotas', petRoutes);

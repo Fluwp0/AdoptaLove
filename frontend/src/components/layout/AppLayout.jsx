@@ -1,6 +1,7 @@
 ﻿import { useEffect, useState } from 'react';
 import logoAdoptaLove from '../../assets/logo-adoptalove.png';
 import { ChatbotWidget } from '../ChatbotWidget';
+import { Footer } from '../Footer';
 import { clearSession, getCurrentUser, onSessionChange } from '../../services/authSession';
 import { displayText } from '../../utils/displayText';
 
@@ -11,8 +12,11 @@ export function AppLayout({ children }) {
   const isCatalogActive = currentPath === '/mascotas' || currentPath.startsWith('/mascotas/');
   const isCompatibilityActive = currentPath.startsWith('/compatibilidad');
   const isDonationsActive = currentPath.startsWith('/donaciones');
+  const isAboutActive = currentPath.startsWith('/sobre-nosotros') || currentPath.startsWith('/contacto');
+  const isAdminRoute = currentPath.startsWith('/admin');
   const isFoundationActive = currentPath.startsWith('/fundacion') || currentPath.startsWith('/panel-fundacion');
   const isAdminUser = ['administrador', 'admin'].includes(user?.rol);
+  const isAdopterUser = user?.rol === 'adoptante';
   const isAdminHomeActive = currentPath === '/admin' || currentPath === '/admin/inicio';
   const isAdminUsersActive = currentPath.startsWith('/admin/usuarios');
   const isAdminPublicationsActive = currentPath.startsWith('/admin/publicaciones');
@@ -103,8 +107,14 @@ export function AppLayout({ children }) {
               >
                 Donaciones
               </a>
-              <a href="/#como-funciona">Sobre nosotros</a>
-              <a href="/#ayuda">Contacto</a>
+              <a
+                aria-current={isAboutActive && !window.location.hash ? 'page' : undefined}
+                className={isAboutActive && !window.location.hash ? 'active' : ''}
+                href="/sobre-nosotros"
+              >
+                Sobre nosotros
+              </a>
+              {!isAdopterUser && <a href="/sobre-nosotros#contacto">Contacto</a>}
             </>
           )}
         </nav>
@@ -136,6 +146,7 @@ export function AppLayout({ children }) {
         </div>
       </header>
       <main>{children}</main>
+      {!isAdminRoute && <Footer />}
       <ChatbotWidget />
     </div>
   );

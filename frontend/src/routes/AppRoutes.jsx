@@ -4,6 +4,7 @@ import { AdminModificationsPage } from '../pages/AdminModificationsPage';
 import { AdminPublicationsPage } from '../pages/AdminPublicationsPage';
 import { AdminUsersPage } from '../pages/AdminUsersPage';
 import { AdoptionFormPage } from '../pages/AdoptionFormPage';
+import { AboutPage } from '../pages/AboutPage';
 import { ChatbotPage } from '../pages/ChatbotPage';
 import { CompatibilityQuizPage } from '../pages/CompatibilityQuizPage';
 import { DonationsPage } from '../pages/DonationsPage';
@@ -26,6 +27,8 @@ export function AppRoutes() {
         <HomePage />
       ) : path === '/mascotas' ? (
         <PetCatalogPage />
+      ) : path === '/sobre-nosotros' || path === '/contacto' ? (
+        <AboutPage />
       ) : path === '/login' ? (
         <LoginPage />
       ) : path === '/registro' ? (
