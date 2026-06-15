@@ -11,6 +11,7 @@ import { FoundationDashboardPage } from '../pages/FoundationDashboardPage';
 import { HomePage } from '../pages/HomePage';
 import { LoginPage } from '../pages/LoginPage';
 import { PetDetailPage } from '../pages/PetDetailPage';
+import { PetCatalogPage } from '../pages/PetCatalogPage';
 import { ProfilePage } from '../pages/ProfilePage';
 import { RegisterPage } from '../pages/RegisterPage';
 
@@ -21,7 +22,11 @@ export function AppRoutes() {
 
   return (
     <AppLayout>
-      {path === '/login' ? (
+      {path === '/' ? (
+        <HomePage />
+      ) : path === '/mascotas' ? (
+        <PetCatalogPage />
+      ) : path === '/login' ? (
         <LoginPage />
       ) : path === '/registro' ? (
         <RegisterPage />

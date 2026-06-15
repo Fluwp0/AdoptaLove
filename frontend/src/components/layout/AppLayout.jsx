@@ -7,7 +7,8 @@ import { displayText } from '../../utils/displayText';
 export function AppLayout({ children }) {
   const [user, setUser] = useState(getCurrentUser());
   const currentPath = window.location.pathname;
-  const isHomeActive = currentPath === '/' || currentPath.startsWith('/mascotas');
+  const isHomeActive = currentPath === '/';
+  const isCatalogActive = currentPath === '/mascotas' || currentPath.startsWith('/mascotas/');
   const isCompatibilityActive = currentPath.startsWith('/compatibilidad');
   const isDonationsActive = currentPath.startsWith('/donaciones');
   const isFoundationActive = currentPath.startsWith('/fundacion') || currentPath.startsWith('/panel-fundacion');
@@ -74,11 +75,17 @@ export function AppLayout({ children }) {
             </>
           ) : (
             <>
-              <a href="/">Inicio</a>
               <a
                 aria-current={isHomeActive ? 'page' : undefined}
                 className={isHomeActive ? 'active' : ''}
                 href="/"
+              >
+                Inicio
+              </a>
+              <a
+                aria-current={isCatalogActive ? 'page' : undefined}
+                className={isCatalogActive ? 'active' : ''}
+                href="/mascotas"
               >
                 Compañeros disponibles
               </a>
@@ -96,8 +103,8 @@ export function AppLayout({ children }) {
               >
                 Donaciones
               </a>
-              <a href="/">Sobre nosotros</a>
-              <a href="/">Contacto</a>
+              <a href="/#como-funciona">Sobre nosotros</a>
+              <a href="/#ayuda">Contacto</a>
             </>
           )}
         </nav>
@@ -133,4 +140,3 @@ export function AppLayout({ children }) {
     </div>
   );
 }
-

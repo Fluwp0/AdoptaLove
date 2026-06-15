@@ -1,14 +1,26 @@
-﻿import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import logoAdoptaLove from '../assets/logo-adoptalove.png';
 import { apiClient } from '../services/apiClient';
 import { displayText } from '../utils/displayText';
 import { getMediaUrl } from '../utils/mediaUrl';
 import { formatPetAge } from '../utils/petDisplay';
 
-const FILTERS = [
-  { label: 'Todos', value: 'all' },
-  { label: 'Perros', value: 'perro' },
-  { label: 'Gatos', value: 'gato' },
-  { label: 'Otros', value: 'otros' }
+const HOW_IT_WORKS = [
+  {
+    icon: '🐾',
+    title: 'Explora',
+    text: 'Revisa los compañeros disponibles según especie, edad, tamaño o comuna.'
+  },
+  {
+    icon: '♡',
+    title: 'Postula',
+    text: 'Completa una solicitud de adopción para la mascota que quieres conocer.'
+  },
+  {
+    icon: '⌂',
+    title: 'Adopta',
+    text: 'La fundación revisa tu solicitud y continúa el proceso responsable.'
+  }
 ];
 
 function formatStatus(status = '') {
@@ -18,7 +30,7 @@ function formatStatus(status = '') {
     .join(' ');
 }
 
-function PetImage({ name, url }) {
+function FeaturedPetImage({ name, url }) {
   const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
@@ -27,7 +39,7 @@ function PetImage({ name, url }) {
 
   if (!url || hasError) {
     return (
-      <div className="pet-image-placeholder">
+      <div className="home-pet-placeholder">
         <span aria-hidden="true">♡</span>
         <strong>Sin imagen</strong>
       </div>
@@ -37,215 +49,207 @@ function PetImage({ name, url }) {
   return (
     <img
       alt={`Foto de ${name}`}
-      className="pet-image"
+      className="home-pet-image"
       onError={() => setHasError(true)}
       src={getMediaUrl(url)}
     />
   );
 }
 
-function matchesFilter(pet, activeFilter) {
-  const species = pet.especie?.toLowerCase() ?? '';
-
-  if (activeFilter === 'all') {
-    return true;
-  }
-
-  if (activeFilter === 'perro') {
-    return species.includes('perro');
-  }
-
-  if (activeFilter === 'gato') {
-    return species.includes('gato');
-  }
-
-  return !species.includes('perro') && !species.includes('gato');
-}
-
-function matchesSearch(pet, searchTerm) {
-  const normalizedTerm = searchTerm.trim().toLowerCase();
-
-  if (!normalizedTerm) {
-    return true;
-  }
-
-  return [
-    pet.nombre,
-    pet.especie,
-    pet.raza,
-    pet.sexo,
-    pet.tamano,
-    pet.estado,
-    pet.descripcion,
-    pet.publicada_por
-  ]
-    .filter(Boolean)
-    .some((value) => displayText(value).toLowerCase().includes(normalizedTerm));
-}
-
 export function HomePage() {
   const [pets, setPets] = useState([]);
-  const [status, setStatus] = useState('loading');
-  const [errorMessage, setErrorMessage] = useState('');
-  const [activeFilter, setActiveFilter] = useState('all');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [featuredStatus, setFeaturedStatus] = useState('loading');
 
   useEffect(() => {
     let isMounted = true;
 
-    async function loadPets() {
+    async function loadFeaturedPets() {
       try {
         const response = await apiClient('/mascotas');
-
-        if (!response.ok) {
-          throw new Error('No se pudieron cargar las mascotas.');
-        }
-
         const payload = await response.json();
 
-        if (isMounted) {
-          setPets(payload.data ?? []);
-          setStatus('success');
+        if (!response.ok) {
+          throw new Error(payload.message || 'No se pudieron cargar las mascotas.');
         }
-      } catch (error) {
+
         if (isMounted) {
-          setErrorMessage(error.message);
-          setStatus('error');
+          setPets(Array.isArray(payload.data) ? payload.data : []);
+          setFeaturedStatus('success');
+        }
+      } catch (_error) {
+        if (isMounted) {
+          setPets([]);
+          setFeaturedStatus('error');
         }
       }
     }
 
-    loadPets();
+    loadFeaturedPets();
 
     return () => {
       isMounted = false;
     };
   }, []);
 
-  const visiblePets = useMemo(
-    () =>
-      pets.filter(
-        (pet) => matchesFilter(pet, activeFilter) && matchesSearch(pet, searchTerm)
-      ),
-    [activeFilter, pets, searchTerm]
-  );
+  const featuredPets = useMemo(() => {
+    const availablePets = pets.filter((pet) => pet.estado === 'disponible');
+    const sourcePets = availablePets.length > 0 ? availablePets : pets;
+
+    return sourcePets.slice(0, 3);
+  }, [pets]);
 
   return (
-    <section className="catalog-page">
-      <div className="catalog-hero">
-        <div>
-          <p className="section-kicker">Compañeros disponibles</p>
-          <h2>Encuentra a tu nuevo mejor amigo</h2>
-          <p className="catalog-subtitle">
-            Mascotas reales conectadas desde AdoptaLove, listas para conocer una
-            familia con mucho amor.
+    <section className="home-page">
+      <section className="home-hero" aria-labelledby="home-title">
+        <div className="home-hero-copy">
+          <p className="home-pill">Adopciones responsables</p>
+          <h1 id="home-title">Encuentra a tu próximo compañero de vida</h1>
+          <p>
+            AdoptaLove conecta personas con fundaciones y mascotas que buscan
+            un hogar responsable.
           </p>
+          <div className="home-hero-actions">
+            <a className="home-primary-button" href="/mascotas">
+              Ver compañeros disponibles
+            </a>
+            <a className="home-secondary-button" href="/compatibilidad">
+              Hacer quiz de compatibilidad
+            </a>
+          </div>
         </div>
 
-        <form className="catalog-search" role="search">
-          <label htmlFor="pet-search">Buscar mascota</label>
-          <input
-            id="pet-search"
-            onChange={(event) => setSearchTerm(event.target.value)}
-            placeholder="Buscar mascota..."
-            type="search"
-            value={searchTerm}
-          />
-        </form>
-      </div>
+        <aside className="home-hero-visual" aria-label="AdoptaLove en acción">
+          <div className="home-hero-logo-card">
+            <img alt="AdoptaLove" src={logoAdoptaLove} />
+            <span>Amor que encuentra hogar</span>
+          </div>
+          <div className="home-visual-grid">
+            <div>
+              <span aria-hidden="true">🐶</span>
+              <strong>Perros</strong>
+            </div>
+            <div>
+              <span aria-hidden="true">🐱</span>
+              <strong>Gatos</strong>
+            </div>
+            <div>
+              <span aria-hidden="true">🏡</span>
+              <strong>Hogares</strong>
+            </div>
+          </div>
+        </aside>
+      </section>
 
-      <div className="catalog-toolbar" aria-label="Filtros de mascotas">
-        <div className="filter-tabs">
-          {FILTERS.map((filter) => (
-            <button
-              className={activeFilter === filter.value ? 'filter-tab active' : 'filter-tab'}
-              key={filter.value}
-              onClick={() => setActiveFilter(filter.value)}
-              type="button"
-            >
-              {filter.label}
-            </button>
+      <section className="home-section" id="como-funciona">
+        <div className="home-section-heading">
+          <span>¿Cómo funciona?</span>
+          <h2>Un proceso simple para adoptar con responsabilidad</h2>
+        </div>
+
+        <div className="home-steps-grid">
+          {HOW_IT_WORKS.map((step) => (
+            <article className="home-info-card" key={step.title}>
+              <span aria-hidden="true">{step.icon}</span>
+              <h3>{step.title}</h3>
+              <p>{step.text}</p>
+            </article>
           ))}
         </div>
-        <button className="filter-button" type="button">Filtrar</button>
-      </div>
+      </section>
 
-      {status === 'loading' && (
-        <div className="catalog-state">Cargando mascotas...</div>
-      )}
+      <section className="home-section home-featured-section">
+        <div className="home-section-heading">
+          <span>Compañeros destacados</span>
+          <h2>Compañeros que esperan un hogar</h2>
+        </div>
 
-      {status === 'error' && (
-        <div className="catalog-state catalog-state-error">{errorMessage}</div>
-      )}
+        {featuredStatus === 'loading' && (
+          <p className="home-state">Cargando compañeros destacados...</p>
+        )}
 
-      {status === 'success' && (
-        <>
-          <div className="catalog-summary">
-            <span>{visiblePets.length} mascotas encontradas</span>
-            <span>Cada mascota merece un hogar lleno de amor</span>
+        {featuredStatus === 'error' && (
+          <div className="home-state">
+            <p>No pudimos cargar compañeros destacados por ahora.</p>
+            <a className="home-secondary-button" href="/mascotas">
+              Ver todos los compañeros disponibles
+            </a>
           </div>
+        )}
 
-          <div className="pet-grid">
-            {visiblePets.map((pet) => (
-              <article className="pet-card" key={pet.id}>
-                <div className="pet-image-wrap">
-                  <PetImage name={displayText(pet.nombre)} url={pet.foto_url} />
-                  <span className={`pet-status pet-status-${pet.estado}`}>
-                    {formatStatus(pet.estado)}
-                  </span>
-                  <button
-                    aria-label={`Guardar ${displayText(pet.nombre)} como favorito`}
-                    className="favorite-button"
-                    type="button"
-                  >
-                    Favorito
-                  </button>
-                </div>
+        {featuredStatus === 'success' && featuredPets.length === 0 && (
+          <div className="home-state">
+            <p>No hay compañeros destacados disponibles en este momento.</p>
+            <a className="home-secondary-button" href="/mascotas">
+              Ver catálogo
+            </a>
+          </div>
+        )}
 
-                <div className="pet-card-body">
-                  <div className="pet-title-row">
-                    <div>
-                      <h3>{displayText(pet.nombre)}</h3>
-                      <p>{displayText(pet.especie)}</p>
-                    </div>
-                    <span>{displayText(pet.publicada_por)}</span>
+        {featuredStatus === 'success' && featuredPets.length > 0 && (
+          <>
+            <div className="home-featured-grid">
+              {featuredPets.map((pet) => (
+                <article className="home-pet-card" key={pet.id}>
+                  <div className="home-pet-image-wrap">
+                    <FeaturedPetImage name={displayText(pet.nombre)} url={pet.foto_url} />
+                    <span className={`pet-status pet-status-${pet.estado}`}>
+                      {formatStatus(pet.estado)}
+                    </span>
                   </div>
-
-                  <p className="pet-quick-info">
-                    {formatPetAge(pet.edad_anios, pet.edad_meses)} <span>•</span> {formatStatus(pet.tamano)}
-                  </p>
-
-                  <dl className="pet-facts">
-                    <div>
-                      <dt>Raza</dt>
-                      <dd>{displayText(pet.raza, 'No indicada') || 'No indicada'}</dd>
-                    </div>
-                    <div>
-                      <dt>Sexo</dt>
-                      <dd>{formatStatus(pet.sexo)}</dd>
-                    </div>
-                  </dl>
-
-                  <p className="pet-description">{displayText(pet.descripcion)}</p>
-
-                  <a
-                    className="pet-detail-link"
-                    href={`/mascotas/${pet.id}`}
-                  >
-                    Ver detalle
-                  </a>
-                </div>
-              </article>
-            ))}
-          </div>
-
-          {!visiblePets.length && (
-            <div className="catalog-state">
-              No encontramos mascotas con esos filtros por ahora.
+                  <div className="home-pet-body">
+                    <h3>{displayText(pet.nombre)}</h3>
+                    <p>
+                      {displayText(pet.especie)} <span>•</span>{' '}
+                      {formatPetAge(pet.edad_anios, pet.edad_meses)}
+                    </p>
+                    <small>{displayText(pet.publicada_por, 'AdoptaLove')}</small>
+                    <a className="pet-detail-link home-pet-link" href={`/mascotas/${pet.id}`}>
+                      Ver más
+                    </a>
+                  </div>
+                </article>
+              ))}
             </div>
-          )}
-        </>
-      )}
+            <a className="home-section-link" href="/mascotas">
+              Ver todos los compañeros disponibles
+            </a>
+          </>
+        )}
+      </section>
+
+      <section className="home-action-grid" id="ayuda" aria-label="Más formas de participar">
+        <article className="home-action-card">
+          <span aria-hidden="true">💗</span>
+          <div>
+            <h2>También puedes ayudar</h2>
+            <p>
+              Tu apoyo ayuda a cubrir alimentación, atención médica y hogares
+              temporales para mascotas que esperan una familia.
+            </p>
+          </div>
+          <a className="home-primary-button" href="/donaciones">
+            Quiero contribuir
+          </a>
+        </article>
+
+        <article className="home-action-card">
+          <span aria-hidden="true">✦</span>
+          <div>
+            <h2>¿Tienes dudas?</h2>
+            <p>
+              Nuestro asistente puede ayudarte con preguntas frecuentes sobre
+              adopción, cuidados y uso de la plataforma.
+            </p>
+          </div>
+          <a className="home-secondary-button" href="/chatbot">
+            Consultar ayuda
+          </a>
+        </article>
+      </section>
+
+      <section className="home-final-band">
+        <p>Cada mascota merece un hogar lleno de amor</p>
+      </section>
     </section>
   );
 }

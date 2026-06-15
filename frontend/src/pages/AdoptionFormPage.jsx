@@ -215,7 +215,7 @@ export function AdoptionFormPage({ petId }) {
       <section className="adoption-page">
         <div className="detail-state detail-state-error">
           <p>{displayText(loadError)}</p>
-          <a className="detail-back-link" href="/">Volver a compañeros</a>
+          <a className="detail-back-link" href="/mascotas">Volver a compañeros</a>
         </div>
       </section>
     );
@@ -523,11 +523,10 @@ export function AdoptionFormPage({ petId }) {
           <div className="adoption-help-card">
             <h3>¿Dudas?</h3>
             <p>Estamos aquí para ayudarte durante el proceso de adopción.</p>
-            <a href="/">Volver a compañeros</a>
+            <a href="/mascotas">Volver a compañeros</a>
           </div>
         </aside>
       </div>
     </section>
   );
 }
-

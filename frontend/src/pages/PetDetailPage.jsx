@@ -86,7 +86,7 @@ export function PetDetailPage({ petId }) {
       <section className="pet-detail-page">
         <div className="detail-state detail-state-error">
             <p>{displayText(errorMessage)}</p>
-          <a className="detail-back-link" href="/">Volver a compañeros</a>
+          <a className="detail-back-link" href="/mascotas">Volver a compañeros</a>
         </div>
       </section>
     );
@@ -95,7 +95,7 @@ export function PetDetailPage({ petId }) {
   return (
     <section className="pet-detail-page">
       <div className="detail-hero">
-        <a className="detail-back-link" href="/">Volver a compañeros</a>
+        <a className="detail-back-link" href="/mascotas">Volver a compañeros</a>
         <div>
           <p className="section-kicker">Información compañero</p>
           <h2>{displayText(pet.nombre)}</h2>
@@ -164,7 +164,7 @@ export function PetDetailPage({ petId }) {
             <a className="detail-primary-action" href={`/mascotas/${pet.id}/postular`}>
               Postular adopción
             </a>
-            <a className="detail-secondary-action" href="/">
+            <a className="detail-secondary-action" href="/mascotas">
               Volver a compañeros
             </a>
           </div>
