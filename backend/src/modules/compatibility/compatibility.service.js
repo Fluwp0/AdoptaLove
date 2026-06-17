@@ -9,7 +9,7 @@ const QUESTIONS = [
     options: [
       { value: 'perro', label: 'Perro', icon: 'dog' },
       { value: 'gato', label: 'Gato', icon: 'cat' },
-      { value: 'indiferente', label: 'Me da igual', icon: 'heart' },
+      { value: 'indiferente', label: 'Me da igual', icon: 'openHeart' },
       { value: 'otro', label: 'Otro', icon: 'paw' }
     ]
   },
@@ -30,35 +30,35 @@ const QUESTIONS = [
     id: 'tieneNinos',
     title: '¿Tienes niños en casa?',
     description: 'Esto ayuda a priorizar mascotas con una convivencia adecuada.',
-    icon: 'home',
+    icon: 'family',
     options: [
-      { value: 'si', label: 'Sí', icon: 'heart' },
-      { value: 'no', label: 'No', icon: 'paw' }
+      { value: 'si', label: 'Sí', icon: 'kids' },
+      { value: 'no', label: 'No', icon: 'quietHome' }
     ]
   },
   {
     id: 'edadNinos',
     title: '¿Qué rango de edad tienen los niños?',
     description: 'Cada etapa necesita un tipo de acompañamiento distinto.',
-    icon: 'spark',
+    icon: 'kids',
     dependsOn: { questionId: 'tieneNinos', value: 'si' },
     options: [
-      { value: '0-3', label: '0 a 3 años', icon: 'home' },
-      { value: '4-7', label: '4 a 7 años', icon: 'home' },
-      { value: '8-12', label: '8 a 12 años', icon: 'home' },
-      { value: '12+', label: 'Más de 12 años', icon: 'home' }
+      { value: '0-3', label: '0 a 3 años', icon: 'baby' },
+      { value: '4-7', label: '4 a 7 años', icon: 'toy' },
+      { value: '8-12', label: '8 a 12 años', icon: 'backpack' },
+      { value: '12+', label: 'Más de 12 años', icon: 'teen' }
     ]
   },
   {
     id: 'nivelActividad',
     title: '¿Qué nivel de actividad prefieres?',
     description: 'Piensa en el ritmo que mejor encaja con tu vida diaria.',
-    icon: 'paw',
+    icon: 'compass',
     options: [
-      { value: 'tranquila', label: 'Mascota tranquila', icon: 'heart' },
+      { value: 'tranquila', label: 'Mascota tranquila', icon: 'moon' },
       { value: 'moderada', label: 'Actividad moderada', icon: 'paw' },
-      { value: 'activa', label: 'Mascota activa', icon: 'spark' },
-      { value: 'indiferente', label: 'Me da igual', icon: 'heart' }
+      { value: 'activa', label: 'Mascota activa', icon: 'bolt' },
+      { value: 'indiferente', label: 'Me da igual', icon: 'openHeart' }
     ]
   },
   {
@@ -68,8 +68,8 @@ const QUESTIONS = [
     icon: 'home',
     options: [
       { value: 'casa', label: 'Casa', icon: 'home' },
-      { value: 'departamento', label: 'Departamento', icon: 'home' },
-      { value: 'parcela', label: 'Parcela o espacio amplio', icon: 'spark' }
+      { value: 'departamento', label: 'Departamento', icon: 'building' },
+      { value: 'parcela', label: 'Parcela o espacio amplio', icon: 'tree' }
     ]
   },
   {
@@ -83,7 +83,7 @@ const QUESTIONS = [
         value: 'poco-tiempo',
         label: 'Poco tiempo',
         description: 'Menos de 2 horas',
-        icon: 'clock'
+        icon: 'hourglass'
       },
       {
         value: 'tiempo-medio',
@@ -95,7 +95,7 @@ const QUESTIONS = [
         value: 'mucho-tiempo',
         label: 'Mucho tiempo',
         description: 'Más de 4 horas',
-        icon: 'spark'
+        icon: 'sun'
       }
     ]
   }

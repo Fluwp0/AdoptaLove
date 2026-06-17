@@ -42,12 +42,12 @@ const HELP_ITEMS = [
     text: 'Ayuda a que más personas conozcan mascotas que buscan un hogar.'
   },
   {
-    icon: '✦',
+    icon: '✨',
     title: 'Mejora continua',
     text: 'Tu donación apoya nuevas funciones y mejoras para la experiencia de adopción.'
   },
   {
-    icon: '♡',
+    icon: '💗',
     title: 'Más oportunidades para ayudar',
     text: 'Con una plataforma activa, más mascotas pueden ser vistas y adoptadas.'
   }
@@ -165,7 +165,7 @@ export function DonationsPage() {
 
       setSubmitStatus('success');
       setSuccessDonation(payload.data);
-      setFeedback('Gracias por tu donación. Tu apoyo ayuda a que más mascotas encuentren un hogar.');
+      setFeedback('Gracias por tu donación. Tu apoyo ayuda a mantener AdoptaLove activa y a aumentar la visibilidad de mascotas que esperan un hogar.');
       setMessage('');
 
       const summaryResponse = await apiClient('/donations/summary');
@@ -185,10 +185,10 @@ export function DonationsPage() {
       <div className="donations-hero">
         <div>
           <span className="donations-pill">Donaciones solidarias</span>
-          <h2>Ayuda a cambiar más vidas</h2>
+          <h2>Ayuda a conectar más historias</h2>
           <p>
-            Tu aporte ayuda a alimentar, cuidar y proteger mascotas que esperan
-            un hogar.
+            Tu aporte ayuda a mantener AdoptaLove activa, mejorar sus funciones
+            y aumentar la visibilidad de mascotas que esperan un hogar.
           </p>
           <a className="donations-hero-action" href="#donation-form">
             Donar ahora
@@ -196,7 +196,7 @@ export function DonationsPage() {
         </div>
 
         <aside className="donations-impact-card" aria-label="Resumen de donaciones">
-          <span>♡</span>
+          <span aria-hidden="true">💖</span>
           <strong>{formatCurrency(summary?.total_donado ?? 0)}</strong>
           <p>Total donado en aportes simulados</p>
           <small>{summary?.cantidad_donaciones ?? 0} donaciones registradas</small>
@@ -206,7 +206,7 @@ export function DonationsPage() {
       <div className="donations-layout">
         <form className="donation-form-card" id="donation-form" onSubmit={handleSubmit}>
           <div className="donation-section-heading">
-            <span>🐾</span>
+            <span aria-hidden="true">🐾</span>
             <div>
               <h3>Elige tu aporte</h3>
               <p>
@@ -229,7 +229,7 @@ export function DonationsPage() {
                 onClick={() => selectSuggestedAmount(amount)}
                 type="button"
               >
-                <span>💗</span>
+                <span aria-hidden="true">💗</span>
                 <strong>{formatCurrency(amount)}</strong>
               </button>
             ))}
@@ -243,7 +243,7 @@ export function DonationsPage() {
               onClick={selectCustomAmount}
               type="button"
             >
-              <span>✦</span>
+              <span aria-hidden="true">✨</span>
               <strong>Otro monto</strong>
             </button>
           </div>
@@ -273,7 +273,7 @@ export function DonationsPage() {
                 onClick={() => setPaymentMethod(method.value)}
                 type="button"
               >
-                <span>{method.icon}</span>
+                <span aria-hidden="true">{method.icon}</span>
                 <strong>{method.label}</strong>
                 <small>{method.description}</small>
               </button>
@@ -321,7 +321,7 @@ export function DonationsPage() {
           <div className="donations-help-list">
             {HELP_ITEMS.map((item) => (
               <div key={item.title}>
-                <span>{item.icon}</span>
+                <span aria-hidden="true">{item.icon}</span>
                 <div>
                   <strong>{item.title}</strong>
                   <p>{item.text}</p>
@@ -346,4 +346,3 @@ export function DonationsPage() {
     </section>
   );
 }
-

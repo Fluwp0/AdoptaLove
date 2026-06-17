@@ -36,7 +36,6 @@ export function Footer() {
 
         <nav className="site-footer-column" aria-label="Ayuda">
           <h2>Ayuda</h2>
-          <a href="/sobre-nosotros#contacto">Contacto</a>
           <a href="/sobre-nosotros#preguntas-frecuentes">Preguntas frecuentes</a>
           <a href="/chatbot">Chatbot o Ayuda</a>
         </nav>

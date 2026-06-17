@@ -28,7 +28,7 @@ function PetImage({ name, url }) {
   if (!url || hasError) {
     return (
       <div className="pet-image-placeholder">
-        <span aria-hidden="true">♡</span>
+        <span aria-hidden="true">💗</span>
         <strong>Sin imagen</strong>
       </div>
     );

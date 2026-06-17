@@ -21,7 +21,7 @@ function DetailImage({ name, url }) {
   if (!url || hasError) {
     return (
       <div className="detail-image-placeholder">
-        <span aria-hidden="true">♡</span>
+        <span aria-hidden="true">💗</span>
         <strong>Sin imagen</strong>
       </div>
     );

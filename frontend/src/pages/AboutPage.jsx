@@ -23,7 +23,7 @@ const FAQ_ITEMS = [
   {
     question: '¿Qué costo tiene adoptar una mascota?',
     answer:
-      'AdoptaLove no vende mascotas. Algunas fundaciones pueden solicitar aportes para cubrir vacunas, alimentación, esterilización u otros cuidados.'
+      'AdoptaLove no vende mascotas. Si una fundación solicita algún aporte propio dentro de su proceso, debe informarlo directamente y con claridad. Las donaciones de AdoptaLove apoyan la mantención y mejora de la plataforma.'
   },
   {
     question: '¿Qué pasa después de enviar una solicitud?',
@@ -34,13 +34,13 @@ const FAQ_ITEMS = [
 
 const CONTACT_ITEMS = [
   {
-    icon: '✉',
+    icon: '💌',
     label: 'Correo',
     value: CONTACT_EMAIL,
     href: `mailto:${CONTACT_EMAIL}`
   },
   {
-    icon: '⌂',
+    icon: '📍',
     label: 'Ubicación',
     value: 'Santiago, Chile'
   }
@@ -54,7 +54,7 @@ const SOCIAL_LINKS = [
     href: 'https://www.instagram.com/adopta.love2026'
   },
   {
-    icon: '♪',
+    icon: 'tiktok',
     label: 'TikTok',
     handle: '@adopta.love',
     href: 'https://www.tiktok.com/@adopta.love'
@@ -83,9 +83,33 @@ function InstagramIcon() {
   );
 }
 
+function TikTokIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      className="about-tiktok-icon"
+      focusable="false"
+      viewBox="0 0 64 64"
+    >
+      <path
+        className="about-tiktok-soft-shadow"
+        d="M38.3 13.5c1.4 6.1 5.9 10.4 12.2 11.5v8.7a22.5 22.5 0 0 1-12-3.8v13.7c0 8.2-6.4 14.8-14.6 14.8-7.7 0-13.9-5.8-13.9-13 0-8.1 6.8-13.9 15.2-12.8v8.8c-3.7-.9-6.7 1.2-6.7 4.3 0 2.9 2.4 5 5.4 5 3.3 0 5.6-2.5 5.6-6V13.5h8.8Z"
+      />
+      <path
+        className="about-tiktok-accent"
+        d="M35.8 11.5c1.5 6 6 10.2 12.2 11.4v7.2a21.6 21.6 0 0 1-11.8-3.9v14.9c0 7.6-5.8 13.8-13.3 13.8-6.9 0-12.4-5.1-12.4-11.5 0-7.4 6.1-12.5 13.6-11.4v7.4c-3.5-1-6.4 1-6.4 4.1 0 2.8 2.3 4.9 5.3 4.9 3.4 0 5.6-2.5 5.6-6V11.5h7.2Z"
+      />
+    </svg>
+  );
+}
+
 function SocialIcon({ icon }) {
   if (icon === 'instagram') {
     return <InstagramIcon />;
+  }
+
+  if (icon === 'tiktok') {
+    return <TikTokIcon />;
   }
 
   return <span aria-hidden="true">{icon}</span>;
@@ -178,8 +202,8 @@ export function AboutPage() {
           </div>
           <div className="about-visual-icons">
             <span aria-hidden="true">🐾</span>
-            <span aria-hidden="true">♡</span>
-            <span aria-hidden="true">⌂</span>
+            <span aria-hidden="true">💗</span>
+            <span aria-hidden="true">🏡</span>
           </div>
           <p>Historias de adopción responsable, cuidado y comunidad.</p>
         </aside>
@@ -265,7 +289,7 @@ export function AboutPage() {
         <div className="about-commitment-grid">
           {COMMITMENT_ITEMS.map((item) => (
             <article key={item}>
-              <span aria-hidden="true">♡</span>
+              <span aria-hidden="true">💗</span>
               <strong>{item}</strong>
             </article>
           ))}

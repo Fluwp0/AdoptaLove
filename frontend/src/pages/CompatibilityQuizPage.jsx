@@ -6,17 +6,32 @@ import { getMediaUrl } from '../utils/mediaUrl';
 import { formatPetAge } from '../utils/petDisplay';
 
 const ICONS = {
+  baby: '👶',
+  backpack: '🎒',
   bird: '🐦',
+  bolt: '⚡',
+  building: '🏢',
   cat: '🐱',
   clock: '⏰',
+  compass: '🧭',
   dog: '🐶',
+  family: '👨‍👩‍👧',
   hamster: '🐹',
-  heart: '♡',
-  heartClock: '💗',
-  home: '⌂',
+  heart: '💗',
+  heartClock: '💕',
+  home: '🏡',
+  hourglass: '⏳',
+  kids: '🧒',
+  moon: '🌙',
+  openHeart: '💖',
   paw: '🐾',
+  quietHome: '🏠',
   rabbit: '🐰',
-  spark: '✦',
+  spark: '✨',
+  sun: '☀️',
+  teen: '🌟',
+  toy: '🧸',
+  tree: '🌳',
   turtle: '🐢'
 };
 
@@ -266,7 +281,7 @@ export function CompatibilityQuizPage() {
           </div>
 
           <aside className="quiz-intro-card" aria-label="Resumen del quiz">
-            <span className="quiz-card-icon">♡</span>
+            <span className="quiz-card-icon" aria-hidden="true">💗</span>
             <h3>Un match pensado con cariño</h3>
             <p>
               La recomendación prioriza especie, tamaño, vivienda, niños en casa,
@@ -356,7 +371,7 @@ export function CompatibilityQuizPage() {
           </div>
 
           <div className="quiz-question-heading">
-            <span>{ICONS[currentQuestion.icon] ?? ICONS.heart}</span>
+            <span aria-hidden="true">{ICONS[currentQuestion.icon] ?? ICONS.heart}</span>
             <div>
               <h2>{currentQuestion.title}</h2>
               <p>{currentQuestion.description}</p>
@@ -387,7 +402,9 @@ export function CompatibilityQuizPage() {
                   onClick={() => updateAnswer(currentQuestion.id, option.value)}
                   type="button"
                 >
-                  <span className="quiz-option-icon">{ICONS[option.icon] ?? ICONS.paw}</span>
+                  <span className="quiz-option-icon" aria-hidden="true">
+                    {ICONS[option.icon] ?? ICONS.paw}
+                  </span>
                   <span className="quiz-option-copy">
                     <strong>{option.label}</strong>
                     {option.description && <small>{option.description}</small>}
@@ -439,4 +456,3 @@ export function CompatibilityQuizPage() {
     </section>
   );
 }
-

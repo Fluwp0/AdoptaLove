@@ -165,7 +165,7 @@ export function ChatbotPage() {
 
             {status === 'submitting' && (
               <div className="chatbot-message chatbot-message-bot chatbot-message-typing">
-                <span>🐾</span>
+                <span aria-hidden="true">🐾</span>
                 <p>Buscando respuesta...</p>
               </div>
             )}
@@ -202,7 +202,7 @@ export function ChatbotPage() {
                 onClick={() => sendQuestion(question)}
                 type="button"
               >
-                <span>♡</span>
+                <span aria-hidden="true">💗</span>
                 {question}
               </button>
             ))}
@@ -212,4 +212,3 @@ export function ChatbotPage() {
     </section>
   );
 }
-

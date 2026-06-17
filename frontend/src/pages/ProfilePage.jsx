@@ -46,7 +46,7 @@ function PetProcessImage({ name, url }) {
   if (!url || hasError) {
     return (
       <div className="profile-adoption-placeholder" aria-hidden="true">
-        ♡
+        💗
       </div>
     );
   }
@@ -414,4 +414,3 @@ export function ProfilePage() {
     </section>
   );
 }
-

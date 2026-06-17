@@ -301,10 +301,9 @@ export function ChatbotWidget() {
         onClick={() => setIsOpen((currentValue) => !currentValue)}
         type="button"
       >
-        <span>🐾</span>
+        <span aria-hidden="true">🐾</span>
         <strong>Ayuda</strong>
       </button>
     </div>
   );
 }
-

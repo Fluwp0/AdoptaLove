@@ -16,7 +16,6 @@ export function AppLayout({ children }) {
   const isAdminRoute = currentPath.startsWith('/admin');
   const isFoundationActive = currentPath.startsWith('/fundacion') || currentPath.startsWith('/panel-fundacion');
   const isAdminUser = ['administrador', 'admin'].includes(user?.rol);
-  const isAdopterUser = user?.rol === 'adoptante';
   const isAdminHomeActive = currentPath === '/admin' || currentPath === '/admin/inicio';
   const isAdminUsersActive = currentPath.startsWith('/admin/usuarios');
   const isAdminPublicationsActive = currentPath.startsWith('/admin/publicaciones');
@@ -114,7 +113,6 @@ export function AppLayout({ children }) {
               >
                 Sobre nosotros
               </a>
-              {!isAdopterUser && <a href="/sobre-nosotros#contacto">Contacto</a>}
             </>
           )}
         </nav>

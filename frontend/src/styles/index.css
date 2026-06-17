@@ -36,6 +36,34 @@ a {
   -webkit-tap-highlight-color: transparent;
 }
 
+.home-visual-grid span,
+.home-info-card > span,
+.home-action-card > span,
+.home-pet-placeholder span,
+.donations-impact-card > span,
+.donation-section-heading > span,
+.donation-amount-card span,
+.donation-method-card span,
+.donations-help-list span,
+.quiz-card-icon,
+.quiz-question-heading > span,
+.quiz-option-icon,
+.chatbot-message-bot > span,
+.chatbot-message-typing > span,
+.chatbot-quick-card button span,
+.chatbot-widget-toggle span,
+.about-visual-icons span,
+.about-contact-card > span,
+.about-social-card > span,
+.about-commitment-grid span,
+.pet-image-placeholder span,
+.detail-image-placeholder span,
+.profile-adoption-placeholder {
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", system-ui, sans-serif;
+  line-height: 1;
+  text-rendering: auto;
+}
+
 .app-shell {
   min-height: 100vh;
   overflow: hidden;
@@ -988,6 +1016,25 @@ button.header-button {
   height: 64px;
   padding: 11px;
   width: 64px;
+}
+
+.about-tiktok-icon {
+  background: var(--pink-soft);
+  border-radius: 22px;
+  height: 64px;
+  overflow: visible;
+  padding: 10px;
+  width: 64px;
+}
+
+.about-tiktok-soft-shadow {
+  fill: #d9a0f0;
+  opacity: 0.7;
+  transform: translate(2px, 1.8px);
+}
+
+.about-tiktok-accent {
+  fill: var(--pink);
 }
 
 .about-instagram-frame,

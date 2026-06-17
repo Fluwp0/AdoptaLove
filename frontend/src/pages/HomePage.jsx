@@ -12,12 +12,12 @@ const HOW_IT_WORKS = [
     text: 'Revisa los compañeros disponibles según especie, edad, tamaño o comuna.'
   },
   {
-    icon: '♡',
+    icon: '💗',
     title: 'Postula',
     text: 'Completa una solicitud de adopción para la mascota que quieres conocer.'
   },
   {
-    icon: '⌂',
+    icon: '🏡',
     title: 'Adopta',
     text: 'La fundación revisa tu solicitud y continúa el proceso responsable.'
   }
@@ -40,7 +40,7 @@ function FeaturedPetImage({ name, url }) {
   if (!url || hasError) {
     return (
       <div className="home-pet-placeholder">
-        <span aria-hidden="true">♡</span>
+        <span aria-hidden="true">💗</span>
         <strong>Sin imagen</strong>
       </div>
     );
@@ -219,12 +219,13 @@ export function HomePage() {
 
       <section className="home-action-grid" id="ayuda" aria-label="Más formas de participar">
         <article className="home-action-card">
-          <span aria-hidden="true">💗</span>
+          <span aria-hidden="true">💖</span>
           <div>
             <h2>También puedes ayudar</h2>
             <p>
-              Tu apoyo ayuda a cubrir alimentación, atención médica y hogares
-              temporales para mascotas que esperan una familia.
+              Tu apoyo ayuda a mantener AdoptaLove activa, disponible y en
+              constante mejora para que más fundaciones puedan publicar
+              mascotas y más personas puedan encontrarlas.
             </p>
           </div>
           <a className="home-primary-button" href="/donaciones">
@@ -233,7 +234,7 @@ export function HomePage() {
         </article>
 
         <article className="home-action-card">
-          <span aria-hidden="true">✦</span>
+          <span aria-hidden="true">✨</span>
           <div>
             <h2>¿Tienes dudas?</h2>
             <p>
