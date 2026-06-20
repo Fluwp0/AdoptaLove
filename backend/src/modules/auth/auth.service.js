@@ -15,6 +15,11 @@ function normalizeEmail(email) {
   return typeof email === 'string' ? email.trim().toLowerCase() : '';
 }
 
+function normalizeText(value, maxLength) {
+  const text = typeof value === 'string' ? value.trim() : '';
+  return maxLength ? text.slice(0, maxLength) : text;
+}
+
 function cleanRut(rut) {
   return typeof rut === 'string'
     ? rut.replace(/[.\-\s]/g, '').toUpperCase()
@@ -81,6 +86,9 @@ function toPublicUser(user) {
     rut: user.rut,
     telefono: user.telefono,
     direccion: user.direccion,
+    ciudad: user.ciudad,
+    comuna: user.comuna,
+    numeracion: user.numeracion,
     rol: user.rol
   };
 }
@@ -102,7 +110,10 @@ async function register(payload = {}) {
   const rut = formatRut(payload.rut);
   const password = typeof payload.password === 'string' ? payload.password : '';
   const telefono = typeof payload.telefono === 'string' ? payload.telefono.trim() : '';
-  const direccion = typeof payload.direccion === 'string' ? payload.direccion.trim() : '';
+  const ciudad = normalizeText(payload.ciudad, 120);
+  const comuna = normalizeText(payload.comuna, 120);
+  const direccion = normalizeText(payload.direccion, 255);
+  const numeracion = normalizeText(payload.numeracion, 40);
 
   if (!nombre) {
     throw createServiceError(400, 'Nombre es obligatorio');
@@ -131,6 +142,22 @@ async function register(payload = {}) {
     );
   }
 
+  if (!ciudad) {
+    throw createServiceError(400, 'Ciudad es obligatoria');
+  }
+
+  if (!comuna) {
+    throw createServiceError(400, 'Comuna es obligatoria');
+  }
+
+  if (!direccion) {
+    throw createServiceError(400, 'Direcci\u00f3n es obligatoria');
+  }
+
+  if (!numeracion) {
+    throw createServiceError(400, 'Numeraci\u00f3n es obligatoria');
+  }
+
   const existingUser = await authModel.findUserByEmail(email);
 
   if (existingUser) {
@@ -150,7 +177,10 @@ async function register(payload = {}) {
     rut,
     passwordHash,
     telefono,
-    direccion
+    direccion,
+    ciudad,
+    comuna,
+    numeracion
   });
   const publicUser = toPublicUser(user);
 

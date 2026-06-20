@@ -7,6 +7,9 @@ const PUBLIC_USER_FIELDS = `
   rut,
   telefono,
   direccion,
+  ciudad,
+  comuna,
+  numeracion,
   rol,
   estado,
   created_at,
@@ -21,11 +24,33 @@ const NORMALIZED_RUT_PARAM_SQL = `
   UPPER(REPLACE(REPLACE(REPLACE(?, '.', ''), '-', ''), ' ', ''))
 `;
 
-async function createUser({ nombre, email, rut, passwordHash, telefono, direccion }) {
+async function createUser({
+  nombre,
+  email,
+  rut,
+  passwordHash,
+  telefono,
+  direccion,
+  ciudad,
+  comuna,
+  numeracion
+}) {
   const [result] = await db.query(
     `INSERT INTO usuarios
-      (nombre, email, rut, password_hash, telefono, direccion, rol, estado)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      (
+        nombre,
+        email,
+        rut,
+        password_hash,
+        telefono,
+        direccion,
+        ciudad,
+        comuna,
+        numeracion,
+        rol,
+        estado
+      )
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       nombre,
       email,
@@ -33,6 +58,9 @@ async function createUser({ nombre, email, rut, passwordHash, telefono, direccio
       passwordHash,
       telefono || null,
       direccion || null,
+      ciudad || null,
+      comuna || null,
+      numeracion || null,
       'adoptante',
       'activo'
     ]

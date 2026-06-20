@@ -71,13 +71,6 @@ function isStrongPassword(password) {
   );
 }
 
-function buildDireccion(form) {
-  return [form.city, form.commune, form.address, form.addressNumber]
-    .map((value) => value.trim())
-    .filter(Boolean)
-    .join(', ');
-}
-
 function validateForm(form) {
   const nextErrors = {};
 
@@ -155,7 +148,10 @@ export function RegisterPage() {
       email: form.email.trim(),
       password: form.password,
       telefono: `+56${form.phone}`,
-      direccion: buildDireccion(form)
+      ciudad: form.city.trim(),
+      comuna: form.commune.trim(),
+      direccion: form.address.trim(),
+      numeracion: form.addressNumber.trim()
     };
 
     try {
@@ -378,4 +374,3 @@ export function RegisterPage() {
     </section>
   );
 }
-
