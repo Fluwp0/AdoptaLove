@@ -275,11 +275,13 @@ async function findUserById(id) {
   return rows[0] || null;
 }
 
-async function findUserByEmail(email) {
+async function findActiveUserByEmail(email) {
   const [rows] = await db.query(
     `SELECT ${PUBLIC_USER_FIELDS}
     FROM usuarios
     WHERE LOWER(TRIM(email)) = ?
+      AND estado = 'activo'
+      AND eliminado_at IS NULL
     LIMIT 1`,
     [email]
   );
@@ -287,11 +289,13 @@ async function findUserByEmail(email) {
   return rows[0] || null;
 }
 
-async function findUserByEmailExceptId(email, id) {
+async function findActiveUserByEmailExceptId(email, id) {
   const [rows] = await db.query(
     `SELECT ${PUBLIC_USER_FIELDS}
     FROM usuarios
     WHERE LOWER(TRIM(email)) = ?
+      AND estado = 'activo'
+      AND eliminado_at IS NULL
       AND id <> ?
     LIMIT 1`,
     [email, id]
@@ -300,11 +304,13 @@ async function findUserByEmailExceptId(email, id) {
   return rows[0] || null;
 }
 
-async function findUserByRut(rut) {
+async function findActiveUserByRut(rut) {
   const [rows] = await db.query(
     `SELECT ${PUBLIC_USER_FIELDS}
     FROM usuarios
     WHERE ${NORMALIZED_RUT_SQL} = ${NORMALIZED_RUT_PARAM_SQL}
+      AND estado = 'activo'
+      AND eliminado_at IS NULL
     LIMIT 1`,
     [rut]
   );
@@ -312,11 +318,13 @@ async function findUserByRut(rut) {
   return rows[0] || null;
 }
 
-async function findUserByRutExceptId(rut, id) {
+async function findActiveUserByRutExceptId(rut, id) {
   const [rows] = await db.query(
     `SELECT ${PUBLIC_USER_FIELDS}
     FROM usuarios
     WHERE ${NORMALIZED_RUT_SQL} = ${NORMALIZED_RUT_PARAM_SQL}
+      AND estado = 'activo'
+      AND eliminado_at IS NULL
       AND id <> ?
     LIMIT 1`,
     [rut, id]
@@ -1047,11 +1055,11 @@ module.exports = {
   findPetModificationRequests,
   findPetPublications,
   findPetsPendingReview,
-  findUserByEmail,
-  findUserByEmailExceptId,
+  findActiveUserByEmail,
+  findActiveUserByEmailExceptId,
   findUserById,
-  findUserByRut,
-  findUserByRutExceptId,
+  findActiveUserByRut,
+  findActiveUserByRutExceptId,
   findUsers,
   getMetrics,
   rejectPetModificationRequest,

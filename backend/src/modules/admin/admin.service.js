@@ -380,16 +380,19 @@ async function listUsers(user, query = {}) {
 async function createUser(user, payload = {}) {
   ensureAdmin(user);
   const normalizedUser = normalizeUserPayload(payload);
-  const existingUser = await adminModel.findUserByEmail(normalizedUser.email);
+  const existingUser = await adminModel.findActiveUserByEmail(normalizedUser.email);
 
   if (existingUser) {
-    throw createServiceError(409, 'Ya existe un usuario registrado con este correo electrónico.');
+    throw createServiceError(
+      409,
+      'Ya existe un usuario activo registrado con este correo electr\u00f3nico.'
+    );
   }
 
-  const existingRut = await adminModel.findUserByRut(normalizedUser.rut);
+  const existingRut = await adminModel.findActiveUserByRut(normalizedUser.rut);
 
   if (existingRut) {
-    throw createServiceError(409, 'Ya existe un usuario registrado con este RUT.');
+    throw createServiceError(409, 'Ya existe un usuario activo registrado con este RUT.');
   }
 
   const passwordHash = await bcrypt.hash(normalizedUser.password, PASSWORD_SALT_ROUNDS);
@@ -411,16 +414,27 @@ async function updateUser(user, userId, payload = {}) {
   }
 
   const normalizedUser = normalizeUserPayload(payload, { isUpdate: true });
-  const existingEmail = await adminModel.findUserByEmailExceptId(normalizedUser.email, id);
+  const emailChanged = normalizeEmail(currentUser.email) !== normalizedUser.email;
+  const rutChanged = formatRut(currentUser.rut) !== normalizedUser.rut;
+  const shouldValidateEmail = emailChanged || normalizedUser.estado === 'activo';
+  const shouldValidateRut = rutChanged || normalizedUser.estado === 'activo';
+  const existingEmail = shouldValidateEmail
+    ? await adminModel.findActiveUserByEmailExceptId(normalizedUser.email, id)
+    : null;
 
   if (existingEmail) {
-    throw createServiceError(409, 'Ya existe un usuario registrado con este correo electrónico.');
+    throw createServiceError(
+      409,
+      'Ya existe un usuario activo registrado con este correo electr\u00f3nico.'
+    );
   }
 
-  const existingRut = await adminModel.findUserByRutExceptId(normalizedUser.rut, id);
+  const existingRut = shouldValidateRut
+    ? await adminModel.findActiveUserByRutExceptId(normalizedUser.rut, id)
+    : null;
 
   if (existingRut) {
-    throw createServiceError(409, 'Ya existe un usuario registrado con este RUT.');
+    throw createServiceError(409, 'Ya existe un usuario activo registrado con este RUT.');
   }
 
   const passwordHash = normalizedUser.password

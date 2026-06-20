@@ -158,16 +158,19 @@ async function register(payload = {}) {
     throw createServiceError(400, 'Numeraci\u00f3n es obligatoria');
   }
 
-  const existingUser = await authModel.findUserByEmail(email);
+  const existingUser = await authModel.findActiveUserByEmail(email);
 
   if (existingUser) {
-    throw createServiceError(409, 'Ya existe un usuario registrado con este correo electrónico.');
+    throw createServiceError(
+      409,
+      'Ya existe un usuario activo registrado con este correo electr\u00f3nico.'
+    );
   }
 
-  const existingRut = await authModel.findUserByRut(rut);
+  const existingRut = await authModel.findActiveUserByRut(rut);
 
   if (existingRut) {
-    throw createServiceError(409, 'Ya existe un usuario registrado con este RUT.');
+    throw createServiceError(409, 'Ya existe un usuario activo registrado con este RUT.');
   }
 
   const passwordHash = await bcrypt.hash(password, PASSWORD_SALT_ROUNDS);
@@ -202,7 +205,7 @@ async function login(payload = {}) {
     throw createServiceError(400, 'Password es obligatorio');
   }
 
-  const user = await authModel.findUserByEmail(email);
+  const user = await authModel.findActiveUserByEmail(email);
 
   if (!user) {
     throw createServiceError(401, 'Credenciales inválidas');
@@ -212,10 +215,6 @@ async function login(payload = {}) {
 
   if (!passwordMatches) {
     throw createServiceError(401, 'Credenciales inválidas');
-  }
-
-  if (user.estado !== 'activo') {
-    throw createServiceError(403, 'Usuario no activo');
   }
 
   const publicUser = toPublicUser(user);

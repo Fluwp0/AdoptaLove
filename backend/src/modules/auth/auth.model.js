@@ -81,13 +81,15 @@ async function findPublicUserById(id) {
   return rows[0] || null;
 }
 
-async function findUserByEmail(email) {
+async function findActiveUserByEmail(email) {
   const [rows] = await db.query(
     `SELECT
       ${PUBLIC_USER_FIELDS},
       password_hash
     FROM usuarios
     WHERE LOWER(TRIM(email)) = ?
+      AND estado = 'activo'
+      AND eliminado_at IS NULL
     LIMIT 1`,
     [email]
   );
@@ -95,11 +97,13 @@ async function findUserByEmail(email) {
   return rows[0] || null;
 }
 
-async function findUserByRut(rut) {
+async function findActiveUserByRut(rut) {
   const [rows] = await db.query(
     `SELECT ${PUBLIC_USER_FIELDS}
     FROM usuarios
     WHERE ${NORMALIZED_RUT_SQL} = ${NORMALIZED_RUT_PARAM_SQL}
+      AND estado = 'activo'
+      AND eliminado_at IS NULL
     LIMIT 1`,
     [rut]
   );
@@ -109,7 +113,7 @@ async function findUserByRut(rut) {
 
 module.exports = {
   createUser,
-  findPublicUserById,
-  findUserByEmail,
-  findUserByRut
+  findActiveUserByEmail,
+  findActiveUserByRut,
+  findPublicUserById
 };
