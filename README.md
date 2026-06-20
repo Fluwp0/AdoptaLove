@@ -270,6 +270,64 @@ El frontend queda disponible normalmente en:
 http://localhost:5173
 ```
 
+## Ejecutar en red local o temporalmente online con ngrok
+
+Este modo sirve para probar la página desde un celular, desde otra red o para compartir una URL temporal de demostración.
+
+### Opción usada para exponer el frontend
+
+Abrir tres terminales.
+
+Terminal 1: levantar backend.
+
+```bash
+npm run dev --prefix backend
+```
+
+Terminal 2: levantar frontend escuchando conexiones externas.
+
+```bash
+npm run dev --prefix frontend -- --host 0.0.0.0
+```
+
+Terminal 3: exponer el frontend con ngrok.
+
+```bash
+C:\ngrok\ngrok.exe http 5173
+```
+
+Luego se debe copiar la URL HTTPS entregada por ngrok y abrirla desde el celular u otro dispositivo.
+
+### Importante sobre el backend
+
+Si la página se abre desde otro dispositivo y el frontend tiene configurado:
+
+```env
+VITE_API_URL=http://localhost:3000/api
+```
+
+las peticiones al backend pueden fallar, porque `localhost` apuntará al dispositivo que está abriendo la página y no al computador donde corre el backend.
+
+Para una prueba online completa, también se puede exponer el backend con otro túnel de ngrok:
+
+```bash
+C:\ngrok\ngrok.exe http 3000
+```
+
+En ese caso, configurar el frontend con la URL pública del backend:
+
+```env
+VITE_API_URL=https://URL-BACKEND-NGROK/api
+```
+
+Y configurar el backend para aceptar el origen público del frontend:
+
+```env
+CORS_ORIGIN=https://URL-FRONTEND-NGROK
+```
+
+Después de cambiar variables de entorno, reiniciar backend y frontend.
+
 ## Comandos útiles
 
 ```bash
