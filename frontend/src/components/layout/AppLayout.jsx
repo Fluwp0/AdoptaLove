@@ -60,7 +60,7 @@ export function AppLayout({ children }) {
   }
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell app-shell-${theme}`} key={theme}>
       <header className="app-header">
         <a className="brand" href={isAdminUser ? '/admin' : '/'} aria-label="Ir al inicio de AdoptaLove">
           <img
@@ -185,7 +185,7 @@ export function AppLayout({ children }) {
           )}
         </div>
       </header>
-      <main>{children}</main>
+      <main className="app-main">{children}</main>
       {!isAdminRoute && <Footer />}
       <ChatbotWidget />
     </div>

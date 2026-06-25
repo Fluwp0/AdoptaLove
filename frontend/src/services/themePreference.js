@@ -16,9 +16,17 @@ export function getStoredTheme() {
 
 export function applyTheme(theme) {
   const normalizedTheme = normalizeTheme(theme);
+  const themeTextColor = normalizedTheme === DARK_THEME ? '#f8edf3' : '#2f2730';
 
   document.documentElement.dataset.theme = normalizedTheme;
   document.documentElement.style.colorScheme = normalizedTheme;
+  document.documentElement.style.color = themeTextColor;
+  document.body?.style.setProperty('color', themeTextColor);
+  document.getElementById('root')?.style.setProperty('color', themeTextColor);
+  document.documentElement.style.setProperty('--theme-refresh-token', normalizedTheme);
+
+  // Nudge the browser to recalculate theme-dependent styles immediately.
+  document.documentElement.getBoundingClientRect();
 
   return normalizedTheme;
 }

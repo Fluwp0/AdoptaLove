@@ -1,5 +1,6 @@
 ﻿import { AppLayout } from '../components/layout/AppLayout';
 import { useEffect, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { AdminDashboardPage } from '../pages/AdminDashboardPage';
 import { AdminModificationsPage } from '../pages/AdminModificationsPage';
 import { AdminPublicationsPage } from '../pages/AdminPublicationsPage';
@@ -23,8 +24,38 @@ export function AppRoutes() {
   const petDetailMatch = path.match(/^\/mascotas\/([^/]+)\/?$/);
 
   useEffect(() => {
+    function prefersReducedMotion() {
+      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    }
+
+    function updatePath(nextPath) {
+      const applyPath = () => {
+        flushSync(() => {
+          setPath(nextPath);
+        });
+      };
+
+      if (document.startViewTransition && !prefersReducedMotion()) {
+        document.startViewTransition(applyPath);
+        return;
+      }
+
+      applyPath();
+    }
+
+    function scrollToRouteStart() {
+      window.requestAnimationFrame(() => {
+        window.scrollTo({
+          behavior: prefersReducedMotion() ? 'auto' : 'smooth',
+          left: 0,
+          top: 0
+        });
+      });
+    }
+
     function syncPath() {
-      setPath(window.location.pathname);
+      updatePath(window.location.pathname);
+      scrollToRouteStart();
     }
 
     function handleLinkClick(event) {
@@ -63,14 +94,17 @@ export function AppRoutes() {
 
       event.preventDefault();
       window.history.pushState({}, '', `${url.pathname}${url.search}${url.hash}`);
-      setPath(url.pathname);
+      updatePath(url.pathname);
 
       if (url.hash) {
         window.requestAnimationFrame(() => {
-          document.querySelector(url.hash)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          document.querySelector(url.hash)?.scrollIntoView({
+            behavior: prefersReducedMotion() ? 'auto' : 'smooth',
+            block: 'start'
+          });
         });
       } else {
-        window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+        scrollToRouteStart();
       }
     }
 

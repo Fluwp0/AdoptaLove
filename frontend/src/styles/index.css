@@ -7897,15 +7897,101 @@ a {
   }
 }
 
-.route-surface {
-  animation: route-fade-in 180ms ease both;
-  min-height: 60vh;
+:root {
+  --motion-fast: 150ms cubic-bezier(0.2, 0, 0, 1);
+  --motion-medium: 220ms cubic-bezier(0.2, 0, 0, 1);
+  --motion-route: 190ms cubic-bezier(0.22, 1, 0.36, 1);
+  --focus-ring: 0 0 0 4px color-mix(in srgb, var(--color-primary) 20%, transparent);
+  --focus-outline: color-mix(in srgb, var(--color-primary) 62%, transparent);
+  --interactive-shadow: 0 12px 24px rgba(161, 62, 96, 0.16);
+  --interactive-shadow-strong: 0 18px 38px rgba(122, 56, 81, 0.2);
+  --interactive-border: color-mix(in srgb, var(--color-primary) 42%, var(--color-border));
 }
 
-@keyframes route-fade-in {
+:root[data-theme="dark"] {
+  --focus-ring: 0 0 0 4px color-mix(in srgb, var(--color-primary) 24%, transparent);
+  --interactive-shadow: 0 14px 28px rgba(0, 0, 0, 0.34);
+  --interactive-shadow-strong: 0 20px 44px rgba(0, 0, 0, 0.46);
+  --interactive-border: color-mix(in srgb, var(--color-primary) 48%, var(--color-border));
+}
+
+html,
+body,
+#root {
+  background: var(--app-background);
+  color: var(--color-text);
+  min-height: 100%;
+}
+
+:root,
+:root body,
+:root #root,
+:root .app-shell {
+  color: #2f2730;
+}
+
+:root[data-theme="dark"],
+:root[data-theme="dark"] body,
+:root[data-theme="dark"] #root,
+:root[data-theme="dark"] .app-shell {
+  color: #f8edf3;
+}
+
+.app-shell-light {
+  color: #2f2730;
+}
+
+.app-shell-dark {
+  color: #f8edf3;
+}
+
+.app-shell-light :is(h1, h2, h3, h4, dt, label, legend, summary) {
+  color: #3b3037;
+}
+
+.app-shell-dark :is(h1, h2, h3, h4, dt, label, legend, summary) {
+  color: #fff8fb;
+}
+
+.app-shell-light :where(p, dd, li, small) {
+  color: #6f6070;
+}
+
+.app-shell-dark :where(p, dd, li, small) {
+  color: #d2bdc8;
+}
+
+body,
+#root,
+.app-shell {
+  min-height: 100vh;
+}
+
+body {
+  background-attachment: fixed;
+  transition:
+    background var(--motion-medium),
+    color var(--motion-medium);
+}
+
+.app-main {
+  background: transparent;
+  min-height: 62vh;
+  position: relative;
+  z-index: 1;
+}
+
+.route-surface {
+  animation: route-enter var(--motion-route) both;
+  background: transparent;
+  min-height: 62vh;
+  transform-origin: top center;
+}
+
+@keyframes route-enter {
   from {
-    opacity: 0.96;
-    transform: translateY(4px);
+    opacity: 0.985;
+    transform: translateY(5px);
   }
 
   to {
@@ -7914,104 +8000,524 @@ a {
   }
 }
 
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: var(--motion-route);
+  animation-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+[id] {
+  scroll-margin-top: 96px;
+}
+
 button,
-.header-button,
+a,
+summary,
+input,
+select,
+textarea {
+  transition:
+    background-color var(--motion-fast),
+    border-color var(--motion-fast),
+    box-shadow var(--motion-fast),
+    color var(--motion-fast),
+    opacity var(--motion-fast),
+    transform var(--motion-fast);
+}
+
+button,
+summary,
+.filter-tab,
+.donation-amount-card,
+.donation-method-card,
+.quiz-option-card {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
 .main-nav a,
+.header-button,
+.theme-toggle,
+.auth-submit-button,
 .auth-submit-link,
 .home-primary-button,
 .home-secondary-button,
+.home-section-link,
+.about-primary-button,
+.pet-detail-link,
+.detail-back-link,
+.detail-primary-action,
+.detail-secondary-action,
+.filter-tab,
+.filter-button,
+.profile-logout-button,
+.profile-adoption-refresh,
+.profile-cancel-application-button,
+.profile-modal-primary,
+.profile-modal-secondary,
+.foundation-primary-button,
 .foundation-secondary-button,
+.foundation-danger-button,
+.foundation-primary-link,
 .foundation-detail-toggle,
 .foundation-file-button,
 .foundation-pagination button,
+.foundation-request-actions button,
+.admin-primary-button,
 .admin-secondary-button,
+.admin-danger-button,
+.admin-primary-link,
 .admin-file-button,
 .admin-pagination button,
 .admin-user-actions-toggle,
-.quiz-option-card,
-.donation-amount-card,
-.donation-method-card,
-.chatbot-quick-card button {
-  transition:
-    background-color 200ms ease,
-    border-color 200ms ease,
-    box-shadow 200ms ease,
-    color 200ms ease,
-    opacity 200ms ease,
-    transform 200ms ease;
-}
-
-button:not(:disabled):active,
-.header-button:active,
-.main-nav a:active,
-.auth-submit-link:active {
-  transform: translateY(1px) scale(0.99);
+.donations-hero-action,
+.donation-submit-button,
+.quiz-primary-button,
+.chatbot-form button,
+.chatbot-quick-card button,
+.chatbot-widget-reset,
+.chatbot-widget-close,
+.chatbot-widget-quick button,
+.chatbot-widget-form button,
+.chatbot-widget-toggle,
+.adoption-submit-button,
+.adoption-help-card a {
+  will-change: transform;
 }
 
 .main-nav a:hover,
 .header-button:hover,
+.auth-submit-button:not(:disabled):hover,
 .auth-submit-link:hover,
-button:not(:disabled):hover {
-  transform: translateY(-1px);
-}
-
-.pet-card,
-.home-pet-card,
-.home-info-card,
-.home-action-card,
-.foundation-pet-card,
-.foundation-metric-card,
-.foundation-request-card,
-.profile-card,
-.profile-adoption-card,
-.admin-metric-card,
-.admin-publication-card,
-.admin-user-card,
-.donation-amount-card,
-.donation-method-card,
-.donations-impact-card,
-.quiz-card,
-.quiz-option-card,
-.chatbot-quick-card,
-.chatbot-faq-card {
-  transition:
-    background-color 220ms ease,
-    border-color 220ms ease,
-    box-shadow 220ms ease,
-    color 220ms ease,
-    opacity 220ms ease,
-    transform 220ms ease;
-}
-
-.pet-card:hover,
-.home-pet-card:hover,
-.foundation-pet-card:hover,
-.foundation-metric-card:hover,
-.admin-metric-card:hover,
-.admin-publication-card:hover,
-.admin-user-card:hover,
-.donation-amount-card:hover,
-.donation-method-card:hover,
-.quiz-option-card:hover,
-.chatbot-quick-card:hover {
-  box-shadow: var(--shadow-popover);
+.home-primary-button:hover,
+.home-secondary-button:hover,
+.home-section-link:hover,
+.about-primary-button:hover,
+.pet-detail-link:hover,
+.detail-back-link:hover,
+.detail-primary-action:not(:disabled):hover,
+.detail-secondary-action:not(:disabled):hover,
+.filter-tab:not(:disabled):hover,
+.filter-button:not(:disabled):hover,
+.profile-logout-button:not(:disabled):hover,
+.profile-adoption-refresh:not(:disabled):hover,
+.profile-cancel-application-button:not(:disabled):hover,
+.profile-modal-primary:not(:disabled):hover,
+.profile-modal-secondary:not(:disabled):hover,
+.foundation-primary-button:not(:disabled):hover,
+.foundation-secondary-button:not(:disabled):hover,
+.foundation-danger-button:not(:disabled):hover,
+.foundation-primary-link:hover,
+.foundation-detail-toggle:not(:disabled):hover,
+.foundation-file-button:hover,
+.foundation-pagination button:not(:disabled):hover,
+.foundation-request-actions button:not(:disabled):hover,
+.admin-primary-button:not(:disabled):hover,
+.admin-secondary-button:not(:disabled):hover,
+.admin-danger-button:not(:disabled):hover,
+.admin-primary-link:hover,
+.admin-file-button:hover,
+.admin-pagination button:not(:disabled):hover,
+.admin-user-actions-toggle:not(:disabled):hover,
+.donations-hero-action:hover,
+.donation-submit-button:not(:disabled):hover,
+.quiz-primary-button:not(:disabled):hover,
+.chatbot-form button:not(:disabled):hover,
+.chatbot-quick-card button:not(:disabled):hover,
+.chatbot-widget-reset:not(:disabled):hover,
+.chatbot-widget-close:not(:disabled):hover,
+.chatbot-widget-quick button:not(:disabled):hover,
+.chatbot-widget-form button:not(:disabled):hover,
+.chatbot-widget-toggle:hover,
+.adoption-submit-button:not(:disabled):hover,
+.adoption-help-card a:hover {
+  box-shadow: var(--interactive-shadow);
   transform: translateY(-2px);
 }
 
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible,
-button:focus-visible,
-a:focus-visible {
-  outline: 3px solid color-mix(in srgb, var(--color-primary) 60%, transparent);
-  outline-offset: 3px;
+.theme-toggle:hover .theme-toggle-track {
+  box-shadow: var(--interactive-shadow);
+}
+
+.main-nav a:active,
+.header-button:active,
+.auth-submit-button:not(:disabled):active,
+.auth-submit-link:active,
+.home-primary-button:active,
+.home-secondary-button:active,
+.home-section-link:active,
+.about-primary-button:active,
+.pet-detail-link:active,
+.detail-back-link:active,
+.detail-primary-action:not(:disabled):active,
+.detail-secondary-action:not(:disabled):active,
+.filter-tab:not(:disabled):active,
+.filter-button:not(:disabled):active,
+.profile-logout-button:not(:disabled):active,
+.profile-adoption-refresh:not(:disabled):active,
+.profile-cancel-application-button:not(:disabled):active,
+.profile-modal-primary:not(:disabled):active,
+.profile-modal-secondary:not(:disabled):active,
+.foundation-primary-button:not(:disabled):active,
+.foundation-secondary-button:not(:disabled):active,
+.foundation-danger-button:not(:disabled):active,
+.foundation-primary-link:active,
+.foundation-detail-toggle:not(:disabled):active,
+.foundation-file-button:active,
+.foundation-pagination button:not(:disabled):active,
+.foundation-request-actions button:not(:disabled):active,
+.admin-primary-button:not(:disabled):active,
+.admin-secondary-button:not(:disabled):active,
+.admin-danger-button:not(:disabled):active,
+.admin-primary-link:active,
+.admin-file-button:active,
+.admin-pagination button:not(:disabled):active,
+.admin-user-actions-toggle:not(:disabled):active,
+.donations-hero-action:active,
+.donation-submit-button:not(:disabled):active,
+.quiz-primary-button:not(:disabled):active,
+.chatbot-form button:not(:disabled):active,
+.chatbot-quick-card button:not(:disabled):active,
+.chatbot-widget-reset:not(:disabled):active,
+.chatbot-widget-close:not(:disabled):active,
+.chatbot-widget-quick button:not(:disabled):active,
+.chatbot-widget-form button:not(:disabled):active,
+.chatbot-widget-toggle:active,
+.adoption-submit-button:not(:disabled):active,
+.adoption-help-card a:active {
+  box-shadow: none;
+  transform: translateY(1px) scale(0.99);
+}
+
+.home-hero-visual,
+.home-hero-logo-card,
+.home-visual-grid div,
+.home-info-card,
+.home-pet-card,
+.home-action-card,
+.home-state,
+.about-indicators article,
+.about-visual-card,
+.about-faq-card,
+.about-contact-card,
+.about-social-card,
+.about-commitment-card,
+.pet-card,
+.detail-image-card,
+.detail-info-card,
+.adoption-card,
+.publisher-card,
+.auth-card,
+.auth-side-card,
+.profile-card,
+.profile-adoption-card,
+.profile-adoption-process,
+.donation-form-card,
+.donations-impact-card,
+.donation-amount-card,
+.donation-method-card,
+.donations-help-list > div,
+.donations-latest,
+.quiz-intro-card,
+.quiz-card,
+.quiz-option-card,
+.quiz-summary-card,
+.quiz-recommendation-card,
+.chatbot-panel,
+.chatbot-quick-card,
+.chatbot-faq-card,
+.chatbot-widget-panel,
+.adoption-form-card,
+.adoption-info-card,
+.adoption-pet-card,
+.adoption-help-card,
+.foundation-hero,
+.foundation-access-card,
+.foundation-form-card,
+.foundation-card,
+.foundation-summary-card,
+.foundation-pet-card,
+.foundation-request-card,
+.admin-hero,
+.admin-access-card,
+.admin-placeholder-card,
+.admin-form-card,
+.admin-metric-card,
+.admin-publication-card,
+.admin-user-card {
+  transition:
+    background-color var(--motion-medium),
+    border-color var(--motion-medium),
+    box-shadow var(--motion-medium),
+    color var(--motion-medium),
+    opacity var(--motion-medium),
+    transform var(--motion-medium);
+}
+
+.home-info-card:hover,
+.home-pet-card:hover,
+.home-action-card:hover,
+.about-indicators article:hover,
+.about-contact-card:hover,
+.about-social-card:hover,
+.pet-card:hover,
+.detail-info-card:hover,
+.adoption-card:hover,
+.publisher-card:hover,
+.auth-side-card:hover,
+.profile-adoption-card:hover,
+.profile-adoption-process:hover,
+.donations-impact-card:hover,
+.donation-amount-card:hover,
+.donation-method-card:hover,
+.donations-help-list > div:hover,
+.quiz-card:hover,
+.quiz-option-card:hover,
+.quiz-recommendation-card:hover,
+.chatbot-quick-card:hover,
+.adoption-info-card:hover,
+.adoption-pet-card:hover,
+.adoption-help-card:hover,
+.foundation-summary-card:hover,
+.foundation-pet-card:hover,
+.foundation-request-card:hover,
+.admin-metric-card:hover,
+.admin-publication-card:hover,
+.admin-user-card:hover {
+  border-color: var(--interactive-border);
+  box-shadow: var(--interactive-shadow-strong);
+  transform: translateY(-3px);
+}
+
+.home-pet-card:hover img,
+.pet-card:hover img,
+.detail-image-card:hover img,
+.profile-adoption-process:hover img,
+.foundation-pet-card:hover img,
+.admin-publication-card:hover img,
+.adoption-pet-card:hover img {
+  transform: scale(1.015);
+}
+
+.home-pet-card img,
+.pet-card img,
+.detail-image-card img,
+.profile-adoption-process img,
+.foundation-pet-card img,
+.admin-publication-card img,
+.adoption-pet-card img {
+  transition: transform var(--motion-medium);
+}
+
+input,
+select,
+textarea {
+  caret-color: var(--color-primary);
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] input,
+:root[data-theme="dark"] select,
+:root[data-theme="dark"] textarea {
+  color-scheme: dark;
+}
+
+input:hover:not(:disabled),
+select:hover:not(:disabled),
+textarea:hover:not(:disabled) {
+  border-color: var(--interactive-border);
 }
 
 input:focus,
 select:focus,
-textarea:focus {
+textarea:focus,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary) 16%, transparent);
+  box-shadow: var(--focus-ring);
+  outline: 0;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--color-text-muted);
+  opacity: 0.72;
+}
+
+input[aria-invalid="true"],
+select[aria-invalid="true"],
+textarea[aria-invalid="true"] {
+  border-color: var(--danger-text);
+}
+
+.phone-input-wrap:focus-within,
+.chatbot-form > div:focus-within,
+.chatbot-widget-form > div:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: var(--focus-ring);
+}
+
+.foundation-image-dropzone,
+.admin-image-dropzone {
+  transition:
+    background-color var(--motion-medium),
+    border-color var(--motion-medium),
+    box-shadow var(--motion-medium),
+    transform var(--motion-medium);
+}
+
+.foundation-image-dropzone:hover,
+.foundation-image-dropzone:focus-within,
+.admin-image-dropzone:hover,
+.admin-image-dropzone:focus-within {
+  border-color: var(--interactive-border);
+  box-shadow: var(--interactive-shadow);
+  transform: translateY(-2px);
+}
+
+.pet-status,
+.profile-adoption-status,
+.foundation-status,
+.admin-publication-status,
+.admin-user-pill,
+.home-pill,
+.about-pill,
+.chatbot-pill,
+.section-kicker {
+  transition:
+    background-color var(--motion-fast),
+    border-color var(--motion-fast),
+    color var(--motion-fast),
+    box-shadow var(--motion-fast),
+    transform var(--motion-fast);
+}
+
+.filter-tab.active,
+.donation-amount-card.active,
+.donation-method-card.active,
+.quiz-option-card.active,
+.foundation-request-actions button.active,
+.main-nav a.active,
+.header-button-panel.active,
+.admin-nav a.active {
+  box-shadow:
+    inset 0 -2px 0 color-mix(in srgb, var(--color-primary) 44%, transparent),
+    0 8px 18px color-mix(in srgb, var(--color-primary) 14%, transparent);
+}
+
+.admin-user-action-menu,
+.profile-cancel-modal,
+.foundation-modal,
+.admin-modal,
+.chatbot-widget-panel {
+  background: var(--color-surface-elevated);
+  color: var(--color-text);
+}
+
+.admin-user-action-menu {
+  animation: dropdown-enter 140ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  transform-origin: top right;
+}
+
+.admin-user-action-menu button {
+  border-radius: 12px;
+  transition:
+    background-color var(--motion-fast),
+    color var(--motion-fast),
+    transform var(--motion-fast);
+}
+
+.admin-user-action-menu button:active {
+  transform: scale(0.99);
+}
+
+@keyframes dropdown-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.profile-modal-backdrop,
+.foundation-modal-backdrop,
+.admin-modal-backdrop {
+  animation: backdrop-enter var(--motion-fast) ease both;
+  backdrop-filter: blur(10px);
+  z-index: 220;
+}
+
+.profile-cancel-modal,
+.foundation-modal,
+.admin-modal {
+  animation: modal-enter var(--motion-medium) cubic-bezier(0.22, 1, 0.36, 1) both;
+  box-shadow: var(--shadow-popover);
+}
+
+@keyframes backdrop-enter {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modal-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.985);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.chatbot-widget-panel {
+  animation: floating-panel-enter var(--motion-medium) cubic-bezier(0.22, 1, 0.36, 1) both;
+  box-shadow: var(--shadow-popover);
+  transform-origin: bottom right;
+}
+
+@keyframes floating-panel-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+button:focus-visible,
+a:focus-visible,
+summary:focus-visible,
+[role="button"]:focus-visible,
+[role="menuitem"]:focus-visible {
+  outline: 3px solid var(--focus-outline);
+  outline-offset: 3px;
+}
+
+.theme-toggle:focus-visible {
+  outline: 3px solid var(--focus-outline);
+  outline-offset: 4px;
+}
+
+.admin-user-action-menu button:focus-visible {
+  box-shadow: var(--focus-ring);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -8028,22 +8534,40 @@ textarea:focus {
     transition-duration: 0.01ms !important;
   }
 
+  ::view-transition-old(root),
+  ::view-transition-new(root) {
+    animation: none !important;
+  }
+
   .route-surface,
   .main-nav a:hover,
   .header-button:hover,
+  .auth-submit-button:not(:disabled):hover,
   .auth-submit-link:hover,
-  button:not(:disabled):hover,
-  .pet-card:hover,
+  .home-primary-button:hover,
+  .home-secondary-button:hover,
+  .home-section-link:hover,
+  .pet-detail-link:hover,
+  .detail-primary-action:not(:disabled):hover,
+  .detail-secondary-action:not(:disabled):hover,
+  .foundation-image-dropzone:hover,
+  .admin-image-dropzone:hover,
+  .chatbot-widget-toggle:hover,
+  .home-info-card:hover,
   .home-pet-card:hover,
-  .foundation-pet-card:hover,
-  .foundation-metric-card:hover,
-  .admin-metric-card:hover,
-  .admin-publication-card:hover,
-  .admin-user-card:hover,
+  .home-action-card:hover,
+  .pet-card:hover,
+  .profile-adoption-card:hover,
   .donation-amount-card:hover,
   .donation-method-card:hover,
   .quiz-option-card:hover,
-  .chatbot-quick-card:hover {
+  .chatbot-quick-card:hover,
+  .foundation-summary-card:hover,
+  .foundation-pet-card:hover,
+  .foundation-request-card:hover,
+  .admin-metric-card:hover,
+  .admin-publication-card:hover,
+  .admin-user-card:hover {
     transform: none;
   }
 }

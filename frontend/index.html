@@ -4,23 +4,6 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AdoptaLove</title>
-    <style>
-      html,
-      body,
-      #root {
-        min-height: 100%;
-        margin: 0;
-        background: #fff8fb;
-        color: #2f2730;
-      }
-
-      html[data-theme="dark"],
-      html[data-theme="dark"] body,
-      html[data-theme="dark"] #root {
-        background: #170f17;
-        color: #f8edf3;
-      }
-    </style>
     <script>
       (() => {
         try {
@@ -33,6 +16,39 @@
         }
       })();
     </script>
+    <style>
+      :root {
+        color-scheme: light;
+        --initial-bg:
+          radial-gradient(circle at 8% 28%, rgba(240, 68, 125, 0.1), transparent 22rem),
+          radial-gradient(circle at 96% 20%, rgba(255, 198, 216, 0.42), transparent 26rem),
+          linear-gradient(180deg, #fff8fb 0%, #ffffff 42%, #fff4f8 100%);
+        --initial-text: #2f2730;
+      }
+
+      html[data-theme="dark"] {
+        color-scheme: dark;
+        --initial-bg:
+          radial-gradient(circle at 8% 22%, rgba(240, 68, 125, 0.18), transparent 23rem),
+          radial-gradient(circle at 94% 12%, rgba(255, 154, 187, 0.16), transparent 26rem),
+          linear-gradient(180deg, #170f17 0%, #211622 48%, #140e15 100%);
+        --initial-text: #f8edf3;
+      }
+
+      html,
+      body,
+      #root {
+        min-height: 100%;
+        margin: 0;
+        background: var(--initial-bg);
+        color: var(--initial-text);
+      }
+
+      body,
+      #root {
+        min-height: 100vh;
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
