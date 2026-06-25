@@ -97,6 +97,7 @@ Thumbs.db
 !backend/src/database/migrations/007_pet_review_reason.sql
 !backend/src/database/migrations/008_pet_modification_requests.sql
 !backend/src/database/migrations/009_allow_reuse_inactive_user_identifiers.sql
+!backend/src/database/migrations/*.sql
 !backend/src/database/seeders/seed.sql
 *.sqlite
 *.sqlite3

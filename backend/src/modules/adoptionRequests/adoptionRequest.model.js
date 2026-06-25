@@ -1,4 +1,5 @@
 const db = require('../../config/database');
+const { buildAgeMonthsSql, buildAgeYearsSql } = require('../../utils/petAge');
 
 async function findUserById(id) {
   const [rows] = await db.query(
@@ -78,8 +79,9 @@ async function findAdoptionRequestDetailById(id) {
       m.nombre AS mascota_nombre,
       m.especie AS mascota_especie,
       m.raza AS mascota_raza,
-      m.edad_anios AS mascota_edad_anios,
-      m.edad_meses AS mascota_edad_meses,
+      ${buildAgeYearsSql('m', 'mascota_edad_anios')},
+      ${buildAgeMonthsSql('m', 'mascota_edad_meses')},
+      m.fecha_nacimiento_estimada AS mascota_fecha_nacimiento_estimada,
       m.tamano AS mascota_tamano,
       m.foto_url AS mascota_foto_url,
       s.estado,
@@ -109,8 +111,9 @@ async function findAdoptionRequestsByUserId(userId) {
       m.nombre AS mascota_nombre,
       m.especie AS mascota_especie,
       m.raza AS mascota_raza,
-      m.edad_anios AS mascota_edad_anios,
-      m.edad_meses AS mascota_edad_meses,
+      ${buildAgeYearsSql('m', 'mascota_edad_anios')},
+      ${buildAgeMonthsSql('m', 'mascota_edad_meses')},
+      m.fecha_nacimiento_estimada AS mascota_fecha_nacimiento_estimada,
       m.tamano AS mascota_tamano,
       m.foto_url AS mascota_foto_url,
       s.estado,

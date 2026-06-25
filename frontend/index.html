@@ -4,6 +4,35 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AdoptaLove</title>
+    <style>
+      html,
+      body,
+      #root {
+        min-height: 100%;
+        margin: 0;
+        background: #fff8fb;
+        color: #2f2730;
+      }
+
+      html[data-theme="dark"],
+      html[data-theme="dark"] body,
+      html[data-theme="dark"] #root {
+        background: #170f17;
+        color: #f8edf3;
+      }
+    </style>
+    <script>
+      (() => {
+        try {
+          const theme = window.localStorage.getItem('adoptalove_theme') === 'dark' ? 'dark' : 'light';
+          document.documentElement.dataset.theme = theme;
+          document.documentElement.style.colorScheme = theme;
+        } catch (_error) {
+          document.documentElement.dataset.theme = 'light';
+          document.documentElement.style.colorScheme = 'light';
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

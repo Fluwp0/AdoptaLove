@@ -1,4 +1,5 @@
 const db = require('../../config/database');
+const { buildAgeMonthsSql, buildAgeYearsSql } = require('../../utils/petAge');
 
 let hasPetModificationsTableCache = null;
 
@@ -46,8 +47,9 @@ async function findAvailablePets() {
       m.especie,
       m.raza,
       m.sexo,
-      m.edad_anios,
-      m.edad_meses,
+      ${buildAgeYearsSql('m', 'edad_anios')},
+      ${buildAgeMonthsSql('m', 'edad_meses')},
+      m.fecha_nacimiento_estimada,
       m.tamano,
       m.descripcion,
       m.foto_url,
@@ -79,8 +81,9 @@ async function findPetById(id) {
       m.especie,
       m.raza,
       m.sexo,
-      m.edad_anios,
-      m.edad_meses,
+      ${buildAgeYearsSql('m', 'edad_anios')},
+      ${buildAgeMonthsSql('m', 'edad_meses')},
+      m.fecha_nacimiento_estimada,
       m.tamano,
       m.descripcion,
       m.foto_url,

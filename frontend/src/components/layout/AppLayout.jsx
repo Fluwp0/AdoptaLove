@@ -3,10 +3,19 @@ import logoAdoptaLove from '../../assets/logo-adoptalove.png';
 import { ChatbotWidget } from '../ChatbotWidget';
 import { Footer } from '../Footer';
 import { clearSession, getCurrentUser, onSessionChange } from '../../services/authSession';
+import {
+  DARK_THEME,
+  LIGHT_THEME,
+  THEME_STORAGE_KEY,
+  applyTheme,
+  getStoredTheme,
+  saveTheme
+} from '../../services/themePreference';
 import { displayText } from '../../utils/displayText';
 
 export function AppLayout({ children }) {
   const [user, setUser] = useState(getCurrentUser());
+  const [theme, setTheme] = useState(getStoredTheme);
   const currentPath = window.location.pathname;
   const isHomeActive = currentPath === '/';
   const isCatalogActive = currentPath === '/mascotas' || currentPath.startsWith('/mascotas/');
@@ -23,12 +32,31 @@ export function AppLayout({ children }) {
   const canAccessFoundationPanel = !isAdminUser && ['fundacion'].includes(user?.rol);
   const userName = displayText(user?.nombre);
   const greetingText = isAdminUser || canAccessFoundationPanel ? 'Hola' : `Hola, ${userName}`;
+  const isDarkTheme = theme === DARK_THEME;
 
   useEffect(() => onSessionChange(setUser), []);
+
+  useEffect(() => {
+    function handleThemeStorage(event) {
+      if (event.key === THEME_STORAGE_KEY) {
+        setTheme(applyTheme(getStoredTheme()));
+      }
+    }
+
+    window.addEventListener('storage', handleThemeStorage);
+
+    return () => {
+      window.removeEventListener('storage', handleThemeStorage);
+    };
+  }, []);
 
   function handleLogout() {
     clearSession();
     window.location.href = '/';
+  }
+
+  function handleThemeToggle() {
+    setTheme(saveTheme(isDarkTheme ? LIGHT_THEME : DARK_THEME));
   }
 
   return (
@@ -118,6 +146,20 @@ export function AppLayout({ children }) {
         </nav>
 
         <div className="header-actions">
+          <button
+            aria-label={isDarkTheme ? 'Cambiar a tema claro' : 'Cambiar a tema oscuro'}
+            aria-pressed={isDarkTheme}
+            className="theme-toggle"
+            onClick={handleThemeToggle}
+            title={isDarkTheme ? 'Tema claro' : 'Tema oscuro'}
+            type="button"
+          >
+            <span className="theme-toggle-track" aria-hidden="true">
+              <span className="theme-toggle-icon theme-toggle-icon-sun">☀</span>
+              <span className="theme-toggle-icon theme-toggle-icon-moon">☾</span>
+              <span className="theme-toggle-thumb" />
+            </span>
+          </button>
           {user ? (
             <>
               <span className="header-user" title={`Hola, ${userName}`}>{greetingText}</span>

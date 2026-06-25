@@ -1,6 +1,7 @@
 const bcrypt = require('bcrypt');
 const { formatRut, isStrongPassword, isValidRut } = require('../auth/auth.service');
 const adminModel = require('./admin.model');
+const { normalizeEstimatedBirthDate } = require('../../utils/petAge');
 
 const ADMIN_ROLES = new Set(['administrador', 'admin']);
 const USER_ROLES = new Set(['administrador', 'adoptante', 'fundacion']);
@@ -114,14 +115,6 @@ function countWords(value = '') {
     .trim()
     .split(/\s+/)
     .filter(Boolean).length;
-}
-
-function parseOptionalInteger(value) {
-  if (value === '' || value === null || value === undefined) {
-    return null;
-  }
-
-  return Number(value);
 }
 
 function getUploadedImagePath(file) {
@@ -285,11 +278,9 @@ function normalizeAdminPetPayload(payload = {}, file = null, fallback = {}) {
     payload.motivo_revision ?? payload.motivoRevision ?? fallback.motivo_revision,
     1000
   );
-  const edadAniosRaw = parseOptionalInteger(payload.edad_anios ?? fallback.edad_anios);
-  const edadMesesRaw = parseOptionalInteger(payload.edad_meses ?? fallback.edad_meses);
-  const hasAnyAge = edadAniosRaw !== null || edadMesesRaw !== null;
-  const edadAnios = edadAniosRaw ?? 0;
-  const edadMeses = edadMesesRaw ?? 0;
+  const estimatedBirthDate = normalizeEstimatedBirthDate(payload, fallback, {
+    required: Boolean(!fallback.id)
+  });
 
   if (!nombre) {
     throw createServiceError(400, 'Nombre es obligatorio.');
@@ -323,24 +314,13 @@ function normalizeAdminPetPayload(payload = {}, file = null, fallback = {}) {
     throw createServiceError(400, 'Estado de publicación inválido.');
   }
 
-  if (!hasAnyAge) {
-    throw createServiceError(400, 'Debes indicar la edad en años, meses o ambos.');
-  }
-
-  if (!Number.isInteger(edadAnios) || edadAnios < 0 || edadAnios > 30) {
-    throw createServiceError(400, 'La edad en años debe estar entre 0 y 30.');
-  }
-
-  if (!Number.isInteger(edadMeses) || edadMeses < 0 || edadMeses > 11) {
-    throw createServiceError(400, 'La edad en meses debe estar entre 0 y 11.');
-  }
-
   return {
     descripcion,
-    edadAnios,
-    edadMeses,
+    edadAnios: estimatedBirthDate.edadAnios,
+    edadMeses: estimatedBirthDate.edadMeses,
     especie,
     estado,
+    fechaNacimientoEstimada: estimatedBirthDate.fechaNacimientoEstimada,
     fotoUrl,
     motivoRevision,
     nombre,

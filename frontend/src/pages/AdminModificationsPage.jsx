@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { apiClient } from '../services/apiClient';
 import { getCurrentUser } from '../services/authSession';
 import { getMediaUrl } from '../utils/mediaUrl';
+import { formatPetAge } from '../utils/petDisplay';
 
 const ADMIN_ROLES = new Set(['administrador', 'admin']);
 const MODIFICATIONS_PER_PAGE = 5;
@@ -27,26 +28,6 @@ function formatDate(value) {
     month: 'short',
     year: 'numeric'
   }).format(new Date(value));
-}
-
-function formatPetAge(yearsValue, monthsValue) {
-  const years = Number(yearsValue ?? 0);
-  const months = Number(monthsValue ?? 0);
-  const parts = [];
-
-  if (years === 1) {
-    parts.push('1 año');
-  } else if (years > 1) {
-    parts.push(`${years} años`);
-  }
-
-  if (months === 1) {
-    parts.push('1 mes');
-  } else if (months > 1) {
-    parts.push(`${months} meses`);
-  }
-
-  return parts.length ? parts.join(' y ') : 'Edad no indicada';
 }
 
 function getProposed(modification, field, fallback = '') {
@@ -344,11 +325,23 @@ export function AdminModificationsPage() {
                           </div>
                           <div>
                             <dt>Edad actual</dt>
-                            <dd>{formatPetAge(modification.mascota_edad_anios_actual, modification.mascota_edad_meses_actual)}</dd>
+                            <dd>{formatPetAge({
+                              fecha_nacimiento_estimada: modification.mascota_fecha_nacimiento_estimada_actual,
+                              edad_anios: modification.mascota_edad_anios_actual,
+                              edad_meses: modification.mascota_edad_meses_actual
+                            })}</dd>
                           </div>
                           <div>
                             <dt>Edad propuesta</dt>
-                            <dd>{formatPetAge(getProposed(modification, 'edad_anios', modification.mascota_edad_anios_actual), getProposed(modification, 'edad_meses', modification.mascota_edad_meses_actual))}</dd>
+                            <dd>{formatPetAge({
+                              fecha_nacimiento_estimada: getProposed(
+                                modification,
+                                'fecha_nacimiento_estimada',
+                                modification.mascota_fecha_nacimiento_estimada_actual
+                              ),
+                              edad_anios: getProposed(modification, 'edad_anios', modification.mascota_edad_anios_actual),
+                              edad_meses: getProposed(modification, 'edad_meses', modification.mascota_edad_meses_actual)
+                            })}</dd>
                           </div>
                           <div>
                             <dt>Tamaño actual</dt>

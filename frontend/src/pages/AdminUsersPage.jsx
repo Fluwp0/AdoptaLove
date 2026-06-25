@@ -761,7 +761,7 @@ function validateFoundationFields(currentForm) {
             </div>
           </div>
 
-          <form className="admin-publication-toolbar" onSubmit={handleUserSearch}>
+          <form className="admin-publication-toolbar admin-users-search" onSubmit={handleUserSearch}>
             <label>
               Buscar usuarios actuales
               <input
@@ -796,7 +796,14 @@ function validateFoundationFields(currentForm) {
           ) : (
             <div className="admin-user-list">
               {users.map((user) => (
-                <article className="admin-user-card" key={user.id}>
+                <article
+                  className={
+                    expandedActionsId === user.id
+                      ? 'admin-user-card admin-user-card-actions-open'
+                      : 'admin-user-card'
+                  }
+                  key={user.id}
+                >
                   <div>
                     <strong>{user.nombre}</strong>
                     <span>{user.email}</span>
@@ -813,7 +820,9 @@ function validateFoundationFields(currentForm) {
                   </div>
                   <div className="admin-user-actions">
                     <button
-                      className="admin-secondary-button"
+                      aria-expanded={expandedActionsId === user.id}
+                      aria-haspopup="menu"
+                      className="admin-secondary-button admin-user-actions-toggle"
                       onClick={() => setExpandedActionsId(
                         expandedActionsId === user.id ? null : user.id
                       )}
@@ -822,11 +831,11 @@ function validateFoundationFields(currentForm) {
                       Acciones
                     </button>
                     {expandedActionsId === user.id && (
-                      <div className="admin-user-action-menu">
-                        <button onClick={() => openEditModal(user)} type="button">
+                      <div className="admin-user-action-menu" role="menu">
+                        <button onClick={() => openEditModal(user)} role="menuitem" type="button">
                           Modificar usuario
                         </button>
-                        <button onClick={() => startDelete(user)} type="button">
+                        <button onClick={() => startDelete(user)} role="menuitem" type="button">
                           Eliminar usuario
                         </button>
                       </div>

@@ -2,6 +2,14 @@ import { useEffect, useMemo, useState } from 'react';
 import { apiClient } from '../services/apiClient';
 import { getCurrentUser } from '../services/authSession';
 import { getMediaUrl } from '../utils/mediaUrl';
+import {
+  BIRTH_MONTH_OPTIONS,
+  buildEstimatedBirthDate,
+  formatPetAge,
+  getEstimatedBirthDateParts,
+  getEstimatedBirthYearOptions,
+  validateEstimatedBirthDate
+} from '../utils/petDisplay';
 
 const ADMIN_ROLES = new Set(['administrador', 'admin']);
 const MAX_PET_NAME_LENGTH = 40;
@@ -22,8 +30,8 @@ const EMPTY_ADMIN_PET_FORM = {
   nombre: '',
   especie: '',
   raza: '',
-  edad_anios: '',
-  edad_meses: '',
+  fecha_nacimiento_anio: '',
+  fecha_nacimiento_mes: '',
   tamano: 'mediano',
   sexo: 'desconocido',
   descripcion: '',
@@ -55,26 +63,6 @@ function formatDate(value) {
   }).format(new Date(value));
 }
 
-function formatPetAge(pet) {
-  const years = Number(pet?.edad_anios ?? 0);
-  const months = Number(pet?.edad_meses ?? 0);
-  const parts = [];
-
-  if (years === 1) {
-    parts.push('1 año');
-  } else if (years > 1) {
-    parts.push(`${years} años`);
-  }
-
-  if (months === 1) {
-    parts.push('1 mes');
-  } else if (months > 1) {
-    parts.push(`${months} meses`);
-  }
-
-  return parts.length ? parts.join(' y ') : 'Edad no indicada';
-}
-
 function validateImageFile(file) {
   if (!file) {
     return '';
@@ -92,13 +80,15 @@ function validateImageFile(file) {
 }
 
 function mapPublicationToForm(publication) {
+  const estimatedBirthDate = getEstimatedBirthDateParts(publication);
+
   return {
     publicado_por_nombre: publication.publicado_por_nombre || publication.publicada_por || '',
     nombre: publication.nombre || '',
     especie: publication.especie || '',
     raza: publication.raza || '',
-    edad_anios: publication.edad_anios ?? '',
-    edad_meses: publication.edad_meses ?? '',
+    fecha_nacimiento_anio: estimatedBirthDate.year,
+    fecha_nacimiento_mes: estimatedBirthDate.month,
     tamano: publication.tamano || 'mediano',
     sexo: publication.sexo || 'desconocido',
     descripcion: publication.descripcion || '',
@@ -164,6 +154,7 @@ export function AdminPublicationsPage() {
     () => `${publicationsPagination.total || 0} publicaciones encontradas`,
     [publicationsPagination.total]
   );
+  const birthYearOptions = useMemo(() => getEstimatedBirthYearOptions(), []);
 
   async function loadPublications(page = publicationsPage, search = publicationSearch) {
     if (!isAdmin) {
@@ -277,8 +268,12 @@ export function AdminPublicationsPage() {
     formData.append('nombre', form.nombre.trim());
     formData.append('especie', form.especie.trim());
     formData.append('raza', form.raza.trim());
-    formData.append('edad_anios', form.edad_anios === '' ? '0' : String(Number(form.edad_anios)));
-    formData.append('edad_meses', form.edad_meses === '' ? '0' : String(Number(form.edad_meses)));
+    formData.append('fecha_nacimiento_anio', form.fecha_nacimiento_anio);
+    formData.append('fecha_nacimiento_mes', form.fecha_nacimiento_mes);
+    formData.append(
+      'fecha_nacimiento_estimada',
+      buildEstimatedBirthDate(form.fecha_nacimiento_anio, form.fecha_nacimiento_mes)
+    );
     formData.append('tamano', form.tamano);
     formData.append('sexo', form.sexo);
     formData.append('descripcion', form.descripcion.trim());
@@ -308,24 +303,14 @@ export function AdminPublicationsPage() {
       return;
     }
 
-    const years = form.edad_anios === '' ? null : Number(form.edad_anios);
-    const months = form.edad_meses === '' ? null : Number(form.edad_meses);
+    const birthDateValidationError = validateEstimatedBirthDate(
+      form.fecha_nacimiento_anio,
+      form.fecha_nacimiento_mes
+    );
 
-    if (years === null && months === null) {
+    if (birthDateValidationError) {
       setSubmitStatus('error');
-      setFeedback('Debes indicar la edad en años, meses o ambos.');
-      return;
-    }
-
-    if (years !== null && (!Number.isInteger(years) || years < 0 || years > 30)) {
-      setSubmitStatus('error');
-      setFeedback('La edad en años debe estar entre 0 y 30.');
-      return;
-    }
-
-    if (months !== null && (!Number.isInteger(months) || months < 0 || months > 11)) {
-      setSubmitStatus('error');
-      setFeedback('La edad en meses debe estar entre 0 y 11.');
+      setFeedback(birthDateValidationError);
       return;
     }
 
@@ -551,29 +536,35 @@ export function AdminPublicationsPage() {
             />
           </label>
           <fieldset className="admin-age-field">
-            <legend>Edad</legend>
+            <legend>Fecha estimada de nacimiento</legend>
             <div>
               <label>
-                Edad en años
-                <input
-                  max="30"
-                  min="0"
-                  onChange={(event) => updateFormField('edad_anios', event.target.value)}
-                  placeholder="0"
-                  type="number"
-                  value={form.edad_anios}
-                />
+                Año estimado de nacimiento
+                <select
+                  onChange={(event) => updateFormField('fecha_nacimiento_anio', event.target.value)}
+                  value={form.fecha_nacimiento_anio}
+                >
+                  <option value="">Selecciona un año</option>
+                  {birthYearOptions.map((year) => (
+                    <option key={year} value={year}>
+                      {year}
+                    </option>
+                  ))}
+                </select>
               </label>
               <label>
-                Edad en meses
-                <input
-                  max="11"
-                  min="0"
-                  onChange={(event) => updateFormField('edad_meses', event.target.value)}
-                  placeholder="0"
-                  type="number"
-                  value={form.edad_meses}
-                />
+                Mes estimado de nacimiento
+                <select
+                  onChange={(event) => updateFormField('fecha_nacimiento_mes', event.target.value)}
+                  value={form.fecha_nacimiento_mes}
+                >
+                  <option value="">Selecciona un mes</option>
+                  {BIRTH_MONTH_OPTIONS.map((month) => (
+                    <option key={month.value} value={month.value}>
+                      {month.label}
+                    </option>
+                  ))}
+                </select>
               </label>
             </div>
           </fieldset>

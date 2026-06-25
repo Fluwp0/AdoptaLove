@@ -323,10 +323,12 @@ export function ProfilePage() {
                       <div>
                         <dt>Edad</dt>
                         <dd>
-                          {formatPetAge(
-                            latestAdoptionRequest.mascota_edad_anios,
-                            latestAdoptionRequest.mascota_edad_meses
-                          )}
+                          {formatPetAge({
+                            fecha_nacimiento_estimada:
+                              latestAdoptionRequest.mascota_fecha_nacimiento_estimada,
+                            edad_anios: latestAdoptionRequest.mascota_edad_anios,
+                            edad_meses: latestAdoptionRequest.mascota_edad_meses
+                          })}
                         </dd>
                       </div>
                       <div>

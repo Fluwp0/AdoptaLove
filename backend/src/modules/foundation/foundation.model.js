@@ -1,4 +1,5 @@
 const db = require('../../config/database');
+const { buildAgeMonthsSql, buildAgeYearsSql } = require('../../utils/petAge');
 
 let hasPetModificationPreviousStatusColumnCache = null;
 
@@ -96,8 +97,9 @@ async function findPetsByOwner(userId = null) {
       m.especie,
       m.raza,
       m.sexo,
-      m.edad_anios,
-      m.edad_meses,
+      ${buildAgeYearsSql('m', 'edad_anios')},
+      ${buildAgeMonthsSql('m', 'edad_meses')},
+      m.fecha_nacimiento_estimada,
       m.tamano,
       m.descripcion,
       m.foto_url,
@@ -119,24 +121,25 @@ async function findPetsByOwner(userId = null) {
 async function findPetById(id) {
   const [rows] = await db.query(
     `SELECT
-      id,
-      publicado_por_usuario_id,
-      publicado_por_nombre,
-      nombre,
-      especie,
-      raza,
-      sexo,
-      edad_anios,
-      edad_meses,
-      tamano,
-      descripcion,
-      foto_url,
-      estado,
-      eliminada_at,
-      created_at,
-      updated_at
-    FROM mascotas
-    WHERE id = ?
+      m.id,
+      m.publicado_por_usuario_id,
+      m.publicado_por_nombre,
+      m.nombre,
+      m.especie,
+      m.raza,
+      m.sexo,
+      ${buildAgeYearsSql('m', 'edad_anios')},
+      ${buildAgeMonthsSql('m', 'edad_meses')},
+      m.fecha_nacimiento_estimada,
+      m.tamano,
+      m.descripcion,
+      m.foto_url,
+      m.estado,
+      m.eliminada_at,
+      m.created_at,
+      m.updated_at
+    FROM mascotas m
+    WHERE m.id = ?
     LIMIT 1`,
     [id]
   );
@@ -155,12 +158,13 @@ async function createPet(pet) {
         sexo,
         edad_anios,
         edad_meses,
+        fecha_nacimiento_estimada,
         tamano,
         descripcion,
         foto_url,
         estado
       )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       pet.publicadoPorUsuarioId,
       pet.nombre,
@@ -169,6 +173,7 @@ async function createPet(pet) {
       pet.sexo,
       pet.edadAnios,
       pet.edadMeses,
+      pet.fechaNacimientoEstimada,
       pet.tamano,
       pet.descripcion,
       pet.fotoUrl,
@@ -189,6 +194,7 @@ async function updatePet(id, pet) {
       sexo = ?,
       edad_anios = ?,
       edad_meses = ?,
+      fecha_nacimiento_estimada = ?,
       tamano = ?,
       descripcion = ?,
       foto_url = ?,
@@ -201,6 +207,7 @@ async function updatePet(id, pet) {
       pet.sexo,
       pet.edadAnios,
       pet.edadMeses,
+      pet.fechaNacimientoEstimada,
       pet.tamano,
       pet.descripcion,
       pet.fotoUrl,

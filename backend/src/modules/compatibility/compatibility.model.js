@@ -1,4 +1,5 @@
 const db = require('../../config/database');
+const { buildAgeMonthsSql, buildAgeYearsSql } = require('../../utils/petAge');
 
 async function findMatchablePets() {
   const [rows] = await db.query(
@@ -10,8 +11,9 @@ async function findMatchablePets() {
       m.especie,
       m.raza,
       m.sexo,
-      m.edad_anios,
-      m.edad_meses,
+      ${buildAgeYearsSql('m', 'edad_anios')},
+      ${buildAgeMonthsSql('m', 'edad_meses')},
+      m.fecha_nacimiento_estimada,
       m.tamano,
       m.descripcion,
       m.foto_url,

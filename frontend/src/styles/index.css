@@ -7,21 +7,120 @@
   --text: #2f2730;
   --muted: #6f6070;
   --white: #ffffff;
-  font-family: Inter, "Trebuchet MS", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  color: var(--text);
-  background:
+  --heading: #3b3037;
+  --app-background:
     radial-gradient(circle at 8% 28%, rgba(240, 68, 125, 0.1), transparent 22rem),
     radial-gradient(circle at 96% 20%, rgba(255, 198, 216, 0.42), transparent 26rem),
     linear-gradient(180deg, #fff8fb 0%, #ffffff 42%, #fff4f8 100%);
+  --surface: rgba(255, 255, 255, 0.94);
+  --surface-strong: #ffffff;
+  --surface-soft: #fff8fb;
+  --surface-tint: #fff1f6;
+  --nav-bg: rgba(255, 246, 249, 0.96);
+  --nav-border: #ffd4e1;
+  --input-bg: #ffffff;
+  --shadow-soft: 0 10px 28px rgba(161, 62, 96, 0.12);
+  --shadow-card: 0 16px 30px rgba(161, 62, 96, 0.1);
+  --shadow-popover: 0 24px 54px rgba(122, 56, 81, 0.24);
+  --success-bg: #eefbf2;
+  --success-text: #227a43;
+  --warning-bg: #fff7db;
+  --warning-text: #7a5300;
+  --danger-bg: #fff0f2;
+  --danger-text: #b32645;
+  --neutral-bg: #f2eff5;
+  --neutral-text: #66546a;
+  --color-bg: var(--app-background);
+  --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-strong);
+  --color-card: var(--surface);
+  --color-text: var(--text);
+  --color-text-muted: var(--muted);
+  --color-border: var(--border);
+  --color-primary: var(--pink);
+  --color-primary-soft: var(--pink-soft);
+  --color-input-bg: var(--input-bg);
+  --color-hero-bg:
+    radial-gradient(circle at 92% 16%, rgba(240, 68, 125, 0.14), transparent 12rem),
+    var(--surface);
+  --color-hero-text: var(--heading);
+  --color-shadow: var(--shadow-card);
+  font-family: Inter, "Trebuchet MS", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: var(--text);
+  background: var(--app-background);
+  color-scheme: light;
+}
+
+:root[data-theme="dark"] {
+  --pink: #ff5c94;
+  --pink-dark: #ff9abb;
+  --pink-soft: rgba(240, 68, 125, 0.2);
+  --pink-light: rgba(240, 68, 125, 0.1);
+  --border: #654052;
+  --text: #f8edf3;
+  --muted: #d2bdc8;
+  --white: #201720;
+  --heading: #fff8fb;
+  --app-background:
+    radial-gradient(circle at 8% 22%, rgba(240, 68, 125, 0.18), transparent 23rem),
+    radial-gradient(circle at 94% 12%, rgba(255, 154, 187, 0.16), transparent 26rem),
+    linear-gradient(180deg, #170f17 0%, #211622 48%, #140e15 100%);
+  --surface: rgba(38, 27, 37, 0.94);
+  --surface-strong: #2b1d2a;
+  --surface-soft: rgba(255, 255, 255, 0.055);
+  --surface-tint: rgba(240, 68, 125, 0.11);
+  --nav-bg: rgba(33, 22, 32, 0.96);
+  --nav-border: rgba(255, 154, 187, 0.32);
+  --input-bg: rgba(23, 15, 23, 0.86);
+  --shadow-soft: 0 12px 30px rgba(0, 0, 0, 0.34);
+  --shadow-card: 0 18px 36px rgba(0, 0, 0, 0.28);
+  --shadow-popover: 0 26px 62px rgba(0, 0, 0, 0.48);
+  --success-bg: rgba(62, 172, 106, 0.16);
+  --success-text: #8ee6b1;
+  --warning-bg: rgba(255, 193, 92, 0.18);
+  --warning-text: #ffd38b;
+  --danger-bg: rgba(255, 93, 125, 0.16);
+  --danger-text: #ff9ab0;
+  --neutral-bg: rgba(255, 255, 255, 0.08);
+  --neutral-text: #d9cbd4;
+  --color-bg: var(--app-background);
+  --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-strong);
+  --color-card: var(--surface);
+  --color-text: var(--text);
+  --color-text-muted: var(--muted);
+  --color-border: var(--border);
+  --color-primary: var(--pink);
+  --color-primary-soft: var(--pink-soft);
+  --color-input-bg: var(--input-bg);
+  --color-hero-bg:
+    radial-gradient(circle at 92% 16%, rgba(255, 92, 148, 0.18), transparent 12rem),
+    var(--surface);
+  --color-hero-text: var(--heading);
+  --color-shadow: var(--shadow-card);
 }
 
 * {
   box-sizing: border-box;
 }
 
+html,
+body,
+#root {
+  background: var(--app-background);
+  min-height: 100%;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
 body {
+  background: var(--app-background);
+  color: var(--text);
   margin: 0;
   min-width: 320px;
+  transition: background-color 220ms ease, color 220ms ease;
 }
 
 button,
@@ -265,6 +364,89 @@ button.header-button {
   border: 1px solid var(--pink);
   box-shadow: 0 8px 16px rgba(240, 68, 125, 0.22);
   color: var(--white);
+}
+
+.theme-toggle {
+  align-items: center;
+  appearance: none;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  display: inline-flex;
+  flex: 0 0 auto;
+  height: 38px;
+  justify-content: center;
+  padding: 0;
+  width: 70px;
+}
+
+.theme-toggle-track {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.76);
+  border: 1px solid rgba(240, 68, 125, 0.3);
+  border-radius: 999px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.82), 0 8px 18px rgba(161, 62, 96, 0.11);
+  display: flex;
+  height: 34px;
+  justify-content: space-between;
+  overflow: hidden;
+  padding: 0 0.4rem;
+  position: relative;
+  transition: background-color 220ms ease, border-color 220ms ease, box-shadow 220ms ease;
+  width: 62px;
+}
+
+.theme-toggle-thumb {
+  background: var(--pink);
+  border-radius: 999px;
+  box-shadow: 0 7px 14px rgba(240, 68, 125, 0.32);
+  height: 26px;
+  left: 4px;
+  position: absolute;
+  top: 3px;
+  transform: translateX(0);
+  transition: background-color 220ms ease, box-shadow 220ms ease, transform 220ms ease;
+  width: 26px;
+  z-index: 1;
+}
+
+.theme-toggle-icon {
+  color: var(--pink-dark);
+  display: inline-flex;
+  font-size: 0.9rem;
+  font-weight: 950;
+  line-height: 1;
+  position: relative;
+  transition: color 220ms ease, opacity 220ms ease;
+  z-index: 2;
+}
+
+.theme-toggle-icon-moon {
+  opacity: 0.48;
+}
+
+.theme-toggle[aria-pressed="true"] .theme-toggle-track {
+  background: rgba(255, 92, 148, 0.16);
+  border-color: rgba(255, 154, 187, 0.44);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 8px 18px rgba(0, 0, 0, 0.24);
+}
+
+.theme-toggle[aria-pressed="true"] .theme-toggle-thumb {
+  transform: translateX(28px);
+}
+
+.theme-toggle[aria-pressed="true"] .theme-toggle-icon-sun {
+  opacity: 0.46;
+}
+
+.theme-toggle[aria-pressed="true"] .theme-toggle-icon-moon {
+  color: #ffffff;
+  opacity: 1;
+}
+
+.theme-toggle:focus-visible {
+  outline: 3px solid rgba(240, 68, 125, 0.35);
+  outline-offset: 3px;
 }
 
 .home-page {
@@ -1328,30 +1510,6 @@ button.header-button {
   color: #7b6d73;
 }
 
-.favorite-button {
-  align-items: center;
-  background: var(--white);
-  border: 2px solid #ffd4e1;
-  border-radius: 50%;
-  color: transparent;
-  cursor: pointer;
-  display: inline-flex;
-  height: 44px;
-  justify-content: center;
-  overflow: hidden;
-  position: absolute;
-  right: 0.8rem;
-  top: 0.8rem;
-  width: 44px;
-}
-
-.favorite-button::before {
-  color: var(--pink);
-  content: "♡";
-  font-size: 1.8rem;
-  line-height: 1;
-}
-
 .pet-card-body {
   display: flex;
   flex: 1;
@@ -1915,6 +2073,15 @@ button.header-button {
   overflow-wrap: anywhere;
 }
 
+.adoption-profile-summary div {
+  background: var(--surface-soft);
+  border-color: var(--border);
+}
+
+.adoption-profile-summary dd {
+  color: var(--text);
+}
+
 .adoption-fields-grid {
   display: grid;
   gap: 1rem;
@@ -1957,6 +2124,12 @@ button.header-button {
   box-shadow: 0 0 0 4px rgba(240, 68, 125, 0.12);
 }
 
+.adoption-field select[aria-invalid="true"],
+.adoption-field textarea[aria-invalid="true"] {
+  border-color: #ff9fba;
+  box-shadow: 0 0 0 4px rgba(179, 38, 69, 0.1);
+}
+
 .adoption-radio-group {
   border: 0;
   display: flex;
@@ -1989,6 +2162,10 @@ button.header-button {
 
 .adoption-radio-group input {
   accent-color: var(--pink);
+}
+
+.adoption-radio-group .field-error {
+  flex: 0 0 100%;
 }
 
 .adoption-feedback {
@@ -2143,6 +2320,11 @@ button.header-button {
   justify-content: center;
   min-height: 48px;
   text-decoration: none;
+}
+
+.adoption-help-card a:first-of-type {
+  background: var(--pink);
+  color: #ffffff;
 }
 
 .adoption-login-required {
@@ -6566,5 +6748,1302 @@ button.header-button {
 
   .quiz-question-heading {
     flex-direction: column;
+  }
+}
+
+.app-shell,
+.app-header,
+.site-footer,
+[class$="-card"],
+[class*="-card "],
+[class$="-panel"],
+[class*="-panel "],
+[class$="-modal"],
+[class*="-modal "],
+[class$="-state"],
+[class*="-state "],
+[class$="-toolbar"],
+[class*="-toolbar "],
+[class$="-window"],
+[class*="-window "],
+input,
+select,
+textarea,
+button,
+a {
+  transition: background-color 220ms ease, color 220ms ease, border-color 220ms ease, box-shadow 220ms ease;
+}
+
+:root[data-theme="dark"] {
+  background: var(--app-background);
+}
+
+:root[data-theme="dark"] .app-shell {
+  background: transparent;
+  color: var(--text);
+}
+
+:root[data-theme="dark"] .app-shell::before,
+:root[data-theme="dark"] .app-shell::after {
+  color: rgba(255, 92, 148, 0.16);
+}
+
+:root[data-theme="dark"] .app-header {
+  background: var(--nav-bg);
+  border-color: var(--nav-border);
+  box-shadow: var(--shadow-soft);
+}
+
+:root[data-theme="dark"] .brand,
+:root[data-theme="dark"] .brand-name,
+:root[data-theme="dark"] .site-footer-logo,
+:root[data-theme="dark"] .site-footer-logo span {
+  color: var(--pink);
+}
+
+:root[data-theme="dark"] .main-nav a {
+  color: var(--text);
+}
+
+:root[data-theme="dark"] .main-nav a:hover,
+:root[data-theme="dark"] .main-nav a.active {
+  background: var(--surface-tint);
+  border-color: rgba(255, 154, 187, 0.36);
+  color: var(--pink-dark);
+}
+
+:root[data-theme="dark"] .header-user,
+:root[data-theme="dark"] .header-button-ghost,
+:root[data-theme="dark"] .header-button-panel {
+  background: var(--surface-soft);
+  border-color: rgba(255, 154, 187, 0.36);
+  color: var(--pink-dark);
+}
+
+:root[data-theme="dark"] .header-button-panel.active,
+:root[data-theme="dark"] .admin-nav a.active {
+  background: rgba(255, 92, 148, 0.16);
+  border-color: var(--pink);
+  box-shadow: inset 0 -3px 0 rgba(255, 92, 148, 0.34);
+  color: var(--pink-dark);
+}
+
+:root[data-theme="dark"] .header-button-solid,
+:root[data-theme="dark"] .home-primary-button,
+:root[data-theme="dark"] .about-primary-button,
+:root[data-theme="dark"] .detail-primary-action,
+:root[data-theme="dark"] .adoption-submit-button,
+:root[data-theme="dark"] .auth-submit-button,
+:root[data-theme="dark"] .auth-submit-link,
+:root[data-theme="dark"] .profile-logout-button,
+:root[data-theme="dark"] .chatbot-form button,
+:root[data-theme="dark"] .chatbot-widget-form button,
+:root[data-theme="dark"] .foundation-primary-button,
+:root[data-theme="dark"] .foundation-primary-link,
+:root[data-theme="dark"] .foundation-request-actions button.active,
+:root[data-theme="dark"] .admin-primary-button,
+:root[data-theme="dark"] .admin-primary-link,
+:root[data-theme="dark"] .donations-hero-action,
+:root[data-theme="dark"] .donation-submit-button,
+:root[data-theme="dark"] .quiz-primary-button,
+:root[data-theme="dark"] .chatbot-widget-toggle {
+  color: #ffffff;
+}
+
+:root[data-theme="dark"] [class$="-card"],
+:root[data-theme="dark"] [class*="-card "],
+:root[data-theme="dark"] [class$="-panel"],
+:root[data-theme="dark"] [class*="-panel "],
+:root[data-theme="dark"] [class$="-modal"],
+:root[data-theme="dark"] [class*="-modal "],
+:root[data-theme="dark"] [class$="-window"],
+:root[data-theme="dark"] [class*="-window "],
+:root[data-theme="dark"] .home-hero-visual,
+:root[data-theme="dark"] .home-hero-logo-card,
+:root[data-theme="dark"] .home-visual-grid div,
+:root[data-theme="dark"] .about-logo-badge,
+:root[data-theme="dark"] .catalog-search input,
+:root[data-theme="dark"] .catalog-toolbar,
+:root[data-theme="dark"] .catalog-summary,
+:root[data-theme="dark"] .pet-card,
+:root[data-theme="dark"] .detail-image-card,
+:root[data-theme="dark"] .detail-info-card,
+:root[data-theme="dark"] .publisher-card,
+:root[data-theme="dark"] .profile-summary-card,
+:root[data-theme="dark"] .profile-adoption-process,
+:root[data-theme="dark"] .foundation-pet-card,
+:root[data-theme="dark"] .foundation-request-card,
+:root[data-theme="dark"] .admin-publication-card,
+:root[data-theme="dark"] .admin-user-card,
+:root[data-theme="dark"] .admin-user-action-menu,
+:root[data-theme="dark"] .admin-publications-panel {
+  background: var(--surface);
+  border-color: var(--border);
+  box-shadow: var(--shadow-card);
+  color: var(--text);
+}
+
+:root[data-theme="dark"] .app-shell :is(h1, h2, h3, h4, dt, label, legend, summary),
+:root[data-theme="dark"] .app-shell :is(.home-visual-grid strong, .about-contact-card strong, .about-social-card strong, .about-commitment-grid strong, .foundation-pet-card strong, .foundation-request-card strong, .admin-publication-title-row strong, .admin-user-card strong, .donations-help-list strong, .donations-latest h4, .quiz-option-copy strong, .quiz-recommendation-body h3) {
+  color: var(--heading);
+}
+
+:root[data-theme="dark"] .app-shell :is(p, dd, li, small),
+:root[data-theme="dark"] .catalog-summary span,
+:root[data-theme="dark"] .pet-title-row span,
+:root[data-theme="dark"] .admin-publication-title-row small,
+:root[data-theme="dark"] .admin-publication-meta span,
+:root[data-theme="dark"] .admin-user-card span,
+:root[data-theme="dark"] .admin-user-card small,
+:root[data-theme="dark"] .foundation-request-header span:not(.foundation-status) {
+  color: var(--muted);
+}
+
+:root[data-theme="dark"] input,
+:root[data-theme="dark"] select,
+:root[data-theme="dark"] textarea {
+  background: var(--input-bg);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+:root[data-theme="dark"] input::placeholder,
+:root[data-theme="dark"] textarea::placeholder {
+  color: rgba(248, 237, 243, 0.54);
+}
+
+:root[data-theme="dark"] input:focus,
+:root[data-theme="dark"] select:focus,
+:root[data-theme="dark"] textarea:focus,
+:root[data-theme="dark"] .chatbot-form > div:focus-within,
+:root[data-theme="dark"] .chatbot-widget-form > div:focus-within {
+  border-color: var(--pink);
+  box-shadow: 0 0 0 4px rgba(255, 92, 148, 0.16);
+}
+
+:root[data-theme="dark"] .home-pill,
+:root[data-theme="dark"] .home-section-heading span,
+:root[data-theme="dark"] .about-pill,
+:root[data-theme="dark"] .about-section-heading span,
+:root[data-theme="dark"] .section-kicker,
+:root[data-theme="dark"] .chatbot-pill,
+:root[data-theme="dark"] .donations-pill,
+:root[data-theme="dark"] .quiz-pill,
+:root[data-theme="dark"] .pet-status,
+:root[data-theme="dark"] .foundation-status,
+:root[data-theme="dark"] .admin-publication-status,
+:root[data-theme="dark"] .admin-user-pill {
+  background: var(--surface-tint);
+  border-color: rgba(255, 154, 187, 0.32);
+  color: var(--pink-dark);
+}
+
+:root[data-theme="dark"] .home-secondary-button,
+:root[data-theme="dark"] .home-section-link,
+:root[data-theme="dark"] .detail-secondary-action,
+:root[data-theme="dark"] .foundation-secondary-button,
+:root[data-theme="dark"] .foundation-detail-toggle,
+:root[data-theme="dark"] .foundation-pagination button,
+:root[data-theme="dark"] .admin-secondary-button,
+:root[data-theme="dark"] .filter-tab,
+:root[data-theme="dark"] .filter-button,
+:root[data-theme="dark"] .chatbot-quick-card button,
+:root[data-theme="dark"] .chatbot-widget-quick button,
+:root[data-theme="dark"] .donation-amount-card,
+:root[data-theme="dark"] .donation-method-card,
+:root[data-theme="dark"] .quiz-option-card,
+:root[data-theme="dark"] .profile-adoption-refresh,
+:root[data-theme="dark"] .profile-modal-secondary {
+  background: var(--surface-soft);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+:root[data-theme="dark"] .filter-tab.active,
+:root[data-theme="dark"] .donation-amount-card.active,
+:root[data-theme="dark"] .donation-method-card.active,
+:root[data-theme="dark"] .quiz-option-card.active,
+:root[data-theme="dark"] .quiz-option-card:hover,
+:root[data-theme="dark"] .chatbot-quick-card button:hover,
+:root[data-theme="dark"] .chatbot-widget-quick button:hover {
+  background: var(--surface-tint);
+  border-color: var(--pink);
+  box-shadow: 0 12px 22px rgba(255, 92, 148, 0.12);
+  color: var(--pink-dark);
+}
+
+:root[data-theme="dark"] .home-final-band,
+:root[data-theme="dark"] .about-final-band,
+:root[data-theme="dark"] .about-commitment-card,
+:root[data-theme="dark"] .adoption-feedback,
+:root[data-theme="dark"] .foundation-review-note,
+:root[data-theme="dark"] .admin-publish-note,
+:root[data-theme="dark"] .admin-empty-state,
+:root[data-theme="dark"] .foundation-empty-state,
+:root[data-theme="dark"] .catalog-state,
+:root[data-theme="dark"] .detail-state,
+:root[data-theme="dark"] .home-state {
+  background: var(--surface-tint);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+:root[data-theme="dark"] .home-final-band p,
+:root[data-theme="dark"] .about-final-band p {
+  color: var(--pink-dark);
+}
+
+:root[data-theme="dark"] .home-pet-image-wrap,
+:root[data-theme="dark"] .pet-image-wrap,
+:root[data-theme="dark"] .detail-image-card,
+:root[data-theme="dark"] .adoption-pet-image-wrap,
+:root[data-theme="dark"] .profile-adoption-placeholder,
+:root[data-theme="dark"] .quiz-pet-image-wrap,
+:root[data-theme="dark"] .admin-publication-image,
+:root[data-theme="dark"] .foundation-pet-image,
+:root[data-theme="dark"] .foundation-pet-placeholder,
+:root[data-theme="dark"] .admin-image-preview,
+:root[data-theme="dark"] .foundation-image-preview,
+:root[data-theme="dark"] .pet-image-placeholder,
+:root[data-theme="dark"] .detail-image-placeholder,
+:root[data-theme="dark"] .home-pet-placeholder,
+:root[data-theme="dark"] .quiz-pet-image-placeholder,
+:root[data-theme="dark"] .adoption-pet-image-placeholder {
+  background: linear-gradient(135deg, rgba(255, 92, 148, 0.16), rgba(255, 255, 255, 0.06));
+  border-color: var(--border);
+  color: var(--pink-dark);
+}
+
+:root[data-theme="dark"] .chatbot-message-bot,
+:root[data-theme="dark"] .chatbot-widget-message-bot,
+:root[data-theme="dark"] .chatbot-form > div,
+:root[data-theme="dark"] .chatbot-widget-form > div,
+:root[data-theme="dark"] .foundation-request-message,
+:root[data-theme="dark"] .foundation-request-reason,
+:root[data-theme="dark"] .admin-publication-reason,
+:root[data-theme="dark"] .admin-publication-detail,
+:root[data-theme="dark"] .profile-adoption-meta div,
+:root[data-theme="dark"] .detail-facts div,
+:root[data-theme="dark"] .pet-facts div,
+:root[data-theme="dark"] .donations-help-list > div,
+:root[data-theme="dark"] .donations-latest p,
+:root[data-theme="dark"] .quiz-summary-card div {
+  background: var(--surface-soft);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+:root[data-theme="dark"] .chatbot-message-user,
+:root[data-theme="dark"] .chatbot-message-user p,
+:root[data-theme="dark"] .chatbot-widget-message-user,
+:root[data-theme="dark"] .chatbot-widget-message-user p {
+  background: var(--pink);
+  color: #ffffff;
+}
+
+:root[data-theme="dark"] .chatbot-widget-panel {
+  background: var(--surface-strong);
+  border-color: var(--border);
+  box-shadow: var(--shadow-popover);
+}
+
+:root[data-theme="dark"] .chatbot-widget-header {
+  background:
+    radial-gradient(circle at 86% 20%, rgba(255, 255, 255, 0.12), transparent 6rem),
+    linear-gradient(135deg, #ce2e66, #ff6c9f);
+}
+
+:root[data-theme="dark"] .chatbot-widget-footer {
+  background: var(--surface-strong);
+  border-color: var(--border);
+}
+
+:root[data-theme="dark"] .site-footer {
+  background: linear-gradient(135deg, rgba(45, 29, 43, 0.96), rgba(31, 21, 31, 0.98));
+  border-color: var(--border);
+  box-shadow: 0 -14px 34px rgba(0, 0, 0, 0.28);
+}
+
+:root[data-theme="dark"] .site-footer-bottom,
+:root[data-theme="dark"] .admin-pagination,
+:root[data-theme="dark"] .foundation-pagination,
+:root[data-theme="dark"] .detail-description,
+:root[data-theme="dark"] .foundation-request-detail,
+:root[data-theme="dark"] .admin-publication-detail {
+  border-color: var(--border);
+}
+
+:root[data-theme="dark"] .admin-modal-backdrop,
+:root[data-theme="dark"] .foundation-modal-backdrop,
+:root[data-theme="dark"] .profile-modal-backdrop {
+  background: rgba(12, 8, 12, 0.62);
+}
+
+:root[data-theme="dark"] .auth-feedback-success,
+:root[data-theme="dark"] .adoption-feedback-success,
+:root[data-theme="dark"] .donation-feedback-success,
+:root[data-theme="dark"] .foundation-feedback,
+:root[data-theme="dark"] .foundation-request-reason,
+:root[data-theme="dark"] .admin-feedback,
+:root[data-theme="dark"] .pet-status-disponible,
+:root[data-theme="dark"] .pet-status-aprobada,
+:root[data-theme="dark"] .foundation-status-disponible,
+:root[data-theme="dark"] .foundation-status-aprobada,
+:root[data-theme="dark"] .admin-publication-status-disponible,
+:root[data-theme="dark"] .admin-publication-status-aprobada,
+:root[data-theme="dark"] .admin-user-state-activo {
+  background: var(--success-bg);
+  border-color: rgba(142, 230, 177, 0.28);
+  color: var(--success-text) !important;
+}
+
+:root[data-theme="dark"] .pet-status-pendiente,
+:root[data-theme="dark"] .pet-status-en_revision,
+:root[data-theme="dark"] .foundation-status-pendiente,
+:root[data-theme="dark"] .foundation-status-en_revision,
+:root[data-theme="dark"] .admin-publication-status-en_revision {
+  background: var(--warning-bg);
+  color: var(--warning-text) !important;
+}
+
+:root[data-theme="dark"] .auth-feedback-error,
+:root[data-theme="dark"] .adoption-feedback-error,
+:root[data-theme="dark"] .donation-feedback-error,
+:root[data-theme="dark"] .foundation-feedback-error,
+:root[data-theme="dark"] .foundation-state-error,
+:root[data-theme="dark"] .foundation-modal-error,
+:root[data-theme="dark"] .admin-feedback-error,
+:root[data-theme="dark"] .admin-modal-error,
+:root[data-theme="dark"] .catalog-state-error,
+:root[data-theme="dark"] .detail-state-error,
+:root[data-theme="dark"] .chatbot-error,
+:root[data-theme="dark"] .chatbot-widget-error,
+:root[data-theme="dark"] .pet-status-rechazada,
+:root[data-theme="dark"] .foundation-status-rechazada,
+:root[data-theme="dark"] .foundation-status-cancelada,
+:root[data-theme="dark"] .admin-publication-status-rechazada,
+:root[data-theme="dark"] .admin-user-state-inactivo,
+:root[data-theme="dark"] .admin-user-state-suspendido {
+  background: var(--danger-bg);
+  border-color: rgba(255, 154, 176, 0.3);
+  color: var(--danger-text) !important;
+}
+
+:root[data-theme="dark"] .pet-status-adoptada,
+:root[data-theme="dark"] .foundation-status-adoptada,
+:root[data-theme="dark"] .foundation-status-inactiva,
+:root[data-theme="dark"] .admin-publication-status-adoptada,
+:root[data-theme="dark"] .admin-publication-status-descartada,
+:root[data-theme="dark"] .admin-publication-status-inactiva,
+:root[data-theme="dark"] .profile-adoption-status-cancelada {
+  background: var(--neutral-bg);
+  color: var(--neutral-text) !important;
+}
+
+:root[data-theme="dark"] .foundation-file-button,
+:root[data-theme="dark"] .admin-file-button {
+  background: var(--surface-soft);
+  border-color: var(--border);
+  color: var(--pink-dark);
+}
+
+.chatbot-hero,
+.donations-hero > div,
+.quiz-intro-copy,
+.quiz-results-hero {
+  background:
+    radial-gradient(circle at 88% 18%, rgba(240, 68, 125, 0.14), transparent 12rem),
+    var(--surface);
+  border: 2px solid var(--border);
+  box-shadow: var(--shadow-card);
+  color: var(--text);
+}
+
+.chatbot-hero h2,
+.donations-hero h2,
+.quiz-intro-copy h2,
+.quiz-results-hero h2 {
+  color: var(--heading);
+}
+
+.chatbot-hero p,
+.donations-hero p,
+.quiz-intro-copy p,
+.quiz-results-hero p {
+  color: var(--muted);
+}
+
+.chatbot-panel,
+.chatbot-quick-card,
+.donation-form-card,
+.donations-info-card,
+.donations-impact-card,
+.quiz-intro-card,
+.quiz-question-card,
+.quiz-summary-card,
+.quiz-recommendation-card,
+.about-faq-card,
+.about-contact-card,
+.about-social-card,
+.about-visual-card,
+.adoption-form-card,
+.adoption-info-card,
+.adoption-pet-card,
+.adoption-help-card {
+  background: var(--surface);
+  border-color: var(--border);
+  box-shadow: var(--shadow-card);
+  color: var(--text);
+}
+
+.chatbot-window,
+.chatbot-message-bot p,
+.chatbot-message-bot > span,
+.chatbot-form > div,
+.chatbot-quick-card button,
+.donation-amount-card,
+.donation-method-card,
+.donation-submit-row,
+.donations-help-list > div,
+.donations-latest p,
+.quiz-option-card,
+.quiz-summary-card div,
+.about-faq-item,
+.about-commitment-grid article,
+.about-indicators article,
+.adoption-radio-group label,
+.adoption-profile-summary div {
+  background: var(--surface-soft);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+.chatbot-message-bot p,
+.chatbot-message-bot small,
+.chatbot-quick-card button,
+.donation-method-card small,
+.donations-help-list p,
+.quiz-option-copy small,
+.quiz-summary-card dd,
+.about-faq-item p,
+.about-social-card small,
+.about-commitment-card p,
+.adoption-info-card span,
+.adoption-help-card p,
+.adoption-pet-card small {
+  color: var(--muted);
+}
+
+.chatbot-message-bot small,
+.donations-impact-card strong,
+.quiz-intro-card h3,
+.quiz-card-icon,
+.about-indicators strong,
+.about-commitment-grid span,
+.adoption-info-card h3,
+.adoption-pet-card > span,
+.adoption-help-card h3 {
+  color: var(--pink);
+}
+
+.chatbot-form label,
+.donation-field,
+.donation-methods legend,
+.quiz-option-copy strong,
+.quiz-summary-card dt,
+.about-faq-item summary,
+.about-contact-card strong,
+.about-social-card strong,
+.about-commitment-grid strong,
+.adoption-field,
+.adoption-radio-group legend,
+.adoption-info-card strong,
+.adoption-pet-card p,
+.adoption-profile-summary dd {
+  color: var(--heading);
+}
+
+.about-commitment-card,
+.about-final-band {
+  background:
+    radial-gradient(circle at 92% 18%, rgba(240, 68, 125, 0.13), transparent 10rem),
+    var(--surface-tint);
+  border-color: var(--border);
+  color: var(--text);
+}
+
+.about-commitment-card h2 {
+  color: var(--heading);
+}
+
+.donations-impact-card {
+  background:
+    radial-gradient(circle at 18% 12%, rgba(240, 68, 125, 0.16), transparent 10rem),
+    var(--surface);
+}
+
+.donations-impact-card p {
+  color: var(--heading);
+}
+
+.donations-impact-card > span,
+.quiz-card-icon {
+  background: var(--surface-soft);
+  border-color: var(--border);
+}
+
+.donation-amount-card strong,
+.donation-method-card strong,
+.donation-submit-row strong,
+.donations-help-list strong,
+.donations-latest p strong,
+.quiz-recommendation-body h3 {
+  color: var(--heading);
+}
+
+.donation-amount-card:hover,
+.donation-method-card:hover,
+.donation-amount-card.active,
+.donation-method-card.active,
+.quiz-option-card:hover,
+.quiz-option-card.active {
+  background: var(--surface-tint);
+  border-color: var(--pink);
+  color: var(--heading);
+}
+
+.quiz-progress-track {
+  background: var(--surface-tint);
+}
+
+.adoption-help-card a {
+  background: var(--surface-soft);
+  border-color: var(--pink);
+  color: var(--pink);
+}
+
+.adoption-help-card a:hover {
+  background: var(--pink-light);
+}
+
+.adoption-help-card a:first-of-type {
+  background: var(--pink);
+  color: #ffffff;
+}
+
+:root[data-theme="dark"] .chatbot-hero,
+:root[data-theme="dark"] .donations-hero > div,
+:root[data-theme="dark"] .quiz-intro-copy,
+:root[data-theme="dark"] .quiz-results-hero {
+  background:
+    radial-gradient(circle at 88% 18%, rgba(255, 92, 148, 0.18), transparent 12rem),
+    var(--surface);
+}
+
+:root[data-theme="dark"] .about-commitment-card,
+:root[data-theme="dark"] .about-final-band {
+  background:
+    radial-gradient(circle at 92% 18%, rgba(255, 92, 148, 0.14), transparent 10rem),
+    var(--surface);
+}
+
+:root[data-theme="dark"] .field-error {
+  color: var(--danger-text);
+}
+
+:root[data-theme="dark"] .adoption-field select[aria-invalid="true"],
+:root[data-theme="dark"] .adoption-field textarea[aria-invalid="true"] {
+  border-color: var(--danger-text);
+  box-shadow: 0 0 0 4px rgba(255, 93, 125, 0.16);
+}
+
+.profile-adoption-card,
+.foundation-hero,
+.foundation-access-card,
+.foundation-form-card,
+.foundation-card,
+.foundation-summary-card,
+.admin-hero,
+.admin-access-card,
+.admin-placeholder-card,
+.admin-form-card,
+.admin-metric-card,
+.admin-publications-panel {
+  background: var(--color-card);
+  border-color: var(--color-border);
+  box-shadow: var(--color-shadow);
+  color: var(--color-text);
+}
+
+.foundation-hero,
+.admin-hero {
+  background: var(--color-hero-bg);
+}
+
+.profile-adoption-heading h3,
+.profile-adoption-title-row h4,
+.profile-adoption-reason strong,
+.foundation-hero h2,
+.foundation-access-card h2,
+.foundation-section-heading h3,
+.foundation-summary-card strong,
+.foundation-pet-card strong,
+.foundation-request-card strong,
+.foundation-request-message strong,
+.foundation-request-reason strong,
+.foundation-modal h3,
+.foundation-modal-field,
+.admin-hero h2,
+.admin-access-card h2,
+.admin-placeholder-card h3,
+.admin-section-heading h3,
+.admin-metric-card strong,
+.admin-form-card label,
+.admin-wide-field,
+.admin-age-field,
+.admin-publication-toolbar label,
+.admin-publication-title-row strong,
+.admin-publication-detail dt,
+.admin-modification-images span,
+.admin-user-card strong,
+.admin-modal h3,
+.admin-modal label,
+.admin-modal-field {
+  color: var(--color-hero-text);
+}
+
+.profile-adoption-heading p,
+.profile-adoption-title-row p,
+.profile-adoption-empty,
+.profile-adoption-reason,
+.profile-adoption-meta dt,
+.foundation-hero p,
+.foundation-access-card p,
+.foundation-section-heading p,
+.foundation-summary-card p,
+.foundation-state,
+.foundation-empty-state,
+.foundation-counter,
+.foundation-image-dropzone p,
+.foundation-request-header span:not(.foundation-status),
+.foundation-request-card dt,
+.foundation-modal p,
+.admin-hero p,
+.admin-access-card p,
+.admin-placeholder-card p,
+.admin-section-heading p,
+.admin-metric-card span,
+.admin-counter,
+.admin-image-dropzone p,
+.admin-publication-title-row small,
+.admin-publication-meta span,
+.admin-publication-reason,
+.admin-publication-detail,
+.admin-user-card span,
+.admin-user-card small,
+.admin-pagination span,
+.foundation-pagination span {
+  color: var(--color-text-muted);
+}
+
+.foundation-summary-card strong,
+.admin-metric-card strong {
+  color: var(--color-primary);
+}
+
+.profile-adoption-empty,
+.profile-adoption-meta div,
+.profile-adoption-reason,
+.foundation-state,
+.foundation-empty-state,
+.foundation-pet-card,
+.foundation-request-card,
+.foundation-request-message,
+.foundation-request-reason,
+.admin-empty-state,
+.admin-publication-card,
+.admin-user-card,
+.admin-publication-reason,
+.admin-publication-detail {
+  background: var(--surface-soft);
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+
+.foundation-review-note,
+.admin-publish-note {
+  background: var(--warning-bg);
+  border-color: rgba(255, 193, 92, 0.34);
+  color: var(--warning-text);
+}
+
+.foundation-review-note strong,
+.foundation-review-note span,
+.admin-publish-note strong,
+.admin-publish-note span {
+  color: var(--warning-text);
+}
+
+.foundation-section-heading > span,
+.foundation-summary-card span,
+.foundation-access-card > span,
+.admin-section-heading > span,
+.admin-access-card > span,
+.admin-placeholder-card > span {
+  background: var(--color-primary-soft);
+  border: 1px solid var(--color-border);
+  color: var(--color-primary);
+}
+
+.foundation-form-card input,
+.foundation-form-card select,
+.foundation-form-card textarea,
+.foundation-pet-actions select,
+.foundation-modal-field textarea,
+.admin-form-card input,
+.admin-form-card select,
+.admin-form-card textarea,
+.admin-publication-toolbar input,
+.admin-modal input,
+.admin-modal select,
+.admin-modal textarea,
+.admin-modal-field textarea {
+  background: var(--color-input-bg);
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+
+.foundation-form-card input::placeholder,
+.foundation-form-card textarea::placeholder,
+.foundation-modal-field textarea::placeholder,
+.admin-form-card input::placeholder,
+.admin-form-card textarea::placeholder,
+.admin-publication-toolbar input::placeholder,
+.admin-modal input::placeholder,
+.admin-modal textarea::placeholder,
+.admin-modal-field textarea::placeholder {
+  color: var(--color-text-muted);
+  opacity: 0.78;
+}
+
+.foundation-image-dropzone,
+.admin-image-dropzone {
+  background:
+    radial-gradient(circle at 92% 10%, rgba(240, 68, 125, 0.12), transparent 9rem),
+    var(--surface-soft);
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+
+.foundation-image-dropzone strong,
+.admin-image-dropzone strong {
+  color: var(--color-hero-text);
+}
+
+.foundation-image-preview,
+.admin-image-preview,
+.foundation-pet-image,
+.foundation-pet-placeholder,
+.admin-publication-image,
+.profile-adoption-placeholder {
+  background: var(--surface-tint);
+  border-color: var(--color-border);
+  color: var(--color-primary);
+}
+
+.foundation-image-preview span,
+.foundation-pet-placeholder span,
+.admin-image-preview span {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  color: var(--color-primary);
+}
+
+.profile-adoption-refresh,
+.profile-logout-button,
+.foundation-secondary-button,
+.foundation-detail-toggle,
+.foundation-pagination button,
+.foundation-request-actions button,
+.foundation-file-button,
+.admin-secondary-button,
+.admin-file-button,
+.admin-pagination button {
+  background: var(--surface-soft);
+  border-color: var(--color-border);
+  color: var(--color-primary);
+}
+
+.profile-cancel-application-button,
+.foundation-danger-button,
+.admin-danger-button {
+  background: var(--danger-bg);
+  border-color: rgba(255, 93, 125, 0.32);
+  color: var(--danger-text);
+}
+
+.profile-adoption-refresh:hover,
+.profile-logout-button:hover,
+.foundation-secondary-button:hover,
+.foundation-detail-toggle:hover,
+.foundation-pagination button:not(:disabled):hover,
+.foundation-request-actions button:not(:disabled):hover,
+.foundation-file-button:hover,
+.admin-secondary-button:hover,
+.admin-file-button:hover,
+.admin-pagination button:not(:disabled):hover {
+  background: var(--surface-tint);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.profile-adoption-status,
+.foundation-status,
+.admin-publication-status,
+.admin-user-pill {
+  border: 1px solid transparent;
+}
+
+.profile-adoption-status-pendiente,
+.profile-adoption-status-en_revision,
+.foundation-status-pendiente,
+.foundation-status-en_revision,
+.admin-publication-status-en_revision {
+  background: var(--warning-bg);
+  border-color: rgba(255, 193, 92, 0.34);
+  color: var(--warning-text);
+}
+
+.profile-adoption-status-aprobada,
+.foundation-status-disponible,
+.foundation-status-aprobada,
+.admin-publication-status-disponible,
+.admin-publication-status-aprobada,
+.admin-user-state-activo {
+  background: var(--success-bg);
+  border-color: rgba(62, 172, 106, 0.3);
+  color: var(--success-text);
+}
+
+.profile-adoption-status-rechazada,
+.profile-adoption-status-cancelada,
+.foundation-status-inactiva,
+.foundation-status-rechazada,
+.foundation-status-cancelada,
+.admin-publication-status-rechazada,
+.admin-user-state-inactivo,
+.admin-user-state-suspendido {
+  background: var(--danger-bg);
+  border-color: rgba(255, 93, 125, 0.32);
+  color: var(--danger-text);
+}
+
+.foundation-status-adoptada,
+.admin-publication-status-adoptada,
+.admin-publication-status-descartada,
+.admin-publication-status-inactiva {
+  background: var(--neutral-bg);
+  border-color: var(--color-border);
+  color: var(--neutral-text);
+}
+
+.admin-user-card {
+  overflow: visible;
+  position: relative;
+}
+
+.admin-user-actions {
+  z-index: 12;
+}
+
+.admin-user-action-menu {
+  background: var(--color-surface-elevated);
+  border-color: var(--color-border);
+  box-shadow: var(--shadow-popover);
+  color: var(--color-text);
+  z-index: 120;
+}
+
+.admin-user-action-menu button {
+  color: var(--color-text);
+}
+
+.admin-user-action-menu button:hover,
+.admin-user-action-menu button:focus-visible {
+  background: var(--surface-tint);
+  color: var(--color-primary);
+  outline: none;
+}
+
+:root[data-theme="dark"] .foundation-image-dropzone,
+:root[data-theme="dark"] .admin-image-dropzone {
+  background:
+    radial-gradient(circle at 92% 10%, rgba(255, 92, 148, 0.16), transparent 9rem),
+    var(--surface-soft);
+}
+
+:root[data-theme="dark"] .profile-logout-button,
+:root[data-theme="dark"] .profile-adoption-refresh,
+:root[data-theme="dark"] .foundation-secondary-button,
+:root[data-theme="dark"] .foundation-detail-toggle,
+:root[data-theme="dark"] .foundation-pagination button,
+:root[data-theme="dark"] .foundation-request-actions button,
+:root[data-theme="dark"] .foundation-file-button,
+:root[data-theme="dark"] .admin-secondary-button,
+:root[data-theme="dark"] .admin-file-button,
+:root[data-theme="dark"] .admin-pagination button {
+  background: var(--surface-soft);
+  border-color: var(--border);
+  color: var(--pink-dark);
+}
+
+:root[data-theme="dark"] .profile-cancel-application-button,
+:root[data-theme="dark"] .foundation-danger-button,
+:root[data-theme="dark"] .admin-danger-button {
+  background: var(--danger-bg);
+  border-color: rgba(255, 93, 125, 0.32);
+  color: var(--danger-text);
+}
+
+:root[data-theme="dark"] .admin-user-action-menu {
+  background: var(--surface-strong);
+  border-color: var(--border);
+  box-shadow: var(--shadow-popover);
+  color: var(--text);
+  z-index: 120;
+}
+
+:root[data-theme="dark"] .admin-user-action-menu button {
+  color: var(--text);
+}
+
+:root[data-theme="dark"] .admin-user-action-menu button:hover,
+:root[data-theme="dark"] .admin-user-action-menu button:focus-visible {
+  background: var(--surface-tint);
+  color: var(--pink-dark);
+}
+
+:root[data-theme="dark"] .app-shell .foundation-file-button,
+:root[data-theme="dark"] .app-shell .admin-file-button {
+  color: var(--pink-dark);
+}
+
+.admin-users-search {
+  align-items: end;
+  grid-template-columns: minmax(0, 1fr) max-content;
+}
+
+.admin-users-search label {
+  min-width: 0;
+}
+
+.admin-users-search input {
+  min-width: 0;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+.admin-users-search > div {
+  align-items: stretch;
+  display: grid;
+  gap: 0.55rem;
+  grid-template-columns: repeat(2, minmax(92px, auto));
+}
+
+.admin-users-search .admin-secondary-button {
+  min-width: 92px;
+  white-space: nowrap;
+}
+
+.admin-user-list {
+  gap: 1rem;
+  overflow: visible;
+  position: relative;
+}
+
+.admin-user-card {
+  align-items: start;
+  grid-template-columns: minmax(0, 1.1fr) minmax(150px, 0.7fr) minmax(168px, 220px);
+  isolation: isolate;
+  overflow: visible;
+  position: relative;
+}
+
+.admin-user-card-actions-open {
+  z-index: 30;
+}
+
+.admin-user-card > div:first-child,
+.admin-user-meta {
+  min-width: 0;
+}
+
+.admin-user-card > div:first-child span,
+.admin-user-card > div:first-child small {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.admin-user-meta {
+  align-content: start;
+  align-items: flex-start;
+}
+
+.admin-user-meta > span:not(.admin-user-pill) {
+  color: var(--color-text-muted);
+  flex-basis: 100%;
+  line-height: 1.35;
+}
+
+.admin-user-actions {
+  align-self: start;
+  justify-items: stretch;
+  min-width: 0;
+  width: 100%;
+  z-index: 35;
+}
+
+.admin-user-actions-toggle {
+  min-width: 0;
+  width: 100%;
+}
+
+.admin-user-action-menu {
+  background: var(--color-surface-elevated);
+  border: 2px solid var(--color-border);
+  border-radius: 16px;
+  box-shadow: var(--shadow-popover);
+  display: grid;
+  gap: 0.35rem;
+  margin-top: 0.55rem;
+  min-width: 0;
+  padding: 0.45rem;
+  position: static;
+  right: auto;
+  top: auto;
+  width: 100%;
+  z-index: 120;
+}
+
+.admin-user-action-menu button {
+  align-items: center;
+  color: var(--color-text);
+  display: flex;
+  line-height: 1.2;
+  min-height: 42px;
+  text-align: left;
+  white-space: normal;
+  width: 100%;
+}
+
+.admin-user-action-menu button:hover,
+.admin-user-action-menu button:focus-visible {
+  background: var(--surface-tint);
+  color: var(--color-primary);
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+:root[data-theme="dark"] .admin-user-action-menu {
+  background: var(--surface-strong);
+  border-color: var(--border);
+  box-shadow: var(--shadow-popover);
+}
+
+:root[data-theme="dark"] .admin-user-action-menu button {
+  color: var(--text);
+}
+
+:root[data-theme="dark"] .admin-user-action-menu button:hover,
+:root[data-theme="dark"] .admin-user-action-menu button:focus-visible {
+  background: var(--surface-tint);
+  color: var(--pink-dark);
+  outline-color: var(--pink-dark);
+}
+
+@media (max-width: 1180px) {
+  .admin-users-search {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-users-search > div {
+    justify-content: stretch;
+  }
+}
+
+@media (max-width: 760px) {
+  .admin-users-search > div {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-users-search .admin-secondary-button,
+  .admin-user-actions-toggle {
+    width: 100%;
+  }
+}
+
+@media (max-width: 980px) {
+  .admin-user-card {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-user-actions {
+    justify-items: stretch;
+    width: 100%;
+  }
+
+  .admin-user-action-menu {
+    width: 100%;
+  }
+}
+
+.route-surface {
+  animation: route-fade-in 180ms ease both;
+  min-height: 60vh;
+}
+
+@keyframes route-fade-in {
+  from {
+    opacity: 0.96;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+button,
+.header-button,
+.main-nav a,
+.auth-submit-link,
+.home-primary-button,
+.home-secondary-button,
+.foundation-secondary-button,
+.foundation-detail-toggle,
+.foundation-file-button,
+.foundation-pagination button,
+.admin-secondary-button,
+.admin-file-button,
+.admin-pagination button,
+.admin-user-actions-toggle,
+.quiz-option-card,
+.donation-amount-card,
+.donation-method-card,
+.chatbot-quick-card button {
+  transition:
+    background-color 200ms ease,
+    border-color 200ms ease,
+    box-shadow 200ms ease,
+    color 200ms ease,
+    opacity 200ms ease,
+    transform 200ms ease;
+}
+
+button:not(:disabled):active,
+.header-button:active,
+.main-nav a:active,
+.auth-submit-link:active {
+  transform: translateY(1px) scale(0.99);
+}
+
+.main-nav a:hover,
+.header-button:hover,
+.auth-submit-link:hover,
+button:not(:disabled):hover {
+  transform: translateY(-1px);
+}
+
+.pet-card,
+.home-pet-card,
+.home-info-card,
+.home-action-card,
+.foundation-pet-card,
+.foundation-metric-card,
+.foundation-request-card,
+.profile-card,
+.profile-adoption-card,
+.admin-metric-card,
+.admin-publication-card,
+.admin-user-card,
+.donation-amount-card,
+.donation-method-card,
+.donations-impact-card,
+.quiz-card,
+.quiz-option-card,
+.chatbot-quick-card,
+.chatbot-faq-card {
+  transition:
+    background-color 220ms ease,
+    border-color 220ms ease,
+    box-shadow 220ms ease,
+    color 220ms ease,
+    opacity 220ms ease,
+    transform 220ms ease;
+}
+
+.pet-card:hover,
+.home-pet-card:hover,
+.foundation-pet-card:hover,
+.foundation-metric-card:hover,
+.admin-metric-card:hover,
+.admin-publication-card:hover,
+.admin-user-card:hover,
+.donation-amount-card:hover,
+.donation-method-card:hover,
+.quiz-option-card:hover,
+.chatbot-quick-card:hover {
+  box-shadow: var(--shadow-popover);
+  transform: translateY(-2px);
+}
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+button:focus-visible,
+a:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--color-primary) 60%, transparent);
+  outline-offset: 3px;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary) 16%, transparent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .route-surface,
+  .main-nav a:hover,
+  .header-button:hover,
+  .auth-submit-link:hover,
+  button:not(:disabled):hover,
+  .pet-card:hover,
+  .home-pet-card:hover,
+  .foundation-pet-card:hover,
+  .foundation-metric-card:hover,
+  .admin-metric-card:hover,
+  .admin-publication-card:hover,
+  .admin-user-card:hover,
+  .donation-amount-card:hover,
+  .donation-method-card:hover,
+  .quiz-option-card:hover,
+  .chatbot-quick-card:hover {
+    transform: none;
   }
 }

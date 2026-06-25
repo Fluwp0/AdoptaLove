@@ -323,7 +323,7 @@ export function CompatibilityQuizPage() {
                 <div>
                   <h3>{displayText(pet.nombre)}</h3>
                   <p>
-                    {displayText(pet.especie)} <span>•</span> {formatPetAge(pet.edad_anios, pet.edad_meses)} <span>•</span>{' '}
+                    {displayText(pet.especie)} <span>•</span> {formatPetAge(pet)} <span>•</span>{' '}
                     {formatStatus(pet.tamano)}
                   </p>
                 </div>

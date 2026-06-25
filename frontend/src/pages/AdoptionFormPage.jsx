@@ -20,6 +20,22 @@ const INITIAL_FORM = {
 const ACTIVE_APPLICATION_MESSAGE =
   'Ya tienes una postulación en proceso. Debes esperar a que sea aprobada, rechazada o cancelarla desde tu perfil para poder postular a otra mascota.';
 const ACTIVE_APPLICATION_STATUSES = new Set(['pendiente', 'en_revision']);
+const CONTACT_EMAIL = 'Adopta.Love2026@gmail.com';
+const OTHER_PETS_YES = 'Sí, tengo otras mascotas';
+const OTHER_PETS_NO = 'No tengo otras mascotas';
+
+const REQUIRED_FIELD_MESSAGES = {
+  acceptsFollowUp: 'Indica si aceptas visitas de seguimiento.',
+  adoptionReason: 'Cuéntanos por qué quieres adoptar.',
+  canCoverCosts: 'Indica si puedes cubrir gastos de alimentación y salud.',
+  hasOtherPets: 'Indica si tienes otras mascotas actualmente.',
+  homeType: 'Selecciona si vives en casa, departamento u otro tipo de vivienda.',
+  householdPeople: 'Selecciona cuántas personas viven en tu hogar.',
+  otherPetsDetails: 'Cuéntanos sobre tus otras mascotas.',
+  outdoorSpace: 'Selecciona si tienes patio, espacio interior o áreas verdes cercanas.',
+  responsiblePerson: 'Selecciona quién será el principal responsable de la mascota.',
+  timeAtHome: 'Selecciona cuánto tiempo sueles estar en casa.'
+};
 
 function isActiveApplication(application) {
   return ACTIVE_APPLICATION_STATUSES.has(application?.estado);
@@ -34,6 +50,10 @@ function formatStatus(status = '') {
 
 function buildApplicationMessage(form) {
   const valueOrFallback = (value) => value || 'No indicado';
+  const otherPetsDetails =
+    form.hasOtherPets === OTHER_PETS_YES
+      ? form.otherPetsDetails.trim()
+      : 'No aplica';
 
   return [
     `Motivo: ${form.adoptionReason.trim()}`,
@@ -41,7 +61,7 @@ function buildApplicationMessage(form) {
     `Patio o espacio al aire libre: ${valueOrFallback(form.outdoorSpace)}`,
     `Personas en el hogar: ${valueOrFallback(form.householdPeople)}`,
     `Otras mascotas: ${valueOrFallback(form.hasOtherPets)}`,
-    `Detalle de otras mascotas: ${valueOrFallback(form.otherPetsDetails.trim())}`,
+    `Detalle de otras mascotas: ${valueOrFallback(otherPetsDetails)}`,
     `Tiempo en casa: ${valueOrFallback(form.timeAtHome)}`,
     `Responsable principal: ${valueOrFallback(form.responsiblePerson)}`,
     `Gastos de alimentación y salud: ${valueOrFallback(form.canCoverCosts)}`,
@@ -49,11 +69,50 @@ function buildApplicationMessage(form) {
   ].join('\n');
 }
 
-function FormField({ children, label, name }) {
+function validateAdoptionForm(form) {
+  const errors = {};
+
+  [
+    'homeType',
+    'outdoorSpace',
+    'householdPeople',
+    'hasOtherPets',
+    'adoptionReason',
+    'timeAtHome',
+    'responsiblePerson',
+    'canCoverCosts',
+    'acceptsFollowUp'
+  ].forEach((field) => {
+    const value = typeof form[field] === 'string' ? form[field].trim() : form[field];
+
+    if (!value) {
+      errors[field] = REQUIRED_FIELD_MESSAGES[field];
+    }
+  });
+
+  if (form.hasOtherPets === OTHER_PETS_YES && !form.otherPetsDetails.trim()) {
+    errors.otherPetsDetails = REQUIRED_FIELD_MESSAGES.otherPetsDetails;
+  }
+
+  return errors;
+}
+
+function getValidationFeedback(errors) {
+  const errorMessages = Object.values(errors).filter(Boolean);
+
+  if (errorMessages.length === 1) {
+    return errorMessages[0];
+  }
+
+  return 'Completa todas las preguntas obligatorias antes de enviar tu solicitud.';
+}
+
+function FormField({ children, error, label, name }) {
   return (
     <label className="adoption-field" htmlFor={name}>
       <span>{label}</span>
       {children}
+      {error && <span className="field-error">{error}</span>}
     </label>
   );
 }
@@ -84,6 +143,7 @@ export function AdoptionFormPage({ petId }) {
   const [submitFeedback, setSubmitFeedback] = useState('');
   const [activeApplication, setActiveApplication] = useState(null);
   const [activeApplicationStatus, setActiveApplicationStatus] = useState('idle');
+  const [fieldErrors, setFieldErrors] = useState({});
 
   const currentUser = getCurrentUser();
   const hasCurrentUser = Boolean(currentUser?.id);
@@ -149,7 +209,17 @@ export function AdoptionFormPage({ petId }) {
   function updateField(field, value) {
     setForm((currentForm) => ({
       ...currentForm,
-      [field]: value
+      [field]: value,
+      ...(field === 'hasOtherPets' && value !== OTHER_PETS_YES
+        ? { otherPetsDetails: '' }
+        : {})
+    }));
+    setFieldErrors((currentErrors) => ({
+      ...currentErrors,
+      [field]: '',
+      ...(field === 'hasOtherPets' && value !== OTHER_PETS_YES
+        ? { otherPetsDetails: '' }
+        : {})
     }));
   }
 
@@ -162,15 +232,18 @@ export function AdoptionFormPage({ petId }) {
       return;
     }
 
-    if (!form.adoptionReason.trim()) {
-      setSubmitStatus('error');
-      setSubmitFeedback('Cuéntanos por qué quieres adoptar antes de enviar tu solicitud.');
-      return;
-    }
-
     if (isActiveApplication(activeApplication)) {
       setSubmitStatus('error');
       setSubmitFeedback(ACTIVE_APPLICATION_MESSAGE);
+      return;
+    }
+
+    const validationErrors = validateAdoptionForm(form);
+
+    if (Object.keys(validationErrors).length > 0) {
+      setFieldErrors(validationErrors);
+      setSubmitStatus('error');
+      setSubmitFeedback(getValidationFeedback(validationErrors));
       return;
     }
 
@@ -193,6 +266,7 @@ export function AdoptionFormPage({ petId }) {
       }
 
       setForm(INITIAL_FORM);
+      setFieldErrors({});
       setActiveApplication(payload.data);
       setSubmitStatus('success');
       setSubmitFeedback('Tu solicitud de adopción fue enviada correctamente.');
@@ -238,7 +312,7 @@ export function AdoptionFormPage({ petId }) {
       </div>
 
       <div className="adoption-layout">
-        <form className="adoption-form-card" onSubmit={handleSubmit}>
+        <form className="adoption-form-card" noValidate onSubmit={handleSubmit}>
           <section className="adoption-form-section">
             <div className="adoption-section-heading">
               <span>01</span>
@@ -258,7 +332,7 @@ export function AdoptionFormPage({ petId }) {
             )}
 
             {hasCurrentUser && (
-              <dl className="profile-summary-card">
+              <dl className="profile-summary-card adoption-profile-summary">
                 <div>
                   <dt>Nombre completo</dt>
                   <dd>{displayText(currentUser.nombre)}</dd>
@@ -305,8 +379,13 @@ export function AdoptionFormPage({ petId }) {
             </div>
 
             <div className="adoption-fields-grid">
-              <FormField label="¿Vives en casa o departamento?" name="home-type">
+              <FormField
+                error={fieldErrors.homeType}
+                label="¿Vives en casa o departamento?"
+                name="home-type"
+              >
                 <select
+                  aria-invalid={Boolean(fieldErrors.homeType)}
                   id="home-type"
                   onChange={(event) => updateField('homeType', event.target.value)}
                   value={form.homeType}
@@ -318,8 +397,13 @@ export function AdoptionFormPage({ petId }) {
                 </select>
               </FormField>
 
-              <FormField label="¿Tienes patio o espacio al aire libre?" name="outdoor-space">
+              <FormField
+                error={fieldErrors.outdoorSpace}
+                label="¿Tienes patio o espacio al aire libre?"
+                name="outdoor-space"
+              >
                 <select
+                  aria-invalid={Boolean(fieldErrors.outdoorSpace)}
                   id="outdoor-space"
                   onChange={(event) => updateField('outdoorSpace', event.target.value)}
                   value={form.outdoorSpace}
@@ -331,8 +415,13 @@ export function AdoptionFormPage({ petId }) {
                 </select>
               </FormField>
 
-              <FormField label="¿Cuántas personas viven en tu hogar?" name="household-people">
+              <FormField
+                error={fieldErrors.householdPeople}
+                label="¿Cuántas personas viven en tu hogar?"
+                name="household-people"
+              >
                 <select
+                  aria-invalid={Boolean(fieldErrors.householdPeople)}
                   id="household-people"
                   onChange={(event) => updateField('householdPeople', event.target.value)}
                   value={form.householdPeople}
@@ -345,28 +434,40 @@ export function AdoptionFormPage({ petId }) {
                 </select>
               </FormField>
 
-              <FormField label="¿Tienes otras mascotas actualmente?" name="other-pets">
+              <FormField
+                error={fieldErrors.hasOtherPets}
+                label="¿Tienes otras mascotas actualmente?"
+                name="other-pets"
+              >
                 <select
+                  aria-invalid={Boolean(fieldErrors.hasOtherPets)}
                   id="other-pets"
                   onChange={(event) => updateField('hasOtherPets', event.target.value)}
                   value={form.hasOtherPets}
                 >
                   <option value="">Selecciona una opción</option>
-                  <option value="Sí, tengo otras mascotas">Sí</option>
-                  <option value="No tengo otras mascotas">No</option>
+                  <option value={OTHER_PETS_YES}>Sí</option>
+                  <option value={OTHER_PETS_NO}>No</option>
                 </select>
               </FormField>
             </div>
 
-            <FormField label="Cuéntanos sobre ellas" name="other-pets-details">
-              <textarea
-                id="other-pets-details"
-                onChange={(event) => updateField('otherPetsDetails', event.target.value)}
-                placeholder="Tipo de mascota, edad, carácter, convivencia..."
-                rows="3"
-                value={form.otherPetsDetails}
-              />
-            </FormField>
+            {form.hasOtherPets === OTHER_PETS_YES && (
+              <FormField
+                error={fieldErrors.otherPetsDetails}
+                label="Cuéntanos sobre ellas"
+                name="other-pets-details"
+              >
+                <textarea
+                  aria-invalid={Boolean(fieldErrors.otherPetsDetails)}
+                  id="other-pets-details"
+                  onChange={(event) => updateField('otherPetsDetails', event.target.value)}
+                  placeholder="Tipo de mascota, edad, carácter, convivencia..."
+                  rows="3"
+                  value={form.otherPetsDetails}
+                />
+              </FormField>
+            )}
           </section>
 
           <section className="adoption-form-section">
@@ -378,8 +479,13 @@ export function AdoptionFormPage({ petId }) {
               </div>
             </div>
 
-            <FormField label="¿Por qué quieres adoptar?" name="adoption-reason">
+            <FormField
+              error={fieldErrors.adoptionReason}
+              label="¿Por qué quieres adoptar?"
+              name="adoption-reason"
+            >
               <textarea
+                aria-invalid={Boolean(fieldErrors.adoptionReason)}
                 id="adoption-reason"
                 onChange={(event) => updateField('adoptionReason', event.target.value)}
                 placeholder="Cuéntanos tus motivos para adoptar..."
@@ -389,8 +495,13 @@ export function AdoptionFormPage({ petId }) {
             </FormField>
 
             <div className="adoption-fields-grid">
-              <FormField label="¿Cuánto tiempo sueles estar en casa?" name="time-at-home">
+              <FormField
+                error={fieldErrors.timeAtHome}
+                label="¿Cuánto tiempo sueles estar en casa?"
+                name="time-at-home"
+              >
                 <select
+                  aria-invalid={Boolean(fieldErrors.timeAtHome)}
                   id="time-at-home"
                   onChange={(event) => updateField('timeAtHome', event.target.value)}
                   value={form.timeAtHome}
@@ -406,10 +517,12 @@ export function AdoptionFormPage({ petId }) {
               </FormField>
 
               <FormField
+                error={fieldErrors.responsiblePerson}
                 label="¿Quién será el principal responsable de la mascota?"
                 name="responsible-person"
               >
                 <select
+                  aria-invalid={Boolean(fieldErrors.responsiblePerson)}
                   id="responsible-person"
                   onChange={(event) => updateField('responsiblePerson', event.target.value)}
                   value={form.responsiblePerson}
@@ -444,6 +557,9 @@ export function AdoptionFormPage({ petId }) {
                 />
                 Necesito más información
               </label>
+              {fieldErrors.canCoverCosts && (
+                <span className="field-error">{fieldErrors.canCoverCosts}</span>
+              )}
             </fieldset>
 
             <fieldset className="adoption-radio-group">
@@ -468,6 +584,9 @@ export function AdoptionFormPage({ petId }) {
                 />
                 Prefiero hablarlo después
               </label>
+              {fieldErrors.acceptsFollowUp && (
+                <span className="field-error">{fieldErrors.acceptsFollowUp}</span>
+              )}
             </fieldset>
           </section>
 
@@ -514,7 +633,7 @@ export function AdoptionFormPage({ petId }) {
             </div>
             <h3>{displayText(pet.nombre)}</h3>
             <p>
-              {displayText(pet.especie)} <span>•</span> {formatPetAge(pet.edad_anios, pet.edad_meses)} <span>•</span>{' '}
+              {displayText(pet.especie)} <span>•</span> {formatPetAge(pet)} <span>•</span>{' '}
               {formatStatus(pet.tamano)}
             </p>
             <small>Publicada por {displayText(pet.publicada_por)}</small>
@@ -523,6 +642,8 @@ export function AdoptionFormPage({ petId }) {
           <div className="adoption-help-card">
             <h3>¿Dudas?</h3>
             <p>Estamos aquí para ayudarte durante el proceso de adopción.</p>
+            <a href="/chatbot">Hablar con el chatbot</a>
+            <a href={`mailto:${CONTACT_EMAIL}`}>Enviar correo</a>
             <a href="/mascotas">Volver a compañeros</a>
           </div>
         </aside>

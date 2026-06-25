@@ -200,7 +200,7 @@ export function HomePage() {
                     <h3>{displayText(pet.nombre)}</h3>
                     <p>
                       {displayText(pet.especie)} <span>•</span>{' '}
-                      {formatPetAge(pet.edad_anios, pet.edad_meses)}
+                      {formatPetAge(pet)}
                     </p>
                     <small>{displayText(pet.publicada_por, 'AdoptaLove')}</small>
                     <a className="pet-detail-link home-pet-link" href={`/mascotas/${pet.id}`}>

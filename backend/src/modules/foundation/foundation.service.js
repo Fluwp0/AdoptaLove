@@ -1,4 +1,5 @@
 const foundationModel = require('./foundation.model');
+const { normalizeEstimatedBirthDate } = require('../../utils/petAge');
 
 const FOUNDATION_ROLES = new Set(['fundacion', 'administrador', 'admin']);
 const ADMIN_ROLES = new Set(['administrador', 'admin']);
@@ -72,14 +73,6 @@ function countWords(value = '') {
     .filter(Boolean).length;
 }
 
-function parseOptionalInteger(value) {
-  if (value === '' || value === null || value === undefined) {
-    return null;
-  }
-
-  return Number(value);
-}
-
 function getUploadedImagePath(file) {
   return file?.filename ? `/uploads/mascotas/${file.filename}` : null;
 }
@@ -97,11 +90,9 @@ function normalizePetPayload(payload = {}, fallback = {}, options = {}) {
   const estado = options.forceReview
     ? 'en_revision'
     : cleanText(payload.estado ?? fallback.estado ?? 'en_revision');
-  const edadAniosRaw = parseOptionalInteger(payload.edad_anios ?? fallback.edad_anios);
-  const edadMesesRaw = parseOptionalInteger(payload.edad_meses ?? fallback.edad_meses);
-  const hasAnyAge = edadAniosRaw !== null || edadMesesRaw !== null;
-  const edadAnios = edadAniosRaw ?? 0;
-  const edadMeses = edadMesesRaw ?? 0;
+  const estimatedBirthDate = normalizeEstimatedBirthDate(payload, fallback, {
+    required: Boolean(options.requireEstimatedBirthDate)
+  });
 
   if (!nombre) {
     throw createServiceError(400, 'Nombre es obligatorio');
@@ -138,24 +129,13 @@ function normalizePetPayload(payload = {}, fallback = {}, options = {}) {
     throw createServiceError(400, 'Estado de mascota inválido');
   }
 
-  if (!hasAnyAge) {
-    throw createServiceError(400, 'Debes indicar la edad en años, meses o ambos.');
-  }
-
-  if (!Number.isInteger(edadAnios) || edadAnios < 0 || edadAnios > 30) {
-    throw createServiceError(400, 'La edad en años debe estar entre 0 y 30.');
-  }
-
-  if (!Number.isInteger(edadMeses) || edadMeses < 0 || edadMeses > 11) {
-    throw createServiceError(400, 'La edad en meses debe estar entre 0 y 11.');
-  }
-
   return {
     descripcion,
-    edadAnios,
-    edadMeses,
+    edadAnios: estimatedBirthDate.edadAnios,
+    edadMeses: estimatedBirthDate.edadMeses,
     especie,
     estado,
+    fechaNacimientoEstimada: estimatedBirthDate.fechaNacimientoEstimada,
     fotoUrl,
     nombre,
     raza,
@@ -221,6 +201,7 @@ async function createPet(user, payload, file = null) {
   ensureFoundationAccess(user);
   const pet = normalizePetPayload(payload, {}, {
     forceReview: true,
+    requireEstimatedBirthDate: true,
     uploadedImagePath: getUploadedImagePath(file)
   });
 
@@ -260,6 +241,7 @@ async function updatePet(user, petId, payload, file = null) {
         edad_anios: pet.edadAnios,
         edad_meses: pet.edadMeses,
         especie: pet.especie,
+        fecha_nacimiento_estimada: pet.fechaNacimientoEstimada,
         foto_url: pet.fotoUrl,
         nombre: pet.nombre,
         raza: pet.raza,

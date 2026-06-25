@@ -3,14 +3,21 @@ import { apiClient } from '../services/apiClient';
 import { getCurrentUser } from '../services/authSession';
 import { displayText } from '../utils/displayText';
 import { getMediaUrl } from '../utils/mediaUrl';
-import { formatPetAge } from '../utils/petDisplay';
+import {
+  BIRTH_MONTH_OPTIONS,
+  buildEstimatedBirthDate,
+  formatPetAge,
+  getEstimatedBirthDateParts,
+  getEstimatedBirthYearOptions,
+  validateEstimatedBirthDate
+} from '../utils/petDisplay';
 
 const EMPTY_FORM = {
   nombre: '',
   especie: '',
   raza: '',
-  edad_anios: '',
-  edad_meses: '',
+  fecha_nacimiento_anio: '',
+  fecha_nacimiento_mes: '',
   tamano: 'mediano',
   sexo: 'desconocido',
   descripcion: '',
@@ -87,12 +94,14 @@ function formatPhone(value) {
 }
 
 function mapPetToForm(pet) {
+  const estimatedBirthDate = getEstimatedBirthDateParts(pet);
+
   return {
     nombre: pet.nombre || '',
     especie: pet.especie || '',
     raza: pet.raza || '',
-    edad_anios: pet.edad_anios ?? '',
-    edad_meses: pet.edad_meses ?? '',
+    fecha_nacimiento_anio: estimatedBirthDate.year,
+    fecha_nacimiento_mes: estimatedBirthDate.month,
     tamano: pet.tamano || 'mediano',
     sexo: pet.sexo || 'desconocido',
     descripcion: pet.descripcion || '',
@@ -207,6 +216,7 @@ export function FoundationDashboardPage() {
   const requestTotalPages = getTotalPages(requests);
   const paginatedPets = getPageItems(pets, petPage);
   const paginatedRequests = getPageItems(requests, requestPage);
+  const birthYearOptions = useMemo(() => getEstimatedBirthYearOptions(), []);
 
   const summaryCards = useMemo(
     () => [
@@ -350,8 +360,12 @@ export function FoundationDashboardPage() {
     formData.append('nombre', form.nombre.trim());
     formData.append('especie', form.especie.trim());
     formData.append('raza', form.raza.trim());
-    formData.append('edad_anios', form.edad_anios === '' ? '0' : String(Number(form.edad_anios)));
-    formData.append('edad_meses', form.edad_meses === '' ? '0' : String(Number(form.edad_meses)));
+    formData.append('fecha_nacimiento_anio', form.fecha_nacimiento_anio);
+    formData.append('fecha_nacimiento_mes', form.fecha_nacimiento_mes);
+    formData.append(
+      'fecha_nacimiento_estimada',
+      buildEstimatedBirthDate(form.fecha_nacimiento_anio, form.fecha_nacimiento_mes)
+    );
     formData.append('tamano', form.tamano);
     formData.append('sexo', form.sexo);
     formData.append('descripcion', form.descripcion.trim());
@@ -380,24 +394,14 @@ export function FoundationDashboardPage() {
       return;
     }
 
-    const years = form.edad_anios === '' ? null : Number(form.edad_anios);
-    const months = form.edad_meses === '' ? null : Number(form.edad_meses);
+    const birthDateValidationError = validateEstimatedBirthDate(
+      form.fecha_nacimiento_anio,
+      form.fecha_nacimiento_mes
+    );
 
-    if (years === null && months === null) {
+    if (birthDateValidationError) {
       setSubmitStatus('error');
-      setFeedback('Debes indicar la edad en años, meses o ambos.');
-      return;
-    }
-
-    if (years !== null && (!Number.isInteger(years) || years < 0 || years > 30)) {
-      setSubmitStatus('error');
-      setFeedback('La edad en años debe estar entre 0 y 30.');
-      return;
-    }
-
-    if (months !== null && (!Number.isInteger(months) || months < 0 || months > 11)) {
-      setSubmitStatus('error');
-      setFeedback('La edad en meses debe estar entre 0 y 11.');
+      setFeedback(birthDateValidationError);
       return;
     }
 
@@ -643,29 +647,35 @@ export function FoundationDashboardPage() {
               />
             </label>
             <fieldset className="foundation-age-field">
-              <legend>Edad</legend>
+              <legend>Fecha estimada de nacimiento</legend>
               <div>
                 <label>
-                  Edad en años
-                  <input
-                    max="30"
-                    min="0"
-                    onChange={(event) => updateFormField('edad_anios', event.target.value)}
-                    placeholder="0"
-                    type="number"
-                    value={form.edad_anios}
-                  />
+                  Año estimado de nacimiento
+                  <select
+                    onChange={(event) => updateFormField('fecha_nacimiento_anio', event.target.value)}
+                    value={form.fecha_nacimiento_anio}
+                  >
+                    <option value="">Selecciona un año</option>
+                    {birthYearOptions.map((year) => (
+                      <option key={year} value={year}>
+                        {year}
+                      </option>
+                    ))}
+                  </select>
                 </label>
                 <label>
-                  Edad en meses
-                  <input
-                    max="11"
-                    min="0"
-                    onChange={(event) => updateFormField('edad_meses', event.target.value)}
-                    placeholder="0"
-                    type="number"
-                    value={form.edad_meses}
-                  />
+                  Mes estimado de nacimiento
+                  <select
+                    onChange={(event) => updateFormField('fecha_nacimiento_mes', event.target.value)}
+                    value={form.fecha_nacimiento_mes}
+                  >
+                    <option value="">Selecciona un mes</option>
+                    {BIRTH_MONTH_OPTIONS.map((month) => (
+                      <option key={month.value} value={month.value}>
+                        {month.label}
+                      </option>
+                    ))}
+                  </select>
                 </label>
               </div>
             </fieldset>
@@ -765,7 +775,7 @@ export function FoundationDashboardPage() {
                   <PetImage name={displayText(pet.nombre)} url={pet.foto_url} />
                   <div>
                     <strong>{displayText(pet.nombre)}</strong>
-                    <p>{displayText(pet.especie)} · {formatPetAge(pet.edad_anios, pet.edad_meses)} · {formatStatus(pet.tamano)}</p>
+                    <p>{displayText(pet.especie)} · {formatPetAge(pet)} · {formatStatus(pet.tamano)}</p>
                     <span className={`foundation-status foundation-status-${pet.estado}`}>
                       {formatPetStatus(pet.estado)}
                     </span>
@@ -963,4 +973,3 @@ export function FoundationDashboardPage() {
     </section>
   );
 }
-

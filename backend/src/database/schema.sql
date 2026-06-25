@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS mascotas (
   sexo ENUM('macho', 'hembra', 'desconocido') NOT NULL DEFAULT 'desconocido',
   edad_anios TINYINT UNSIGNED NULL,
   edad_meses TINYINT UNSIGNED NULL,
+  fecha_nacimiento_estimada DATE NULL,
   tamano ENUM('pequeno', 'mediano', 'grande') NOT NULL DEFAULT 'mediano',
   descripcion TEXT NULL,
   foto_url VARCHAR(500) NULL,
@@ -51,7 +52,8 @@ CREATE TABLE IF NOT EXISTS mascotas (
     ON DELETE RESTRICT,
   INDEX idx_mascotas_publicado_por (publicado_por_usuario_id),
   INDEX idx_mascotas_estado (estado),
-  INDEX idx_mascotas_especie (especie)
+  INDEX idx_mascotas_especie (especie),
+  INDEX idx_mascotas_fecha_nacimiento_estimada (fecha_nacimiento_estimada)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS mascota_modificaciones (

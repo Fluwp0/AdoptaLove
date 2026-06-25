@@ -193,13 +193,6 @@ export function PetCatalogPage() {
                   <span className={`pet-status pet-status-${pet.estado}`}>
                     {formatStatus(pet.estado)}
                   </span>
-                  <button
-                    aria-label={`Guardar ${displayText(pet.nombre)} como favorito`}
-                    className="favorite-button"
-                    type="button"
-                  >
-                    Favorito
-                  </button>
                 </div>
 
                 <div className="pet-card-body">
@@ -212,7 +205,7 @@ export function PetCatalogPage() {
                   </div>
 
                   <p className="pet-quick-info">
-                    {formatPetAge(pet.edad_anios, pet.edad_meses)} <span>•</span> {formatStatus(pet.tamano)}
+                    {formatPetAge(pet)} <span>•</span> {formatStatus(pet.tamano)}
                   </p>
 
                   <dl className="pet-facts">

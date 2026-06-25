@@ -143,7 +143,7 @@ export function PetDetailPage({ petId }) {
               </div>
               <div>
                 <dt>Edad</dt>
-                <dd>{formatPetAge(pet.edad_anios, pet.edad_meses)}</dd>
+                <dd>{formatPetAge(pet)}</dd>
               </div>
               <div>
                 <dt>Tamaño</dt>
