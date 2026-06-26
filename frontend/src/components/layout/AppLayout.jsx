@@ -16,6 +16,7 @@ import { displayText } from '../../utils/displayText';
 export function AppLayout({ children }) {
   const [user, setUser] = useState(getCurrentUser());
   const [theme, setTheme] = useState(getStoredTheme);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const currentPath = window.location.pathname;
   const isHomeActive = currentPath === '/';
   const isCatalogActive = currentPath === '/mascotas' || currentPath.startsWith('/mascotas/');
@@ -35,6 +36,24 @@ export function AppLayout({ children }) {
   const isDarkTheme = theme === DARK_THEME;
 
   useEffect(() => onSessionChange(setUser), []);
+
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [currentPath]);
+
+  useEffect(() => {
+    function handleEscape(event) {
+      if (event.key === 'Escape') {
+        setIsMobileMenuOpen(false);
+      }
+    }
+
+    window.addEventListener('keydown', handleEscape);
+
+    return () => {
+      window.removeEventListener('keydown', handleEscape);
+    };
+  }, []);
 
   useEffect(() => {
     function handleThemeStorage(event) {
@@ -61,7 +80,7 @@ export function AppLayout({ children }) {
 
   return (
     <div className={`app-shell app-shell-${theme}`} key={theme}>
-      <header className="app-header">
+      <header className={isMobileMenuOpen ? 'app-header app-header-menu-open' : 'app-header'}>
         <a className="brand" href={isAdminUser ? '/admin' : '/'} aria-label="Ir al inicio de AdoptaLove">
           <img
             alt=""
@@ -72,7 +91,25 @@ export function AppLayout({ children }) {
           <span className="brand-name">AdoptaLove</span>
         </a>
 
-        <nav className={isAdminUser ? 'main-nav admin-nav' : 'main-nav'} aria-label={isAdminUser ? 'Navegación administrador' : 'Navegación principal'}>
+        <button
+          aria-controls="site-navigation"
+          aria-expanded={isMobileMenuOpen}
+          aria-label={isMobileMenuOpen ? 'Cerrar menú principal' : 'Abrir menú principal'}
+          className="mobile-menu-toggle"
+          onClick={() => setIsMobileMenuOpen((currentValue) => !currentValue)}
+          type="button"
+        >
+          <span aria-hidden="true" />
+          <span aria-hidden="true" />
+          <span aria-hidden="true" />
+        </button>
+
+        <nav
+          className={isAdminUser ? 'main-nav admin-nav' : 'main-nav'}
+          id="site-navigation"
+          onClick={() => setIsMobileMenuOpen(false)}
+          aria-label={isAdminUser ? 'Navegación administrador' : 'Navegación principal'}
+        >
           {isAdminUser ? (
             <>
               <a

@@ -2162,6 +2162,9 @@ button.header-button {
 
 .adoption-radio-group input {
   accent-color: var(--pink);
+  flex: 0 0 auto;
+  height: 1rem;
+  width: 1rem;
 }
 
 .adoption-radio-group .field-error {
@@ -8518,6 +8521,665 @@ summary:focus-visible,
 
 .admin-user-action-menu button:focus-visible {
   box-shadow: var(--focus-ring);
+}
+
+.mobile-menu-toggle {
+  align-items: center;
+  appearance: none;
+  background: var(--surface-soft);
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  color: var(--color-text);
+  cursor: pointer;
+  display: none;
+  flex-direction: column;
+  gap: 5px;
+  height: 44px;
+  justify-content: center;
+  padding: 0;
+  width: 48px;
+}
+
+.mobile-menu-toggle span {
+  background: currentColor;
+  border-radius: 999px;
+  display: block;
+  height: 2px;
+  transition:
+    opacity var(--motion-fast),
+    transform var(--motion-fast);
+  width: 20px;
+}
+
+.app-header-menu-open .mobile-menu-toggle span:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+
+.app-header-menu-open .mobile-menu-toggle span:nth-child(2) {
+  opacity: 0;
+}
+
+.app-header-menu-open .mobile-menu-toggle span:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+@media (max-width: 1024px) {
+  .home-page,
+  .about-page,
+  .catalog-page,
+  .pet-detail-page,
+  .adoption-page,
+  .auth-page,
+  .chatbot-page,
+  .donations-page,
+  .quiz-page,
+  .foundation-page,
+  .admin-page {
+    padding-left: clamp(0.9rem, 3vw, 1.25rem);
+    padding-right: clamp(0.9rem, 3vw, 1.25rem);
+  }
+
+  .donation-amount-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .admin-publication-card,
+  .foundation-pet-card {
+    grid-template-columns: 76px minmax(0, 1fr);
+  }
+
+  .admin-publication-actions,
+  .foundation-pet-actions {
+    grid-column: 1 / -1;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  html,
+  body,
+  #root,
+  .app-shell {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  :where(.app-shell, .app-main, main, section, article, div, form, fieldset, label, dl, nav) {
+    min-width: 0;
+  }
+
+  .app-header {
+    align-items: center;
+    display: grid;
+    gap: 0.65rem;
+    grid-template-columns: minmax(0, 1fr) auto;
+    margin: 0;
+    padding: 0.6rem 0.85rem 0.75rem;
+    width: 100%;
+  }
+
+  .brand {
+    justify-content: flex-start;
+    margin-right: 0;
+    min-width: 0;
+    width: auto;
+  }
+
+  .brand-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mobile-menu-toggle {
+    display: inline-flex;
+  }
+
+  .main-nav,
+  .header-actions {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .app-header:not(.app-header-menu-open) .main-nav {
+    display: none;
+  }
+
+  .app-header:not(.app-header-menu-open) .header-user,
+  .app-header:not(.app-header-menu-open) .header-button {
+    display: none;
+  }
+
+  .app-header-menu-open .main-nav {
+    background: var(--color-surface-elevated);
+    border: 1px solid var(--color-border);
+    border-radius: 18px;
+    box-shadow: var(--shadow-soft);
+    display: grid;
+    gap: 0.45rem;
+    grid-template-columns: 1fr;
+    max-height: min(62vh, 460px);
+    overflow-y: auto;
+    padding: 0.5rem;
+  }
+
+  .main-nav a {
+    justify-content: flex-start;
+    line-height: 1.2;
+    min-height: 44px;
+    padding: 0.65rem 0.85rem;
+    white-space: normal;
+    width: 100%;
+  }
+
+  .main-nav a.active::after {
+    bottom: 6px;
+    left: 0.85rem;
+    transform: none;
+  }
+
+  .header-actions {
+    align-items: stretch;
+    display: flex;
+    justify-content: flex-start;
+    margin-left: 0;
+  }
+
+  .app-header-menu-open .header-actions {
+    background: var(--color-surface-elevated);
+    border: 1px solid var(--color-border);
+    border-radius: 18px;
+    box-shadow: var(--shadow-soft);
+    display: grid;
+    gap: 0.5rem;
+    grid-template-columns: 1fr;
+    padding: 0.55rem;
+  }
+
+  .app-header-menu-open .header-user {
+    display: block;
+    max-width: 100%;
+    text-align: center;
+    width: 100%;
+  }
+
+  .theme-toggle {
+    justify-self: start;
+  }
+
+  .app-header-menu-open .theme-toggle {
+    justify-self: center;
+  }
+
+  .app-header-menu-open .header-button {
+    min-height: 44px;
+    width: 100%;
+  }
+
+  .home-hero h1,
+  .about-hero h1,
+  .catalog-hero h2,
+  .detail-hero h2,
+  .adoption-hero h2,
+  .donations-hero h2,
+  .quiz-intro-copy h2,
+  .quiz-results-hero h2,
+  .chatbot-hero h2,
+  .foundation-hero h2,
+  .admin-hero h2,
+  .auth-card h2,
+  .profile-card h2 {
+    font-size: clamp(1.9rem, 8vw, 2.55rem);
+    line-height: 1.08;
+  }
+
+  .home-hero,
+  .about-hero,
+  .catalog-hero,
+  .detail-layout,
+  .adoption-layout,
+  .donations-hero,
+  .donations-layout,
+  .quiz-intro,
+  .quiz-step-layout,
+  .quiz-results-hero,
+  .chatbot-layout,
+  .auth-layout,
+  .profile-layout,
+  .foundation-layout,
+  .admin-users-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .home-steps-grid,
+  .home-featured-grid,
+  .home-action-grid,
+  .home-visual-grid,
+  .about-indicators,
+  .about-contact-grid,
+  .about-social-grid,
+  .about-commitment-grid,
+  .pet-grid,
+  .profile-summary-card,
+  .adoption-fields-grid,
+  .auth-form-grid,
+  .foundation-summary-grid,
+  .foundation-form-grid,
+  .admin-metrics-grid,
+  .admin-form-grid,
+  .admin-user-form-grid,
+  .quiz-option-grid,
+  .quiz-recommendation-grid,
+  .site-footer-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .catalog-toolbar,
+  .catalog-summary,
+  .detail-hero,
+  .detail-title-row,
+  .adoption-hero,
+  .adoption-section-heading,
+  .donation-section-heading,
+  .quiz-question-heading,
+  .profile-adoption-heading,
+  .profile-adoption-title-row,
+  .foundation-hero,
+  .foundation-section-heading,
+  .foundation-request-header,
+  .admin-hero,
+  .admin-section-heading,
+  .admin-publication-title-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .filter-tabs {
+    display: grid;
+    gap: 0.55rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .filter-tab,
+  .filter-button {
+    min-height: 44px;
+    width: 100%;
+  }
+
+  .home-primary-button,
+  .home-secondary-button,
+  .home-section-link,
+  .about-primary-button,
+  .pet-detail-link,
+  .detail-back-link,
+  .detail-primary-action,
+  .detail-secondary-action,
+  .auth-submit-button,
+  .auth-submit-link,
+  .profile-logout-button,
+  .profile-adoption-refresh,
+  .profile-cancel-application-button,
+  .adoption-submit-button,
+  .donations-hero-action,
+  .donation-submit-button,
+  .quiz-primary-button,
+  .admin-primary-button,
+  .admin-secondary-button,
+  .admin-danger-button,
+  .admin-primary-link,
+  .foundation-primary-button,
+  .foundation-secondary-button,
+  .foundation-danger-button,
+  .foundation-primary-link,
+  .foundation-detail-toggle,
+  .foundation-request-actions button {
+    min-height: 44px;
+  }
+
+  .detail-primary-action,
+  .detail-secondary-action,
+  .adoption-submit-button,
+  .donations-hero-action,
+  .donation-submit-button,
+  .quiz-primary-button,
+  .admin-form-actions > *,
+  .admin-modal-actions > *,
+  .foundation-form-actions > *,
+  .foundation-modal-actions > *,
+  .profile-actions > * {
+    width: 100%;
+  }
+
+  .auth-switch {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.15rem 0.35rem;
+    justify-content: center;
+  }
+
+  .auth-switch a,
+  .about-contact-card a,
+  .site-footer a {
+    align-items: center;
+    display: inline-flex;
+    min-height: 40px;
+  }
+
+  input,
+  select,
+  textarea {
+    font-size: 1rem;
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .phone-input-wrap,
+  .password-input-wrap {
+    width: 100%;
+  }
+
+  .phone-input-wrap input,
+  .password-input-wrap input {
+    min-width: 0;
+  }
+
+  .adoption-radio-group,
+  .foundation-request-actions,
+  .admin-form-actions,
+  .admin-modal-actions,
+  .admin-pagination,
+  .foundation-form-actions,
+  .foundation-modal-actions,
+  .foundation-pagination,
+  .profile-cancel-modal-actions,
+  .quiz-step-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .adoption-radio-group label {
+    border-radius: 16px;
+    min-height: 48px;
+    width: 100%;
+  }
+
+  .admin-publication-toolbar,
+  .admin-users-search,
+  .admin-publication-card,
+  .admin-user-card {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .admin-publication-toolbar > div,
+  .admin-users-search > div {
+    display: grid;
+    gap: 0.55rem;
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
+  }
+
+  .admin-publication-image,
+  .foundation-pet-image,
+  .foundation-pet-placeholder {
+    height: auto;
+    max-width: 100%;
+    width: 100%;
+  }
+
+  .admin-publication-image {
+    aspect-ratio: 16 / 10;
+  }
+
+  .foundation-pet-card {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .foundation-pet-image,
+  .foundation-pet-placeholder {
+    aspect-ratio: 16 / 10;
+  }
+
+  .foundation-pet-actions,
+  .admin-publication-actions,
+  .admin-user-actions {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+
+  .admin-user-action-menu {
+    position: static;
+    width: 100%;
+  }
+
+  .foundation-age-field > div,
+  .admin-age-field > div,
+  .foundation-image-dropzone,
+  .admin-image-dropzone {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .foundation-image-preview,
+  .admin-image-preview {
+    aspect-ratio: 16 / 10;
+    width: 100%;
+  }
+
+  .donation-amount-grid,
+  .donation-methods,
+  .donation-submit-row,
+  .donations-help-list,
+  .quiz-summary-card,
+  .detail-facts,
+  .pet-facts,
+  .foundation-request-card dl,
+  .admin-publication-detail dl,
+  .admin-modification-images {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .donation-amount-card,
+  .donation-method-card,
+  .quiz-option-card {
+    min-height: 64px;
+  }
+
+  .chatbot-form > div,
+  .chatbot-widget-form > div {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .chatbot-form button,
+  .chatbot-widget-form button {
+    width: 100%;
+  }
+
+  .chatbot-widget {
+    align-items: stretch;
+    bottom: 10px;
+    left: 10px;
+    right: 10px;
+    z-index: 180;
+  }
+
+  .chatbot-widget-panel {
+    height: min(620px, calc(100svh - 112px));
+    max-height: calc(100svh - 112px);
+    width: auto;
+  }
+
+  .profile-modal-backdrop,
+  .foundation-modal-backdrop,
+  .admin-modal-backdrop {
+    align-items: flex-start;
+    overflow-y: auto;
+    padding: 0.85rem;
+  }
+
+  .profile-cancel-modal,
+  .foundation-modal,
+  .admin-modal {
+    border-radius: 20px;
+    max-height: calc(100svh - 1.7rem);
+    max-width: 100%;
+    overflow-y: auto;
+    padding: 1rem;
+    width: 100%;
+  }
+
+  .site-footer {
+    margin-top: 2rem;
+  }
+
+  .site-footer-bottom {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 480px) {
+  .home-page,
+  .about-page,
+  .catalog-page,
+  .pet-detail-page,
+  .adoption-page,
+  .auth-page,
+  .chatbot-page,
+  .donations-page,
+  .quiz-page,
+  .foundation-page,
+  .admin-page {
+    padding: 1.45rem 0.75rem 2.5rem;
+  }
+
+  .app-header {
+    padding-left: 0.65rem;
+    padding-right: 0.65rem;
+  }
+
+  .brand-logo {
+    height: 46px;
+    width: 46px;
+  }
+
+  .brand-name {
+    font-size: 1.08rem;
+  }
+
+  .home-hero-visual,
+  .home-hero-logo-card,
+  .home-info-card,
+  .home-pet-card,
+  .home-action-card,
+  .about-visual-card,
+  .about-faq-card,
+  .about-contact-card,
+  .about-social-card,
+  .about-commitment-card,
+  .catalog-hero,
+  .catalog-toolbar,
+  .catalog-summary,
+  .pet-card,
+  .detail-image-card,
+  .detail-info-card,
+  .adoption-card,
+  .publisher-card,
+  .adoption-form-card,
+  .adoption-info-card,
+  .adoption-pet-card,
+  .adoption-help-card,
+  .auth-card,
+  .auth-side-card,
+  .profile-card,
+  .profile-adoption-card,
+  .donation-form-card,
+  .donations-impact-card,
+  .donations-info-card,
+  .quiz-intro-copy,
+  .quiz-intro-card,
+  .quiz-question-card,
+  .quiz-summary-card,
+  .chatbot-hero,
+  .chatbot-panel,
+  .chatbot-quick-card,
+  .foundation-hero,
+  .foundation-access-card,
+  .foundation-form-card,
+  .foundation-card,
+  .foundation-summary-card,
+  .admin-hero,
+  .admin-access-card,
+  .admin-placeholder-card,
+  .admin-form-card,
+  .admin-metric-card {
+    border-radius: 18px;
+    padding: 0.9rem;
+  }
+
+  .home-hero h1,
+  .about-hero h1,
+  .catalog-hero h2,
+  .detail-hero h2,
+  .adoption-hero h2,
+  .donations-hero h2,
+  .quiz-intro-copy h2,
+  .quiz-results-hero h2,
+  .chatbot-hero h2,
+  .foundation-hero h2,
+  .admin-hero h2,
+  .auth-card h2,
+  .profile-card h2 {
+    font-size: clamp(1.7rem, 9vw, 2.2rem);
+  }
+
+  .filter-tabs {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .home-hero-logo-card {
+    min-height: 170px;
+  }
+
+  .home-hero-logo-card img {
+    max-width: min(170px, 72%);
+  }
+
+  .pet-card-body,
+  .home-pet-body {
+    padding: 0.9rem;
+  }
+
+  .pet-title-row,
+  .detail-title-row,
+  .admin-user-meta {
+    gap: 0.55rem;
+  }
+
+  .pet-status,
+  .profile-adoption-status,
+  .foundation-status,
+  .admin-publication-status,
+  .admin-user-pill {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    white-space: normal;
+  }
+
+  .chatbot-window {
+    min-height: 330px;
+  }
+
+  .chatbot-widget-panel {
+    height: min(560px, calc(100svh - 104px));
+    max-height: calc(100svh - 104px);
+  }
+
+  .chatbot-widget-toggle {
+    justify-content: center;
+    width: 100%;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
