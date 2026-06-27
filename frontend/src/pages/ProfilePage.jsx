@@ -1,5 +1,6 @@
 ﻿import { useEffect, useState } from 'react';
 import { apiClient } from '../services/apiClient';
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 import { clearSession, getCurrentUser, getToken, saveSession } from '../services/authSession';
 import { displayText } from '../utils/displayText';
 import { getMediaUrl } from '../utils/mediaUrl';
@@ -74,6 +75,8 @@ export function ProfilePage() {
   const latestAdoptionRequest = adoptionRequests[0] || null;
   const hasActiveAdoptionRequest = ACTIVE_ADOPTION_STATUSES.has(latestAdoptionRequest?.estado);
   const isAdopter = user?.rol === 'adoptante';
+
+  useBodyScrollLock(Boolean(cancelTarget));
 
   useEffect(() => {
     let isMounted = true;

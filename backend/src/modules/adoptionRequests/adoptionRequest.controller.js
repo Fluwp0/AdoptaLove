@@ -61,9 +61,9 @@ async function getMyActiveAdoptionRequest(req, res, next) {
   }
 }
 
-async function listAdoptionRequests(_req, res, next) {
+async function listAdoptionRequests(req, res, next) {
   try {
-    const solicitudes = await adoptionRequestService.getAdoptionRequests();
+    const solicitudes = await adoptionRequestService.getAdoptionRequests(req.user);
 
     return res.json({
       status: 'ok',
@@ -71,26 +71,36 @@ async function listAdoptionRequests(_req, res, next) {
       data: solicitudes
     });
   } catch (error) {
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({
+        status: 'error',
+        message: error.message
+      });
+    }
+
     return next(error);
   }
 }
 
 async function getAdoptionRequestById(req, res, next) {
   try {
-    const solicitud = await adoptionRequestService.getAdoptionRequestById(req.params.id);
-
-    if (!solicitud) {
-      return res.status(404).json({
-        status: 'error',
-        message: 'Solicitud no encontrada'
-      });
-    }
+    const solicitud = await adoptionRequestService.getAdoptionRequestById(
+      req.params.id,
+      req.user
+    );
 
     return res.json({
       status: 'ok',
       data: solicitud
     });
   } catch (error) {
+    if (error.statusCode) {
+      return res.status(error.statusCode).json({
+        status: 'error',
+        message: error.message
+      });
+    }
+
     return next(error);
   }
 }
@@ -99,7 +109,8 @@ async function updateAdoptionRequestStatus(req, res, next) {
   try {
     const solicitud = await adoptionRequestService.updateAdoptionRequestStatus(
       req.params.id,
-      req.body
+      req.body,
+      req.user
     );
 
     return res.json({

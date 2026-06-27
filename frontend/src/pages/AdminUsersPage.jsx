@@ -1,5 +1,6 @@
 ﻿import { useEffect, useMemo, useState } from 'react';
 import { apiClient } from '../services/apiClient';
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 import { getCurrentUser } from '../services/authSession';
 
 const ADMIN_ROLES = new Set(['administrador', 'admin']);
@@ -219,6 +220,8 @@ export function AdminUsersPage() {
   const currentPage = pagination.page || usersPage;
   const totalPages = Math.max(1, pagination.totalPages || 1);
   const hasUserSearch = userSearch.trim().length > 0;
+
+  useBodyScrollLock(Boolean(editingUser || deleteState.step));
 
   const roleDescription = useMemo(() => {
     if (form.rol === 'fundacion') {

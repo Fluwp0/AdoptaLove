@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { apiClient } from '../services/apiClient';
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 import { getCurrentUser } from '../services/authSession';
 import { getMediaUrl } from '../utils/mediaUrl';
 import {
@@ -155,6 +156,8 @@ export function AdminPublicationsPage() {
     [publicationsPagination.total]
   );
   const birthYearOptions = useMemo(() => getEstimatedBirthYearOptions(), []);
+
+  useBodyScrollLock(Boolean(reviewModal || deleteModal));
 
   async function loadPublications(page = publicationsPage, search = publicationSearch) {
     if (!isAdmin) {

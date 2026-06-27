@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { apiClient } from '../services/apiClient';
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 import { getCurrentUser } from '../services/authSession';
 import { getMediaUrl } from '../utils/mediaUrl';
 import { formatPetAge } from '../utils/petDisplay';
@@ -76,6 +77,8 @@ export function AdminModificationsPage() {
   const [actionStatus, setActionStatus] = useState('idle');
 
   const isActing = actionStatus === 'submitting';
+
+  useBodyScrollLock(Boolean(actionModal));
 
   async function loadModifications(nextPage = page, nextSearch = search) {
     if (!isAdmin) {

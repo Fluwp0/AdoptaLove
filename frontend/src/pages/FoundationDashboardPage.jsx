@@ -1,5 +1,6 @@
 ﻿import { useEffect, useMemo, useState } from 'react';
 import { apiClient } from '../services/apiClient';
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 import { getCurrentUser } from '../services/authSession';
 import { displayText } from '../utils/displayText';
 import { getMediaUrl } from '../utils/mediaUrl';
@@ -217,6 +218,8 @@ export function FoundationDashboardPage() {
   const paginatedPets = getPageItems(pets, petPage);
   const paginatedRequests = getPageItems(requests, requestPage);
   const birthYearOptions = useMemo(() => getEstimatedBirthYearOptions(), []);
+
+  useBodyScrollLock(Boolean(petToDelete || requestAction));
 
   const summaryCards = useMemo(
     () => [

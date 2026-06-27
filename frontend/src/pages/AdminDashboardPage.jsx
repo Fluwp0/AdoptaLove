@@ -1,5 +1,6 @@
 ﻿import { useEffect, useMemo, useState } from 'react';
 import { apiClient } from '../services/apiClient';
+import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 import { getCurrentUser } from '../services/authSession';
 import { getMediaUrl } from '../utils/mediaUrl';
 import {
@@ -181,6 +182,8 @@ export function AdminDashboardPage() {
   const isSubmitting = submitStatus === 'submitting';
   const isReviewing = reviewStatus === 'submitting';
   const birthYearOptions = useMemo(() => getEstimatedBirthYearOptions(), []);
+
+  useBodyScrollLock(Boolean(reviewModal));
 
   async function loadMetrics() {
     if (!isAdmin) {

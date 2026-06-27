@@ -15,7 +15,7 @@ async function findUserById(id) {
 
 async function findPetById(id) {
   const [rows] = await db.query(
-    `SELECT id, nombre, estado
+    `SELECT id, nombre, estado, publicado_por_usuario_id
     FROM mascotas
     WHERE id = ?
     LIMIT 1`,
@@ -53,6 +53,7 @@ async function findAdoptionRequests() {
       a.email AS adoptante_email,
       m.nombre AS mascota_nombre,
       m.especie AS mascota_especie,
+      m.publicado_por_usuario_id,
       s.estado,
       s.motivo_estado,
       s.mensaje,
@@ -68,6 +69,38 @@ async function findAdoptionRequests() {
   return rows;
 }
 
+async function findAdoptionRequestsByFoundationUserId(userId) {
+  const [rows] = await db.query(
+    `SELECT
+      s.id,
+      s.mascota_id,
+      m.nombre AS mascota_nombre,
+      m.especie AS mascota_especie,
+      m.publicado_por_usuario_id,
+      s.adoptante_usuario_id,
+      a.nombre AS adoptante_nombre,
+      a.email AS adoptante_email,
+      a.telefono AS adoptante_telefono,
+      a.rut AS adoptante_rut,
+      s.estado,
+      s.motivo_estado,
+      s.mensaje,
+      s.created_at AS fecha_creacion,
+      s.updated_at
+    FROM solicitudes_adopcion s
+    INNER JOIN usuarios a
+      ON s.adoptante_usuario_id = a.id
+    INNER JOIN mascotas m
+      ON s.mascota_id = m.id
+    WHERE m.publicado_por_usuario_id = ?
+      AND m.eliminada_at IS NULL
+    ORDER BY s.created_at DESC, s.id DESC`,
+    [userId]
+  );
+
+  return rows;
+}
+
 async function findAdoptionRequestDetailById(id) {
   const [rows] = await db.query(
     `SELECT
@@ -76,6 +109,7 @@ async function findAdoptionRequestDetailById(id) {
       a.nombre AS adoptante_nombre,
       a.email AS adoptante_email,
       s.mascota_id,
+      m.publicado_por_usuario_id,
       m.nombre AS mascota_nombre,
       m.especie AS mascota_especie,
       m.raza AS mascota_raza,
@@ -92,6 +126,26 @@ async function findAdoptionRequestDetailById(id) {
     FROM solicitudes_adopcion s
     INNER JOIN usuarios a
       ON s.adoptante_usuario_id = a.id
+    INNER JOIN mascotas m
+      ON s.mascota_id = m.id
+    WHERE s.id = ?
+    LIMIT 1`,
+    [id]
+  );
+
+  return rows[0] || null;
+}
+
+async function findAdoptionRequestAccessById(id) {
+  const [rows] = await db.query(
+    `SELECT
+      s.id,
+      s.adoptante_usuario_id,
+      s.mascota_id,
+      s.estado,
+      s.motivo_estado,
+      m.publicado_por_usuario_id
+    FROM solicitudes_adopcion s
     INNER JOIN mascotas m
       ON s.mascota_id = m.id
     WHERE s.id = ?
@@ -171,7 +225,7 @@ async function createAdoptionRequest({ adoptanteUsuarioId, mascotaId, mensaje })
   return findAdoptionRequestById(result.insertId);
 }
 
-async function updateAdoptionRequestStatus(id, estado) {
+async function updateAdoptionRequestStatus(id, estado, motivoEstado = null) {
   const connection = await db.getConnection();
 
   try {
@@ -194,9 +248,9 @@ async function updateAdoptionRequestStatus(id, estado) {
 
     await connection.query(
       `UPDATE solicitudes_adopcion
-      SET estado = ?
+      SET estado = ?, motivo_estado = ?
       WHERE id = ?`,
-      [estado, id]
+      [estado, motivoEstado, id]
     );
 
     if (estado === 'aprobada') {
@@ -228,11 +282,20 @@ async function updateAdoptionRequestStatus(id, estado) {
 
       await connection.query(
         `UPDATE solicitudes_adopcion
-        SET estado = ?
+        SET
+          estado = ?,
+          motivo_estado = COALESCE(motivo_estado, ?)
         WHERE mascota_id = ?
           AND id <> ?
           AND estado IN (?, ?)`,
-        ['rechazada', solicitud.mascota_id, solicitud.id, 'pendiente', 'en_revision']
+        [
+          'rechazada',
+          'Otra postulación fue aprobada para esta mascota.',
+          solicitud.mascota_id,
+          solicitud.id,
+          'pendiente',
+          'en_revision'
+        ]
       );
     }
 
@@ -267,8 +330,10 @@ async function cancelOwnActiveAdoptionRequest(id, userId, motivoEstado) {
 module.exports = {
   cancelOwnActiveAdoptionRequest,
   createAdoptionRequest,
+  findAdoptionRequestAccessById,
   findAdoptionRequestDetailById,
   findAdoptionRequests,
+  findAdoptionRequestsByFoundationUserId,
   findAdoptionRequestsByUserId,
   findActiveAdoptionRequestByUserId,
   findPetById,
