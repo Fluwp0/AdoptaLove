@@ -2,6 +2,7 @@
 import { apiClient } from '../services/apiClient';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 import { getCurrentUser } from '../services/authSession';
+import { ModalPortal } from '../components/ModalPortal';
 import { displayText } from '../utils/displayText';
 import { getMediaUrl } from '../utils/mediaUrl';
 import {
@@ -907,71 +908,75 @@ export function FoundationDashboardPage() {
       </div>
 
       {petToDelete && (
-        <div className="foundation-modal-backdrop" role="presentation">
-          <div aria-modal="true" className="foundation-modal" role="dialog">
-            <h3>Confirmar eliminación de publicación</h3>
-            <p>¿Estás seguro de que deseas eliminar esta publicación? Esta acción no se puede deshacer.</p>
-            <div className="foundation-modal-actions">
-              <button
-                className="foundation-secondary-button"
-                disabled={isDeleting}
-                onClick={() => setPetToDelete(null)}
-                type="button"
-              >
-                Cancelar
-              </button>
-              <button
-                className="foundation-danger-button"
-                disabled={isDeleting}
-                onClick={deletePet}
-                type="button"
-              >
-                {isDeleting ? 'Eliminando...' : 'Eliminar publicación'}
-              </button>
+        <ModalPortal>
+          <div className="foundation-modal-backdrop" role="presentation">
+            <div aria-modal="true" className="foundation-modal" role="dialog">
+              <h3>Confirmar eliminación de publicación</h3>
+              <p>¿Estás seguro de que deseas eliminar esta publicación? Esta acción no se puede deshacer.</p>
+              <div className="foundation-modal-actions">
+                <button
+                  className="foundation-secondary-button"
+                  disabled={isDeleting}
+                  onClick={() => setPetToDelete(null)}
+                  type="button"
+                >
+                  Cancelar
+                </button>
+                <button
+                  className="foundation-danger-button"
+                  disabled={isDeleting}
+                  onClick={deletePet}
+                  type="button"
+                >
+                  {isDeleting ? 'Eliminando...' : 'Eliminar publicación'}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        </ModalPortal>
       )}
 
       {requestAction && (
-        <div className="foundation-modal-backdrop" role="presentation">
-          <div aria-modal="true" className="foundation-modal" role="dialog">
-            <h3>{requestAction.nextStatus === 'aprobada' ? 'Confirmar aprobación' : 'Confirmar rechazo'}</h3>
-            <p>
-              Escribe el motivo que verá el adoptante en su perfil antes de guardar este cambio.
-            </p>
-            <label className="foundation-modal-field">
-              Motivo
-              <textarea
-                onChange={(event) => {
-                  setRequestReason(event.target.value);
-                  setRequestReasonError('');
-                }}
-                placeholder="Ej: La solicitud cumple con los requisitos de adopción."
-                value={requestReason}
-              />
-            </label>
-            {requestReasonError && <p className="foundation-modal-error">{displayText(requestReasonError)}</p>}
-            <div className="foundation-modal-actions">
-              <button
-                className="foundation-secondary-button"
-                disabled={requestUpdatingId === requestAction.request.id}
-                onClick={closeRequestAction}
-                type="button"
-              >
-                Cancelar
-              </button>
-              <button
-                className="foundation-primary-button"
-                disabled={requestUpdatingId === requestAction.request.id}
-                onClick={confirmRequestAction}
-                type="button"
-              >
-                {requestUpdatingId === requestAction.request.id ? 'Guardando...' : 'Confirmar cambio'}
-              </button>
+        <ModalPortal>
+          <div className="foundation-modal-backdrop" role="presentation">
+            <div aria-modal="true" className="foundation-modal" role="dialog">
+              <h3>{requestAction.nextStatus === 'aprobada' ? 'Confirmar aprobación' : 'Confirmar rechazo'}</h3>
+              <p>
+                Escribe el motivo que verá el adoptante en su perfil antes de guardar este cambio.
+              </p>
+              <label className="foundation-modal-field">
+                Motivo
+                <textarea
+                  onChange={(event) => {
+                    setRequestReason(event.target.value);
+                    setRequestReasonError('');
+                  }}
+                  placeholder="Ej: La solicitud cumple con los requisitos de adopción."
+                  value={requestReason}
+                />
+              </label>
+              {requestReasonError && <p className="foundation-modal-error">{displayText(requestReasonError)}</p>}
+              <div className="foundation-modal-actions">
+                <button
+                  className="foundation-secondary-button"
+                  disabled={requestUpdatingId === requestAction.request.id}
+                  onClick={closeRequestAction}
+                  type="button"
+                >
+                  Cancelar
+                </button>
+                <button
+                  className="foundation-primary-button"
+                  disabled={requestUpdatingId === requestAction.request.id}
+                  onClick={confirmRequestAction}
+                  type="button"
+                >
+                  {requestUpdatingId === requestAction.request.id ? 'Guardando...' : 'Confirmar cambio'}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        </ModalPortal>
       )}
     </section>
   );

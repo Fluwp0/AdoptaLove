@@ -2,6 +2,7 @@
 import { apiClient } from '../services/apiClient';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 import { getCurrentUser } from '../services/authSession';
+import { ModalPortal } from '../components/ModalPortal';
 
 const ADMIN_ROLES = new Set(['administrador', 'admin']);
 const USERS_PER_PAGE = 5;
@@ -872,92 +873,96 @@ function validateFoundationFields(currentForm) {
       </div>
 
       {editingUser && (
-        <div className="admin-modal-backdrop">
-          <form className="admin-modal" onSubmit={handleUpdateUser}>
-            <h3>Modificar usuario</h3>
-            <p>Actualiza los datos principales. La contraseña solo cambia si la completas.</p>
-            <div className="admin-user-form-grid">
-              {renderUserForm(editForm, updateEditField, { isEdit: true })}
-            </div>
-            <div className="admin-modal-actions">
-              <button
-                className="admin-secondary-button"
-                onClick={() => setEditingUser(null)}
-                type="button"
-              >
-                Cancelar
-              </button>
-              <button className="admin-primary-button" disabled={isSaving} type="submit">
-                {isSaving ? 'Guardando...' : 'Guardar cambios'}
-              </button>
-            </div>
-          </form>
-        </div>
+        <ModalPortal>
+          <div className="admin-modal-backdrop">
+            <form className="admin-modal" onSubmit={handleUpdateUser}>
+              <h3>Modificar usuario</h3>
+              <p>Actualiza los datos principales. La contraseña solo cambia si la completas.</p>
+              <div className="admin-user-form-grid">
+                {renderUserForm(editForm, updateEditField, { isEdit: true })}
+              </div>
+              <div className="admin-modal-actions">
+                <button
+                  className="admin-secondary-button"
+                  onClick={() => setEditingUser(null)}
+                  type="button"
+                >
+                  Cancelar
+                </button>
+                <button className="admin-primary-button" disabled={isSaving} type="submit">
+                  {isSaving ? 'Guardando...' : 'Guardar cambios'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </ModalPortal>
       )}
 
       {deleteState.step && (
-        <div className="admin-modal-backdrop">
-          <div className="admin-modal">
-            {deleteState.step === 'confirm' ? (
-              <>
-                <h3>Confirmar eliminación de usuario</h3>
-                <p>¿Estás seguro de que deseas eliminar este usuario?</p>
-                <div className="admin-modal-actions">
-                  <button
-                    className="admin-secondary-button"
-                    onClick={() => setDeleteState({ motivo: '', step: null, user: null })}
-                    type="button"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    className="admin-primary-button"
-                    onClick={() => setDeleteState((currentState) => ({
-                      ...currentState,
-                      step: 'reason'
-                    }))}
-                    type="button"
-                  >
-                    Continuar
-                  </button>
-                </div>
-              </>
-            ) : (
-              <>
-                <h3>Motivo de eliminación</h3>
-                <p>Este usuario quedará desactivado y el motivo quedará registrado.</p>
-                <label className="admin-modal-field">
-                  Motivo de eliminación
-                  <textarea
-                    onChange={(event) => setDeleteState((currentState) => ({
-                      ...currentState,
-                      motivo: event.target.value
-                    }))}
-                    placeholder="Explica por qué se desactiva este usuario."
-                    value={deleteState.motivo}
-                  />
-                </label>
-                <div className="admin-modal-actions">
-                  <button
-                    className="admin-secondary-button"
-                    onClick={() => setDeleteState({ motivo: '', step: null, user: null })}
-                    type="button"
-                  >
-                    Cancelar
-                  </button>
-                  <button
-                    className="admin-primary-button"
-                    disabled={isDeleting}
-                    onClick={confirmDeleteUser}
-                    type="button"
-                  >
-                    {isDeleting ? 'Eliminando...' : 'Eliminar usuario'}
-                  </button>
-                </div>
-              </>
-            )}
+        <ModalPortal>
+          <div className="admin-modal-backdrop">
+            <div className="admin-modal">
+              {deleteState.step === 'confirm' ? (
+                <>
+                  <h3>Confirmar eliminación de usuario</h3>
+                  <p>¿Estás seguro de que deseas eliminar este usuario?</p>
+                  <div className="admin-modal-actions">
+                    <button
+                      className="admin-secondary-button"
+                      onClick={() => setDeleteState({ motivo: '', step: null, user: null })}
+                      type="button"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      className="admin-primary-button"
+                      onClick={() => setDeleteState((currentState) => ({
+                        ...currentState,
+                        step: 'reason'
+                      }))}
+                      type="button"
+                    >
+                      Continuar
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <h3>Motivo de eliminación</h3>
+                  <p>Este usuario quedará desactivado y el motivo quedará registrado.</p>
+                  <label className="admin-modal-field">
+                    Motivo de eliminación
+                    <textarea
+                      onChange={(event) => setDeleteState((currentState) => ({
+                        ...currentState,
+                        motivo: event.target.value
+                      }))}
+                      placeholder="Explica por qué se desactiva este usuario."
+                      value={deleteState.motivo}
+                    />
+                  </label>
+                  <div className="admin-modal-actions">
+                    <button
+                      className="admin-secondary-button"
+                      onClick={() => setDeleteState({ motivo: '', step: null, user: null })}
+                      type="button"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      className="admin-primary-button"
+                      disabled={isDeleting}
+                      onClick={confirmDeleteUser}
+                      type="button"
+                    >
+                      {isDeleting ? 'Eliminando...' : 'Eliminar usuario'}
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
-        </div>
+        </ModalPortal>
       )}
     </section>
   );

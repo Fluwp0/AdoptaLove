@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { apiClient } from '../services/apiClient';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 import { getCurrentUser } from '../services/authSession';
+import { ModalPortal } from '../components/ModalPortal';
 import { getMediaUrl } from '../utils/mediaUrl';
 import { formatPetAge } from '../utils/petDisplay';
 
@@ -469,52 +470,54 @@ export function AdminModificationsPage() {
       </section>
 
       {actionModal && (
-        <div className="admin-modal-backdrop">
-          <div className="admin-modal">
-            <h3>
-              {actionModal.action === 'approve'
-                ? 'Confirmar aprobación de modificación'
-                : actionModal.action === 'reject'
-                  ? 'Confirmar rechazo de modificación'
-                  : 'Descartar solicitud de modificación'}
-            </h3>
-            <p>
-              {actionModal.action === 'discard'
-                ? 'Esta solicitud dejará de aparecer como pendiente para revisión.'
-                : 'Escribe el motivo que quedará asociado a la solicitud de modificación.'}
-            </p>
-            {actionModal.action !== 'discard' && (
-              <label className="admin-modal-field">
-                Motivo de revisión
-                <textarea
-                  onChange={(event) => setReason(event.target.value)}
-                  placeholder="Ej: Los cambios cumplen con la información requerida."
-                  value={reason}
-                />
-              </label>
-            )}
-            {reasonError && <p className="admin-modal-error">{reasonError}</p>}
-            <div className="admin-modal-actions">
-              <button className="admin-secondary-button" disabled={isActing} onClick={closeActionModal} type="button">
-                Cancelar
-              </button>
-              <button
-                className={actionModal.action === 'approve' ? 'admin-primary-button' : 'admin-secondary-button admin-danger-button'}
-                disabled={isActing}
-                onClick={confirmAction}
-                type="button"
-              >
-                {isActing
-                  ? 'Guardando...'
-                  : actionModal.action === 'approve'
-                    ? 'Confirmar aprobación'
-                    : actionModal.action === 'reject'
-                      ? 'Confirmar rechazo'
-                      : 'Descartar solicitud'}
-              </button>
+        <ModalPortal>
+          <div className="admin-modal-backdrop">
+            <div className="admin-modal">
+              <h3>
+                {actionModal.action === 'approve'
+                  ? 'Confirmar aprobación de modificación'
+                  : actionModal.action === 'reject'
+                    ? 'Confirmar rechazo de modificación'
+                    : 'Descartar solicitud de modificación'}
+              </h3>
+              <p>
+                {actionModal.action === 'discard'
+                  ? 'Esta solicitud dejará de aparecer como pendiente para revisión.'
+                  : 'Escribe el motivo que quedará asociado a la solicitud de modificación.'}
+              </p>
+              {actionModal.action !== 'discard' && (
+                <label className="admin-modal-field">
+                  Motivo de revisión
+                  <textarea
+                    onChange={(event) => setReason(event.target.value)}
+                    placeholder="Ej: Los cambios cumplen con la información requerida."
+                    value={reason}
+                  />
+                </label>
+              )}
+              {reasonError && <p className="admin-modal-error">{reasonError}</p>}
+              <div className="admin-modal-actions">
+                <button className="admin-secondary-button" disabled={isActing} onClick={closeActionModal} type="button">
+                  Cancelar
+                </button>
+                <button
+                  className={actionModal.action === 'approve' ? 'admin-primary-button' : 'admin-secondary-button admin-danger-button'}
+                  disabled={isActing}
+                  onClick={confirmAction}
+                  type="button"
+                >
+                  {isActing
+                    ? 'Guardando...'
+                    : actionModal.action === 'approve'
+                      ? 'Confirmar aprobación'
+                      : actionModal.action === 'reject'
+                        ? 'Confirmar rechazo'
+                        : 'Descartar solicitud'}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        </ModalPortal>
       )}
     </section>
   );

@@ -2,6 +2,7 @@
 import { apiClient } from '../services/apiClient';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 import { clearSession, getCurrentUser, getToken, saveSession } from '../services/authSession';
+import { ModalPortal } from '../components/ModalPortal';
 import { displayText } from '../utils/displayText';
 import { getMediaUrl } from '../utils/mediaUrl';
 import { formatPetAge } from '../utils/petDisplay';
@@ -388,33 +389,35 @@ export function ProfilePage() {
       </div>
 
       {cancelTarget && (
-        <div className="profile-modal-backdrop" role="presentation">
-          <section className="profile-cancel-modal" role="dialog" aria-modal="true">
-            <h3>Confirmar cancelación de postulación</h3>
-            <p>
-              ¿Estás seguro de que deseas cancelar esta postulación? Esta acción dejará
-              la solicitud como rechazada.
-            </p>
-            <div className="profile-cancel-modal-actions">
-              <button
-                className="profile-modal-secondary"
-                disabled={cancelStatus === 'submitting'}
-                onClick={() => setCancelTarget(null)}
-                type="button"
-              >
-                Mantener postulación vigente
-              </button>
-              <button
-                className="profile-modal-primary"
-                disabled={cancelStatus === 'submitting'}
-                onClick={confirmCancelApplication}
-                type="button"
-              >
-                {cancelStatus === 'submitting' ? 'Cancelando...' : 'Confirmar cancelación'}
-              </button>
-            </div>
-          </section>
-        </div>
+        <ModalPortal>
+          <div className="profile-modal-backdrop" role="presentation">
+            <section className="profile-cancel-modal" role="dialog" aria-modal="true">
+              <h3>Confirmar cancelación de postulación</h3>
+              <p>
+                ¿Estás seguro de que deseas cancelar esta postulación? Esta acción dejará
+                la solicitud como rechazada.
+              </p>
+              <div className="profile-cancel-modal-actions">
+                <button
+                  className="profile-modal-secondary"
+                  disabled={cancelStatus === 'submitting'}
+                  onClick={() => setCancelTarget(null)}
+                  type="button"
+                >
+                  Mantener postulación vigente
+                </button>
+                <button
+                  className="profile-modal-primary"
+                  disabled={cancelStatus === 'submitting'}
+                  onClick={confirmCancelApplication}
+                  type="button"
+                >
+                  {cancelStatus === 'submitting' ? 'Cancelando...' : 'Confirmar cancelación'}
+                </button>
+              </div>
+            </section>
+          </div>
+        </ModalPortal>
       )}
     </section>
   );

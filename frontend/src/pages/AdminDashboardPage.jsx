@@ -2,6 +2,7 @@
 import { apiClient } from '../services/apiClient';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 import { getCurrentUser } from '../services/authSession';
+import { ModalPortal } from '../components/ModalPortal';
 import { getMediaUrl } from '../utils/mediaUrl';
 import {
   BIRTH_MONTH_OPTIONS,
@@ -839,56 +840,58 @@ export function AdminDashboardPage() {
         {renderPublicationsReview()}
 
         {reviewModal && (
-          <div className="admin-modal-backdrop">
-            <div className="admin-modal">
-              <h3>
-                {reviewModal.action === 'approve'
-                  ? 'Confirmar aprobación'
-                  : 'Confirmar rechazo'}
-              </h3>
-              <p>
-                Escribe el motivo que quedará asociado a la publicación de{' '}
-                <strong>{displayText(reviewModal.publication.nombre)}</strong>.
-              </p>
-              <label className="admin-modal-field">
-                Motivo de revisión
-                <textarea
-                  onChange={(event) => setReviewReason(event.target.value)}
-                  placeholder="Ej: La publicación cumple con la información requerida."
-                  value={reviewReason}
-                />
-              </label>
-              {reviewError && (
-                <p className="admin-modal-error">{reviewError}</p>
-              )}
-              <div className="admin-modal-actions">
-                <button
-                  className="admin-secondary-button"
-                  disabled={isReviewing}
-                  onClick={closeReviewModal}
-                  type="button"
-                >
-                  Cancelar
-                </button>
-                <button
-                  className={
-                    reviewModal.action === 'approve'
-                      ? 'admin-primary-button'
-                      : 'admin-secondary-button admin-danger-button'
-                  }
-                  disabled={isReviewing}
-                  onClick={confirmReviewAction}
-                  type="button"
-                >
-                  {isReviewing
-                    ? 'Guardando...'
-                    : reviewModal.action === 'approve'
-                      ? 'Confirmar aprobación'
-                      : 'Confirmar rechazo'}
-                </button>
+          <ModalPortal>
+            <div className="admin-modal-backdrop">
+              <div className="admin-modal">
+                <h3>
+                  {reviewModal.action === 'approve'
+                    ? 'Confirmar aprobación'
+                    : 'Confirmar rechazo'}
+                </h3>
+                <p>
+                  Escribe el motivo que quedará asociado a la publicación de{' '}
+                  <strong>{displayText(reviewModal.publication.nombre)}</strong>.
+                </p>
+                <label className="admin-modal-field">
+                  Motivo de revisión
+                  <textarea
+                    onChange={(event) => setReviewReason(event.target.value)}
+                    placeholder="Ej: La publicación cumple con la información requerida."
+                    value={reviewReason}
+                  />
+                </label>
+                {reviewError && (
+                  <p className="admin-modal-error">{reviewError}</p>
+                )}
+                <div className="admin-modal-actions">
+                  <button
+                    className="admin-secondary-button"
+                    disabled={isReviewing}
+                    onClick={closeReviewModal}
+                    type="button"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    className={
+                      reviewModal.action === 'approve'
+                        ? 'admin-primary-button'
+                        : 'admin-secondary-button admin-danger-button'
+                    }
+                    disabled={isReviewing}
+                    onClick={confirmReviewAction}
+                    type="button"
+                  >
+                    {isReviewing
+                      ? 'Guardando...'
+                      : reviewModal.action === 'approve'
+                        ? 'Confirmar aprobación'
+                        : 'Confirmar rechazo'}
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
+          </ModalPortal>
         )}
       </section>
     );
