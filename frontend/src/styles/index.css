@@ -9604,6 +9604,202 @@ summary:focus-visible,
   }
 }
 
+.chatbot-panel {
+  grid-template-rows: minmax(0, 1fr) auto;
+  min-height: min(720px, calc(100dvh - 220px));
+}
+
+.chatbot-thread {
+  scroll-padding-bottom: 1rem;
+}
+
+.chatbot-window {
+  height: clamp(440px, 58dvh, 640px);
+  max-height: min(640px, calc(100dvh - 260px));
+  min-height: 420px;
+}
+
+.chatbot-message-group {
+  display: grid;
+  gap: 0.55rem;
+  max-width: min(90%, 720px);
+  min-width: 0;
+}
+
+.chatbot-message-group-bot {
+  align-self: flex-start;
+  justify-items: start;
+}
+
+.chatbot-message-group-user {
+  align-self: flex-end;
+  justify-items: end;
+  max-width: min(82%, 680px);
+}
+
+.chatbot-message-group .chatbot-message,
+.chatbot-message-group .chatbot-widget-message {
+  max-width: 100%;
+}
+
+.chatbot-message p,
+.chatbot-widget-message p {
+  white-space: pre-line;
+}
+
+.chatbot-message-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-left: 3.2rem;
+  max-width: min(100%, 680px);
+}
+
+.chatbot-widget .chatbot-message-options {
+  margin-left: 0;
+  max-width: 100%;
+}
+
+.chatbot-message-options button {
+  align-items: center;
+  background: var(--chatbot-chip-bg);
+  border: 1px solid var(--chatbot-chip-border);
+  border-radius: 999px;
+  color: var(--chatbot-chip-text);
+  cursor: pointer;
+  display: inline-flex;
+  flex: 1 1 178px;
+  font-size: 0.86rem;
+  font-weight: 900;
+  justify-content: center;
+  line-height: 1.25;
+  min-height: 42px;
+  min-width: min(100%, 132px);
+  padding: 0.55rem 0.8rem;
+  text-align: center;
+}
+
+.chatbot-message-options button:not(:disabled):hover,
+.chatbot-message-options button:not(:disabled):focus-visible {
+  background: var(--chatbot-chip-hover-bg);
+  border-color: var(--pink);
+  color: var(--chatbot-chip-hover-text);
+}
+
+.chatbot-message-options button:focus-visible {
+  box-shadow: var(--focus-ring);
+  outline: none;
+}
+
+.chatbot-message-options button:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+}
+
+.chatbot-input-form {
+  background: var(--color-surface-elevated);
+  border-top: 1px solid color-mix(in srgb, var(--border) 76%, transparent);
+  flex: 0 0 auto;
+  margin: 0;
+  padding-top: 0.85rem;
+}
+
+.chatbot-widget-form {
+  padding: 0.8rem;
+}
+
+.chatbot-widget {
+  align-items: flex-end;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  left: auto;
+  right: max(16px, env(safe-area-inset-right));
+  width: auto;
+  z-index: 180;
+}
+
+.chatbot-widget-panel {
+  height: min(640px, calc(100dvh - 96px));
+  max-height: calc(100dvh - 96px);
+  width: min(400px, calc(100vw - 32px));
+}
+
+.chatbot-widget-messages {
+  min-height: 0;
+}
+
+.chatbot-widget-toggle {
+  align-self: flex-end;
+  flex: 0 0 auto;
+  justify-content: flex-start;
+  max-width: fit-content;
+  width: auto;
+}
+
+@media (max-width: 768px) {
+  .chatbot-window {
+    height: min(560px, calc(100dvh - 260px));
+    max-height: calc(100dvh - 260px);
+    min-height: min(360px, calc(100dvh - 260px));
+  }
+
+  .chatbot-message-group,
+  .chatbot-message-group-user {
+    max-width: 100%;
+  }
+
+  .chatbot-message-options {
+    margin-left: 0;
+    width: 100%;
+  }
+
+  .chatbot-message-options button {
+    flex: 1 1 100%;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .chatbot-widget {
+    align-items: flex-end;
+    bottom: max(16px, env(safe-area-inset-bottom));
+    left: auto;
+    right: max(16px, env(safe-area-inset-right));
+    width: auto;
+  }
+
+  .chatbot-widget-panel {
+    height: min(620px, calc(100dvh - 90px));
+    max-height: calc(100dvh - 90px);
+    width: min(380px, calc(100vw - 48px));
+  }
+
+  .chatbot-widget-form > div {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .chatbot-widget-form button {
+    width: 100%;
+  }
+
+  .chatbot-widget-toggle {
+    justify-content: flex-start;
+    max-width: fit-content;
+    min-height: 54px;
+    padding: 0.5rem 0.9rem 0.5rem 0.6rem;
+    width: auto;
+  }
+}
+
+@media (max-width: 480px) {
+  .chatbot-widget-panel {
+    width: min(380px, calc(100vw - 48px));
+  }
+
+  .chatbot-widget-toggle {
+    width: auto;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
