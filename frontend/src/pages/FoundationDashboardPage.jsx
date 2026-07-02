@@ -3,6 +3,7 @@ import { apiClient } from '../services/apiClient';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 import { getCurrentUser } from '../services/authSession';
 import { ModalPortal } from '../components/ModalPortal';
+import { formatAddress } from '../utils/addressDisplay';
 import { displayText } from '../utils/displayText';
 import { getMediaUrl } from '../utils/mediaUrl';
 import {
@@ -50,15 +51,51 @@ const STATUS_LABELS = {
   rechazada: 'Rechazada'
 };
 
+const REQUEST_STATUS_ALIASES = {
+  aprobado: 'aprobada',
+  aprobada: 'aprobada',
+  pendiente: 'pendiente',
+  rechazado: 'rechazada',
+  rechazada: 'rechazada',
+  en_revision: 'en_revision'
+};
+
 const REQUEST_ACTIONS = [
   { value: 'en_revision', label: 'En revisión' },
   { value: 'aprobada', label: 'Aprobar' },
   { value: 'rechazada', label: 'Rechazar' }
 ];
 
+const DEFAULT_OPEN_REQUEST_SECTION = 'postulante';
+const FINAL_REQUEST_STATUSES = new Set(['aprobada', 'rechazada']);
+const FULL_WIDTH_RESPONSE_LABELS = new Set([
+  'detalle de otras mascotas',
+  'mensaje',
+  'motivo',
+  'respuesta'
+]);
+const LONG_RESPONSE_PREVIEW_LENGTH = 220;
+
+function normalizeRequestStatus(status = '') {
+  const normalizedStatus = displayText(status, '')
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[\s-]+/g, '_');
+
+  return REQUEST_STATUS_ALIASES[normalizedStatus] ?? normalizedStatus;
+}
+
+function isFinalRequestStatus(status = '') {
+  return FINAL_REQUEST_STATUSES.has(normalizeRequestStatus(status));
+}
+
 function formatStatus(status = '') {
-  if (STATUS_LABELS[status]) {
-    return STATUS_LABELS[status];
+  const normalizedStatus = normalizeRequestStatus(status);
+
+  if (STATUS_LABELS[normalizedStatus]) {
+    return STATUS_LABELS[normalizedStatus];
   }
 
   return displayText(status)
@@ -89,10 +126,93 @@ function formatPhone(value) {
   const phone = displayText(value, '').trim();
 
   if (!phone) {
-    return 'No indicado';
+    return 'No informado';
   }
 
   return phone.replace(/^\+56\s*56\s*/u, '+56 ').trim();
+}
+
+function formatRequestValue(value, fallback = 'No informado') {
+  const text = displayText(value, '').trim();
+
+  return text || fallback;
+}
+
+function formatLocationSummary(comuna, region) {
+  const parts = [
+    formatRequestValue(comuna, ''),
+    formatRequestValue(region, '')
+  ].filter(Boolean);
+
+  return parts.length > 0 ? parts.join(', ') : 'No informado';
+}
+
+function normalizeResponseLabel(label = '') {
+  return label
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+}
+
+function shouldUseFullWidthResponse(label, value) {
+  const normalizedLabel = normalizeResponseLabel(label);
+
+  return (
+    FULL_WIDTH_RESPONSE_LABELS.has(normalizedLabel) ||
+    value.length > LONG_RESPONSE_PREVIEW_LENGTH
+  );
+}
+
+function formatRequestResponses(message) {
+  const text = displayText(message, '').trim();
+
+  if (!text) {
+    const fallback = 'No se ingresó mensaje adicional.';
+
+    return [{
+      fullWidth: true,
+      label: 'Mensaje',
+      value: fallback
+    }];
+  }
+
+  const lines = text
+    .split(/\r?\n/u)
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+  if (lines.length <= 1) {
+    return [{
+      fullWidth: true,
+      label: 'Mensaje',
+      value: text
+    }];
+  }
+
+  return lines.map((line, index) => {
+    const separatorIndex = line.indexOf(':');
+
+    if (separatorIndex > 0 && separatorIndex <= 48) {
+      const label = line.slice(0, separatorIndex).trim();
+      const value = line.slice(separatorIndex + 1).trim();
+      const responseValue = value || 'No informado';
+
+      return {
+        fullWidth: shouldUseFullWidthResponse(label, responseValue),
+        label,
+        value: responseValue
+      };
+    }
+
+    const label = `Respuesta ${index + 1}`;
+
+    return {
+      fullWidth: shouldUseFullWidthResponse(label, line),
+      label,
+      value: line
+    };
+  });
 }
 
 function mapPetToForm(pet) {
@@ -186,6 +306,30 @@ function PaginationControls({ page, totalPages, onChange }) {
   );
 }
 
+function RequestDetailSection({ children, className = '', isOpen, onToggle, title }) {
+  return (
+    <section className={`foundation-request-info-block${className ? ` ${className}` : ''}`}>
+      <h4>
+        <button
+          aria-expanded={isOpen}
+          className="foundation-request-section-toggle"
+          onClick={onToggle}
+          type="button"
+        >
+          <span>{title}</span>
+          <span aria-hidden="true" className="foundation-request-accordion-icon" />
+        </button>
+      </h4>
+
+      {isOpen && (
+        <div className="foundation-request-section-body">
+          {children}
+        </div>
+      )}
+    </section>
+  );
+}
+
 export function FoundationDashboardPage() {
   const currentUser = getCurrentUser();
   const canAccessPanel = FOUNDATION_ROLES.has(currentUser?.rol);
@@ -202,7 +346,8 @@ export function FoundationDashboardPage() {
   const [submitStatus, setSubmitStatus] = useState('idle');
   const [petPage, setPetPage] = useState(1);
   const [requestPage, setRequestPage] = useState(1);
-  const [expandedRequests, setExpandedRequests] = useState(() => new Set());
+  const [expandedRequestId, setExpandedRequestId] = useState(null);
+  const [expandedRequestSections, setExpandedRequestSections] = useState({});
   const [petToDelete, setPetToDelete] = useState(null);
   const [requestAction, setRequestAction] = useState(null);
   const [requestReason, setRequestReason] = useState('');
@@ -450,20 +595,53 @@ export function FoundationDashboardPage() {
   }
 
   function toggleRequestDetails(requestId) {
-    setExpandedRequests((current) => {
-      const next = new Set(current);
+    setExpandedRequestId((currentId) => (currentId === requestId ? null : requestId));
+  }
 
-      if (next.has(requestId)) {
-        next.delete(requestId);
-      } else {
-        next.add(requestId);
-      }
+  function getOpenRequestSection(requestId) {
+    const hasSelection = Object.prototype.hasOwnProperty.call(
+      expandedRequestSections,
+      requestId
+    );
+    const section = hasSelection
+      ? expandedRequestSections[requestId]
+      : DEFAULT_OPEN_REQUEST_SECTION;
 
-      return next;
+    return Array.isArray(section) ? section[0] ?? null : section;
+  }
+
+  function isRequestSectionOpen(requestId, sectionId) {
+    return getOpenRequestSection(requestId) === sectionId;
+  }
+
+  function toggleRequestSection(requestId, sectionId) {
+    setExpandedRequestSections((current) => {
+      const hasSelection = Object.prototype.hasOwnProperty.call(current, requestId);
+      const currentSelection = hasSelection
+        ? current[requestId]
+        : DEFAULT_OPEN_REQUEST_SECTION;
+      const currentSection = Array.isArray(currentSelection)
+        ? currentSelection[0] ?? null
+        : currentSelection;
+
+      return {
+        ...current,
+        [requestId]: currentSection === sectionId ? null : sectionId
+      };
     });
   }
 
   function openRequestAction(request, nextStatus) {
+    const currentStatus = normalizeRequestStatus(request.estado);
+
+    if (
+      isFinalRequestStatus(currentStatus) ||
+      currentStatus === nextStatus ||
+      requestUpdatingId === request.id
+    ) {
+      return;
+    }
+
     if (nextStatus === 'en_revision') {
       changeRequestStatus(request, nextStatus);
       return;
@@ -816,83 +994,238 @@ export function FoundationDashboardPage() {
               <div className="foundation-empty-state">Aún no hay postulaciones recibidas.</div>
             ) : (
               paginatedRequests.map((request) => {
-                const isExpanded = expandedRequests.has(request.id);
+                const requestState = normalizeRequestStatus(request.estado);
+                const isExpanded = expandedRequestId === request.id;
+                const areDecisionActionsLocked = isFinalRequestStatus(requestState);
+                const addressComplement = displayText(
+                  request.postulante_complemento_direccion,
+                  ''
+                ).trim();
+                const completeAddress = formatAddress({
+                  comuna: request.postulante_comuna,
+                  complemento_direccion: addressComplement,
+                  direccion: request.postulante_direccion,
+                  numeracion: request.postulante_numeracion,
+                  region: request.postulante_region
+                });
+                const applicantName = formatRequestValue(request.postulante_nombre);
+                const applicantEmail = formatRequestValue(request.postulante_email);
+                const detailId = `foundation-request-detail-${request.id}`;
+                const locationSummary = formatLocationSummary(
+                  request.postulante_comuna,
+                  request.postulante_region
+                );
+                const petName = formatRequestValue(request.mascota_nombre);
+                const petType = formatRequestValue(request.mascota_especie, '');
+                const requestDate = formatDate(request.created_at);
+                const requestStatus = formatStatus(request.estado);
+                const isApplicantSectionOpen = isRequestSectionOpen(request.id, 'postulante');
+                const isLocationSectionOpen = isRequestSectionOpen(request.id, 'ubicacion');
+                const isPetSectionOpen = isRequestSectionOpen(request.id, 'mascota');
+                const isResponseSectionOpen = isRequestSectionOpen(request.id, 'respuestas');
+                const responseItems = formatRequestResponses(request.mensaje);
 
                 return (
                   <article className="foundation-request-card" key={request.id}>
-                    <div className="foundation-request-header">
-                      <div>
-                        <strong>{displayText(request.mascota_nombre)}</strong>
-                        <span>{displayText(request.postulante_nombre)} · {formatDate(request.created_at)}</span>
-                        <span>{displayText(request.postulante_email, 'Correo no indicado')}</span>
+                    <div className="foundation-request-summary">
+                      <div className="foundation-request-summary-heading">
+                        <div className="foundation-request-summary-title">
+                          <strong>{petName}</strong>
+                          {petType && <span>Tipo: {petType}</span>}
+                        </div>
+                        <span className={`foundation-status foundation-status-${requestState}`}>
+                          {requestStatus}
+                        </span>
                       </div>
-                      <span className={`foundation-status foundation-status-${request.estado}`}>
-                        {formatStatus(request.estado)}
-                      </span>
+
+                      <dl className="foundation-request-summary-list">
+                        <div>
+                          <dt>Postulante</dt>
+                          <dd>{applicantName}</dd>
+                        </div>
+                        <div>
+                          <dt>Correo</dt>
+                          <dd>{applicantEmail}</dd>
+                        </div>
+                        <div>
+                          <dt>Ubicación</dt>
+                          <dd>{locationSummary}</dd>
+                        </div>
+                        <div>
+                          <dt>Fecha de postulación</dt>
+                          <dd>{requestDate}</dd>
+                        </div>
+                      </dl>
                     </div>
 
-                    <button
-                      className="foundation-detail-toggle"
-                      onClick={() => toggleRequestDetails(request.id)}
-                      type="button"
-                    >
-                      {isExpanded ? 'Ocultar detalle' : 'Ver detalle'}
-                    </button>
+                    <div className="foundation-request-toolbar">
+                      <button
+                        aria-controls={detailId}
+                        aria-expanded={isExpanded}
+                        className="foundation-detail-toggle"
+                        onClick={() => toggleRequestDetails(request.id)}
+                        type="button"
+                      >
+                        {isExpanded ? 'Ocultar detalle' : 'Ver detalle'}
+                      </button>
 
-                    {isExpanded && (
-                      <div className="foundation-request-detail">
-                        <dl>
-                          <div>
-                            <dt>Postulante</dt>
-                            <dd>{displayText(request.postulante_nombre)}</dd>
-                          </div>
-                          <div>
-                            <dt>Email</dt>
-                            <dd>{displayText(request.postulante_email, 'No indicado')}</dd>
-                          </div>
-                          <div>
-                            <dt>Teléfono</dt>
-                            <dd>{formatPhone(request.postulante_telefono)}</dd>
-                          </div>
-                          <div>
-                            <dt>RUT</dt>
-                            <dd>{displayText(request.postulante_rut, 'No indicado')}</dd>
-                          </div>
-                          <div>
-                            <dt>Mascota</dt>
-                            <dd>{displayText(request.mascota_nombre)} ({displayText(request.mascota_especie)})</dd>
-                          </div>
-                          <div>
-                            <dt>Fecha</dt>
-                            <dd>{formatDate(request.created_at)}</dd>
-                          </div>
-                        </dl>
+                      <div className="foundation-request-actions">
+                        {REQUEST_ACTIONS.map((action) => {
+                          const isCurrentAction = requestState === action.value;
+                          const isActionDisabled =
+                            areDecisionActionsLocked ||
+                            isCurrentAction ||
+                            requestUpdatingId === request.id;
 
-                        <div className="foundation-request-message">
-                          <strong>Respuestas o mensaje de postulación</strong>
-                          <p>{displayText(request.mensaje, 'No se ingresó mensaje adicional.')}</p>
-                        </div>
-
-                        {request.motivo_estado && (
-                          <div className="foundation-request-reason">
-                            <strong>Motivo del estado</strong>
-                            <p>{displayText(request.motivo_estado)}</p>
-                          </div>
-                        )}
-
-                        <div className="foundation-request-actions">
-                          {REQUEST_ACTIONS.map((action) => (
+                          return (
                             <button
-                              className={request.estado === action.value ? 'active' : ''}
-                              disabled={request.estado === action.value || requestUpdatingId === request.id}
+                              className={isCurrentAction ? 'active' : ''}
+                              disabled={isActionDisabled}
                               key={action.value}
                               onClick={() => openRequestAction(request, action.value)}
                               type="button"
                             >
                               {action.label}
                             </button>
-                          ))}
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {isExpanded && (
+                      <div className="foundation-request-detail" id={detailId}>
+                        <div className="foundation-request-detail-grid">
+                          <RequestDetailSection
+                            isOpen={isApplicantSectionOpen}
+                            onToggle={() => toggleRequestSection(request.id, 'postulante')}
+                            title="Datos del postulante"
+                          >
+                            <dl className="foundation-request-field-list">
+                              <div>
+                                <dt>Nombre completo</dt>
+                                <dd>{applicantName}</dd>
+                              </div>
+                              <div>
+                                <dt>Correo electrónico</dt>
+                                <dd>{applicantEmail}</dd>
+                              </div>
+                              <div>
+                                <dt>Teléfono</dt>
+                                <dd>{formatPhone(request.postulante_telefono)}</dd>
+                              </div>
+                              <div>
+                                <dt>RUT</dt>
+                                <dd>{formatRequestValue(request.postulante_rut)}</dd>
+                              </div>
+                            </dl>
+                          </RequestDetailSection>
+
+                          <RequestDetailSection
+                            isOpen={isLocationSectionOpen}
+                            onToggle={() => toggleRequestSection(request.id, 'ubicacion')}
+                            title="Ubicación del adoptante"
+                          >
+                            <dl className="foundation-request-field-list">
+                              <div>
+                                <dt>Región</dt>
+                                <dd>{formatRequestValue(request.postulante_region)}</dd>
+                              </div>
+                              <div>
+                                <dt>Comuna</dt>
+                                <dd>{formatRequestValue(request.postulante_comuna)}</dd>
+                              </div>
+                              <div>
+                                <dt>Dirección / calle</dt>
+                                <dd>{formatRequestValue(request.postulante_direccion)}</dd>
+                              </div>
+                              <div>
+                                <dt>Numeración</dt>
+                                <dd>{formatRequestValue(request.postulante_numeracion)}</dd>
+                              </div>
+                              {addressComplement && (
+                                <div>
+                                  <dt>Complemento</dt>
+                                  <dd>{addressComplement}</dd>
+                                </div>
+                              )}
+                            </dl>
+                            <div className="foundation-request-address-summary">
+                              <span>Dirección completa</span>
+                              <p>{completeAddress}</p>
+                            </div>
+                          </RequestDetailSection>
+
+                          <RequestDetailSection
+                            isOpen={isPetSectionOpen}
+                            onToggle={() => toggleRequestSection(request.id, 'mascota')}
+                            title="Mascota postulada"
+                          >
+                            <dl className="foundation-request-field-list">
+                              <div>
+                                <dt>Mascota</dt>
+                                <dd>{petName}</dd>
+                              </div>
+                              <div>
+                                <dt>Estado actual</dt>
+                                <dd>{requestStatus}</dd>
+                              </div>
+                              <div>
+                                <dt>Tipo</dt>
+                                <dd>{petType || 'No informado'}</dd>
+                              </div>
+                              <div>
+                                <dt>Fecha de postulación</dt>
+                                <dd>{requestDate}</dd>
+                              </div>
+                            </dl>
+                          </RequestDetailSection>
+
+                          <RequestDetailSection
+                            className="foundation-request-response-block"
+                            isOpen={isResponseSectionOpen}
+                            onToggle={() => toggleRequestSection(request.id, 'respuestas')}
+                            title="Respuestas o mensaje de postulación"
+                          >
+                            <div className="foundation-request-response-list">
+                              {responseItems.map((item, index) => {
+                                const shouldCollapseResponse =
+                                  item.fullWidth && item.value.length > LONG_RESPONSE_PREVIEW_LENGTH;
+                                const previewText = `${item.value
+                                  .slice(0, LONG_RESPONSE_PREVIEW_LENGTH)
+                                  .trim()}...`;
+
+                                return (
+                                  <div
+                                    className={`foundation-request-response-item${
+                                      item.fullWidth ? ' foundation-request-response-item-wide' : ''
+                                    }`}
+                                    key={`${item.label}-${index}`}
+                                  >
+                                    <span>{item.label}</span>
+                                    {shouldCollapseResponse ? (
+                                      <details className="foundation-request-response-expand">
+                                        <summary>
+                                          <span>{previewText}</span>
+                                          <strong>Ver motivo completo</strong>
+                                        </summary>
+                                        <p>{item.value}</p>
+                                      </details>
+                                    ) : (
+                                      <p>{item.value}</p>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </RequestDetailSection>
                         </div>
+
+                        {request.motivo_estado && (
+                          <div className={`foundation-request-reason foundation-request-reason-${requestState}`}>
+                            <strong>Motivo del estado</strong>
+                            <p>{displayText(request.motivo_estado)}</p>
+                          </div>
+                        )}
                       </div>
                     )}
                   </article>
