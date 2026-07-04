@@ -66,6 +66,34 @@ const REQUEST_ACTIONS = [
   { value: 'rechazada', label: 'Rechazar' }
 ];
 
+const REQUEST_STATUS_FILTERS = [
+  {
+    emptyMessage: 'Aún no hay postulaciones recibidas.',
+    label: 'Todas',
+    value: 'todas'
+  },
+  {
+    emptyMessage: 'No hay postulaciones pendientes por ahora.',
+    label: 'Pendientes',
+    value: 'pendiente'
+  },
+  {
+    emptyMessage: 'No hay postulaciones en revisión por ahora.',
+    label: 'En revisión',
+    value: 'en_revision'
+  },
+  {
+    emptyMessage: 'No hay postulaciones aprobadas por ahora.',
+    label: 'Aprobadas',
+    value: 'aprobada'
+  },
+  {
+    emptyMessage: 'No hay postulaciones rechazadas por ahora.',
+    label: 'Rechazadas',
+    value: 'rechazada'
+  }
+];
+
 const DEFAULT_OPEN_REQUEST_SECTION = 'postulante';
 const FINAL_REQUEST_STATUSES = new Set(['aprobada', 'rechazada']);
 const FULL_WIDTH_RESPONSE_LABELS = new Set([
@@ -346,6 +374,7 @@ export function FoundationDashboardPage() {
   const [submitStatus, setSubmitStatus] = useState('idle');
   const [petPage, setPetPage] = useState(1);
   const [requestPage, setRequestPage] = useState(1);
+  const [requestStatusFilter, setRequestStatusFilter] = useState('todas');
   const [expandedRequestId, setExpandedRequestId] = useState(null);
   const [expandedRequestSections, setExpandedRequestSections] = useState({});
   const [petToDelete, setPetToDelete] = useState(null);
@@ -359,10 +388,41 @@ export function FoundationDashboardPage() {
   const isDeleting = deleteStatus === 'deleting';
   const nameLength = form.nombre.length;
   const descriptionWordCount = countWords(form.descripcion);
+  const requestStatusCounts = useMemo(() => {
+    const counts = {
+      aprobada: 0,
+      en_revision: 0,
+      pendiente: 0,
+      rechazada: 0,
+      todas: requests.length
+    };
+
+    requests.forEach((request) => {
+      const status = normalizeRequestStatus(request.estado);
+
+      if (Object.prototype.hasOwnProperty.call(counts, status)) {
+        counts[status] += 1;
+      }
+    });
+
+    return counts;
+  }, [requests]);
+  const filteredRequests = useMemo(() => {
+    if (requestStatusFilter === 'todas') {
+      return requests;
+    }
+
+    return requests.filter(
+      (request) => normalizeRequestStatus(request.estado) === requestStatusFilter
+    );
+  }, [requestStatusFilter, requests]);
+  const activeRequestFilter = REQUEST_STATUS_FILTERS.find(
+    (filter) => filter.value === requestStatusFilter
+  ) ?? REQUEST_STATUS_FILTERS[0];
   const petTotalPages = getTotalPages(pets);
-  const requestTotalPages = getTotalPages(requests);
+  const requestTotalPages = getTotalPages(filteredRequests);
   const paginatedPets = getPageItems(pets, petPage);
-  const paginatedRequests = getPageItems(requests, requestPage);
+  const paginatedRequests = getPageItems(filteredRequests, requestPage);
   const birthYearOptions = useMemo(() => getEstimatedBirthYearOptions(), []);
 
   useBodyScrollLock(Boolean(petToDelete || requestAction));
@@ -429,8 +489,8 @@ export function FoundationDashboardPage() {
   }, [pets]);
 
   useEffect(() => {
-    setRequestPage((page) => Math.min(page, getTotalPages(requests)));
-  }, [requests]);
+    setRequestPage((page) => Math.min(page, getTotalPages(filteredRequests)));
+  }, [filteredRequests]);
 
   useEffect(() => {
     if (!selectedImage) {
@@ -596,6 +656,12 @@ export function FoundationDashboardPage() {
 
   function toggleRequestDetails(requestId) {
     setExpandedRequestId((currentId) => (currentId === requestId ? null : requestId));
+  }
+
+  function changeRequestStatusFilter(nextFilter) {
+    setRequestStatusFilter(nextFilter);
+    setRequestPage(1);
+    setExpandedRequestId(null);
   }
 
   function getOpenRequestSection(requestId) {
@@ -989,9 +1055,28 @@ export function FoundationDashboardPage() {
             </div>
           </div>
 
+          <div className="foundation-request-filter-bar" aria-label="Filtrar postulaciones por estado">
+            {REQUEST_STATUS_FILTERS.map((filter) => {
+              const isActiveFilter = requestStatusFilter === filter.value;
+
+              return (
+                <button
+                  aria-pressed={isActiveFilter}
+                  className={isActiveFilter ? 'active' : ''}
+                  key={filter.value}
+                  onClick={() => changeRequestStatusFilter(filter.value)}
+                  type="button"
+                >
+                  <span>{filter.label}</span>
+                  <strong>{requestStatusCounts[filter.value] ?? 0}</strong>
+                </button>
+              );
+            })}
+          </div>
+
           <div className="foundation-request-list">
-            {requests.length === 0 ? (
-              <div className="foundation-empty-state">Aún no hay postulaciones recibidas.</div>
+            {filteredRequests.length === 0 ? (
+              <div className="foundation-empty-state">{activeRequestFilter.emptyMessage}</div>
             ) : (
               paginatedRequests.map((request) => {
                 const requestState = normalizeRequestStatus(request.estado);
@@ -1234,7 +1319,7 @@ export function FoundationDashboardPage() {
             )}
           </div>
 
-          {requests.length > ITEMS_PER_PAGE && (
+          {filteredRequests.length > ITEMS_PER_PAGE && (
             <PaginationControls page={requestPage} totalPages={requestTotalPages} onChange={setRequestPage} />
           )}
         </section>

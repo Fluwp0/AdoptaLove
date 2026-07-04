@@ -1,4 +1,9 @@
 ﻿import { useState } from 'react';
+import {
+  CHILE_REGIONS,
+  getCommunesByRegion,
+  isCommuneInRegion
+} from '../data/chileLocations';
 import { apiClient } from '../services/apiClient';
 import { saveSession } from '../services/authSession';
 
@@ -8,10 +13,12 @@ const INITIAL_FORM = {
   rut: '',
   email: '',
   phone: '',
+  region: '',
   city: '',
   commune: '',
   address: '',
   addressNumber: '',
+  addressComplement: '',
   password: '',
   repeatPassword: ''
 };
@@ -83,8 +90,11 @@ function validateForm(form) {
   }
   if (!form.email.trim()) nextErrors.email = 'El correo electrónico es obligatorio.';
   if (!form.phone.trim()) nextErrors.phone = 'El teléfono es obligatorio.';
-  if (!form.city.trim()) nextErrors.city = 'La ciudad es obligatoria.';
+  if (!form.region.trim()) nextErrors.region = 'La región es obligatoria.';
   if (!form.commune.trim()) nextErrors.commune = 'La comuna es obligatoria.';
+  if (form.region && form.commune && !isCommuneInRegion(form.region, form.commune)) {
+    nextErrors.commune = 'La comuna seleccionada no pertenece a la región.';
+  }
   if (!form.address.trim()) nextErrors.address = 'La dirección es obligatoria.';
   if (!form.addressNumber.trim()) nextErrors.addressNumber = 'La numeración es obligatoria.';
   if (!form.password) {
@@ -119,11 +129,13 @@ export function RegisterPage() {
 
     setForm((currentForm) => ({
       ...currentForm,
-      [field]: nextValue
+      [field]: nextValue,
+      ...(field === 'region' ? { commune: '' } : {})
     }));
     setErrors((currentErrors) => ({
       ...currentErrors,
-      [field]: ''
+      [field]: '',
+      ...(field === 'region' ? { commune: '' } : {})
     }));
   }
 
@@ -148,10 +160,12 @@ export function RegisterPage() {
       email: form.email.trim(),
       password: form.password,
       telefono: `+56${form.phone}`,
+      region: form.region.trim(),
       ciudad: form.city.trim(),
       comuna: form.commune.trim(),
       direccion: form.address.trim(),
-      numeracion: form.addressNumber.trim()
+      numeracion: form.addressNumber.trim(),
+      complemento_direccion: form.addressComplement.trim()
     };
 
     try {
@@ -252,28 +266,53 @@ export function RegisterPage() {
               {errors.phone && <span className="field-error">{errors.phone}</span>}
             </label>
 
-            <label htmlFor="register-city">
-              Ciudad
-              <input
-                id="register-city"
-                onChange={(event) => updateField('city', event.target.value)}
-                placeholder="Santiago"
-                type="text"
-                value={form.city}
-              />
-              {errors.city && <span className="field-error">{errors.city}</span>}
+            <label htmlFor="register-region">
+              Región
+              <select
+                id="register-region"
+                onChange={(event) => updateField('region', event.target.value)}
+                value={form.region}
+              >
+                <option value="">Selecciona una región</option>
+                {CHILE_REGIONS.map((region) => (
+                  <option key={region.name} value={region.name}>
+                    {region.name}
+                  </option>
+                ))}
+              </select>
+              {errors.region && <span className="field-error">{errors.region}</span>}
             </label>
 
             <label htmlFor="register-commune">
               Comuna
-              <input
+              <select
+                disabled={!form.region}
                 id="register-commune"
                 onChange={(event) => updateField('commune', event.target.value)}
-                placeholder="Puente Alto"
-                type="text"
                 value={form.commune}
-              />
+              >
+                <option value="">
+                  {form.region ? 'Selecciona una comuna' : 'Selecciona primero una región'}
+                </option>
+                {getCommunesByRegion(form.region).map((commune) => (
+                  <option key={commune} value={commune}>
+                    {commune}
+                  </option>
+                ))}
+              </select>
               {errors.commune && <span className="field-error">{errors.commune}</span>}
+            </label>
+
+            <label htmlFor="register-city">
+              Ciudad, localidad o sector
+              <input
+                id="register-city"
+                onChange={(event) => updateField('city', event.target.value)}
+                placeholder="Opcional"
+                type="text"
+                value={form.city}
+              />
+              {errors.city && <span className="field-error">{errors.city}</span>}
             </label>
 
             <label htmlFor="register-address">
@@ -300,6 +339,17 @@ export function RegisterPage() {
               {errors.addressNumber && (
                 <span className="field-error">{errors.addressNumber}</span>
               )}
+            </label>
+
+            <label htmlFor="register-address-complement">
+              Complemento o referencia
+              <input
+                id="register-address-complement"
+                onChange={(event) => updateField('addressComplement', event.target.value)}
+                placeholder="Depto 22, casa interior..."
+                type="text"
+                value={form.addressComplement}
+              />
             </label>
 
             <label htmlFor="register-password">

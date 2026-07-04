@@ -1,6 +1,7 @@
 ﻿import { useEffect, useState } from 'react';
 import { apiClient } from '../services/apiClient';
-import { getCurrentUser } from '../services/authSession';
+import { getCurrentUser, getToken, saveSession } from '../services/authSession';
+import { formatAddress, getMissingLocationLabels, hasRequiredLocation } from '../utils/addressDisplay';
 import { displayText } from '../utils/displayText';
 import { getMediaUrl } from '../utils/mediaUrl';
 import { formatPetAge } from '../utils/petDisplay';
@@ -144,9 +145,44 @@ export function AdoptionFormPage({ petId }) {
   const [activeApplication, setActiveApplication] = useState(null);
   const [activeApplicationStatus, setActiveApplicationStatus] = useState('idle');
   const [fieldErrors, setFieldErrors] = useState({});
+  const [currentUser, setCurrentUser] = useState(getCurrentUser());
 
-  const currentUser = getCurrentUser();
   const hasCurrentUser = Boolean(currentUser?.id);
+  const hasCompleteLocation = hasRequiredLocation(currentUser);
+  const missingLocationLabels = getMissingLocationLabels(currentUser);
+
+  useEffect(() => {
+    let isMounted = true;
+    const token = getToken();
+
+    async function refreshCurrentUser() {
+      if (!token) {
+        return;
+      }
+
+      try {
+        const response = await apiClient('/auth/me');
+        const payload = await response.json();
+
+        if (!response.ok) {
+          return;
+        }
+
+        if (isMounted && payload.data?.user) {
+          saveSession(token, payload.data.user);
+          setCurrentUser(payload.data.user);
+        }
+      } catch (_error) {
+        // El formulario igual puede mostrar la sesión local si la actualización falla.
+      }
+    }
+
+    refreshCurrentUser();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -204,7 +240,7 @@ export function AdoptionFormPage({ petId }) {
     return () => {
       isMounted = false;
     };
-  }, [petId]);
+  }, [petId, hasCurrentUser]);
 
   function updateField(field, value) {
     setForm((currentForm) => ({
@@ -235,6 +271,14 @@ export function AdoptionFormPage({ petId }) {
     if (isActiveApplication(activeApplication)) {
       setSubmitStatus('error');
       setSubmitFeedback(ACTIVE_APPLICATION_MESSAGE);
+      return;
+    }
+
+    if (!hasCompleteLocation) {
+      setSubmitStatus('error');
+      setSubmitFeedback(
+        `Completa tu ${missingLocationLabels.join(', ')} en tu perfil antes de postular.`
+      );
       return;
     }
 
@@ -350,10 +394,44 @@ export function AdoptionFormPage({ petId }) {
                   <dd>{currentUser.telefono}</dd>
                 </div>
                 <div>
-                  <dt>Dirección</dt>
-                  <dd>{displayText(currentUser.direccion)}</dd>
+                  <dt>Región</dt>
+                  <dd>{displayText(currentUser.region, 'No informado') || 'No informado'}</dd>
+                </div>
+                <div>
+                  <dt>Comuna</dt>
+                  <dd>{displayText(currentUser.comuna, 'No informado') || 'No informado'}</dd>
+                </div>
+                {currentUser.ciudad && (
+                  <div>
+                    <dt>Ciudad/localidad</dt>
+                    <dd>{displayText(currentUser.ciudad)}</dd>
+                  </div>
+                )}
+                <div>
+                  <dt>Dirección / calle</dt>
+                  <dd>{displayText(currentUser.direccion, 'No informado') || 'No informado'}</dd>
+                </div>
+                <div>
+                  <dt>Numeración</dt>
+                  <dd>{displayText(currentUser.numeracion, 'No informado') || 'No informado'}</dd>
+                </div>
+                {currentUser.complemento_direccion && (
+                  <div>
+                    <dt>Complemento</dt>
+                    <dd>{displayText(currentUser.complemento_direccion)}</dd>
+                  </div>
+                )}
+                <div className="profile-summary-card-full">
+                  <dt>Dirección completa</dt>
+                  <dd>{formatAddress(currentUser)}</dd>
                 </div>
               </dl>
+            )}
+
+            {hasCurrentUser && !hasCompleteLocation && (
+              <p className="adoption-feedback adoption-feedback-error">
+                Completa tu {missingLocationLabels.join(', ')} en tu perfil antes de postular.
+              </p>
             )}
 
             {hasCurrentUser && activeApplicationStatus === 'loading' && (
@@ -598,7 +676,12 @@ export function AdoptionFormPage({ petId }) {
 
           <button
             className="adoption-submit-button"
-            disabled={submitStatus === 'submitting' || !hasCurrentUser || isActiveApplication(activeApplication)}
+            disabled={
+              submitStatus === 'submitting' ||
+              !hasCurrentUser ||
+              !hasCompleteLocation ||
+              isActiveApplication(activeApplication)
+            }
             type="submit"
           >
             {submitStatus === 'submitting'

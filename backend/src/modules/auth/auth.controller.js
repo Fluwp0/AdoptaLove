@@ -57,8 +57,22 @@ async function me(req, res, next) {
   }
 }
 
+async function updateLocation(req, res, next) {
+  try {
+    const user = await authService.updateMyLocation(req.user.id, req.body);
+
+    return res.json({
+      status: 'ok',
+      data: { user }
+    });
+  } catch (error) {
+    return sendKnownError(error, res, next);
+  }
+}
+
 module.exports = {
   login,
   me,
-  register
+  register,
+  updateLocation
 };

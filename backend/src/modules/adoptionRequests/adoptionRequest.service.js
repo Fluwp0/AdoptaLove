@@ -10,6 +10,12 @@ const ALLOWED_STATUS_UPDATES = new Set([
   'pendiente'
 ]);
 const DECISION_STATUSES = new Set(['aprobada', 'rechazada']);
+const REQUIRED_LOCATION_FIELDS = [
+  ['region', 'regi\u00f3n'],
+  ['comuna', 'comuna'],
+  ['direccion', 'direcci\u00f3n'],
+  ['numeracion', 'numeraci\u00f3n']
+];
 const ACTIVE_ADOPTION_STATUSES = new Set(['pendiente', 'en_revision']);
 const ACTIVE_ADOPTION_MESSAGE =
   'Ya tienes una postulación en proceso. Debes esperar a que sea aprobada, rechazada o cancelarla desde tu perfil para poder postular a otra mascota.';
@@ -54,6 +60,12 @@ function cleanText(value, maxLength = null) {
 function normalizeNullableText(value, maxLength = null) {
   const text = cleanText(value, maxLength);
   return text || null;
+}
+
+function getMissingRequiredLocationFields(user = {}) {
+  return REQUIRED_LOCATION_FIELDS
+    .filter(([field]) => !cleanText(user[field]))
+    .map(([, label]) => label);
 }
 
 function getUserId(authenticatedUser = {}) {
@@ -135,6 +147,15 @@ async function createAdoptionRequest(payload = {}, authenticatedUser = null) {
 
   if (!usuario) {
     throw createServiceError(404, 'Usuario no encontrado');
+  }
+
+  const missingLocationFields = getMissingRequiredLocationFields(usuario);
+
+  if (missingLocationFields.length > 0) {
+    throw createServiceError(
+      400,
+      `Completa tu ${missingLocationFields.join(', ')} antes de postular.`
+    );
   }
 
   const activeRequest = await adoptionRequestModel.findActiveAdoptionRequestByUserId(

@@ -4124,6 +4124,57 @@ button.header-button {
   padding: 1rem;
 }
 
+.foundation-request-filter-bar {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.foundation-request-filter-bar button {
+  align-items: center;
+  background: var(--white);
+  border: 1px solid #ffd1df;
+  border-radius: 999px;
+  color: var(--pink-dark);
+  cursor: pointer;
+  display: inline-flex;
+  gap: 0.35rem;
+  font-weight: 900;
+  line-height: 1;
+  min-height: 36px;
+  padding: 0.35rem 0.55rem 0.35rem 0.7rem;
+  white-space: nowrap;
+}
+
+.foundation-request-filter-bar button:not(.active):hover {
+  border-color: var(--pink);
+  box-shadow: 0 8px 16px rgba(240, 68, 125, 0.1);
+  transform: translateY(-1px);
+}
+
+.foundation-request-filter-bar button strong {
+  background: var(--pink-soft);
+  border-radius: 999px;
+  color: var(--pink);
+  font-size: 0.76rem;
+  min-width: 1.55rem;
+  padding: 0.22rem 0.4rem;
+  text-align: center;
+}
+
+.foundation-request-filter-bar button.active {
+  background: var(--pink);
+  border-color: var(--pink);
+  box-shadow: 0 10px 18px rgba(240, 68, 125, 0.16);
+  color: var(--white);
+}
+
+.foundation-request-filter-bar button.active strong {
+  background: rgba(255, 255, 255, 0.22);
+  color: var(--white);
+}
+
 .foundation-request-summary {
   display: grid;
   gap: 0.8rem;
@@ -8114,6 +8165,7 @@ a {
 :root[data-theme="dark"] .foundation-secondary-button,
 :root[data-theme="dark"] .foundation-detail-toggle,
 :root[data-theme="dark"] .foundation-pagination button,
+:root[data-theme="dark"] .foundation-request-filter-bar button,
 :root[data-theme="dark"] .foundation-request-actions button,
 :root[data-theme="dark"] .foundation-file-button,
 :root[data-theme="dark"] .admin-secondary-button,
@@ -8122,6 +8174,22 @@ a {
   background: var(--surface-soft);
   border-color: var(--border);
   color: var(--pink-dark);
+}
+
+:root[data-theme="dark"] .foundation-request-filter-bar button strong {
+  background: var(--surface-tint);
+  color: var(--pink-dark);
+}
+
+:root[data-theme="dark"] .foundation-request-filter-bar button.active {
+  background: var(--pink);
+  border-color: var(--pink);
+  color: #ffffff;
+}
+
+:root[data-theme="dark"] .foundation-request-filter-bar button.active strong {
+  background: rgba(255, 255, 255, 0.22);
+  color: #ffffff;
 }
 
 :root[data-theme="dark"] .foundation-request-actions button:disabled,
@@ -9924,6 +9992,18 @@ summary:focus-visible,
 
   .filter-tabs {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  .foundation-request-filter-bar {
+    flex-wrap: nowrap;
+    margin-inline: -0.15rem;
+    overflow-x: auto;
+    padding: 0.05rem 0.15rem 0.25rem;
+    scrollbar-width: thin;
+  }
+
+  .foundation-request-filter-bar button {
+    flex: 0 0 auto;
   }
 
   .home-hero-logo-card {

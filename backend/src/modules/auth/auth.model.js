@@ -6,10 +6,12 @@ const PUBLIC_USER_FIELDS = `
   email,
   rut,
   telefono,
+  region,
   direccion,
   ciudad,
   comuna,
   numeracion,
+  complemento_direccion,
   rol,
   estado,
   created_at,
@@ -30,10 +32,12 @@ async function createUser({
   rut,
   passwordHash,
   telefono,
+  region,
   direccion,
   ciudad,
   comuna,
-  numeracion
+  numeracion,
+  complementoDireccion
 }) {
   const [result] = await db.query(
     `INSERT INTO usuarios
@@ -43,24 +47,28 @@ async function createUser({
         rut,
         password_hash,
         telefono,
+        region,
         direccion,
         ciudad,
         comuna,
         numeracion,
+        complemento_direccion,
         rol,
         estado
       )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       nombre,
       email,
       rut,
       passwordHash,
       telefono || null,
+      region || null,
       direccion || null,
       ciudad || null,
       comuna || null,
       numeracion || null,
+      complementoDireccion || null,
       'adoptante',
       'activo'
     ]
@@ -111,9 +119,35 @@ async function findActiveUserByRut(rut) {
   return rows[0] || null;
 }
 
+async function updateUserLocation(id, location) {
+  await db.query(
+    `UPDATE usuarios
+    SET
+      region = ?,
+      ciudad = ?,
+      comuna = ?,
+      direccion = ?,
+      numeracion = ?,
+      complemento_direccion = ?
+    WHERE id = ?`,
+    [
+      location.region || null,
+      location.ciudad || null,
+      location.comuna || null,
+      location.direccion || null,
+      location.numeracion || null,
+      location.complementoDireccion || null,
+      id
+    ]
+  );
+
+  return findPublicUserById(id);
+}
+
 module.exports = {
   createUser,
   findActiveUserByEmail,
   findActiveUserByRut,
-  findPublicUserById
+  findPublicUserById,
+  updateUserLocation
 };

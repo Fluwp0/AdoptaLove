@@ -2,6 +2,7 @@ const bcrypt = require('bcrypt');
 const { formatRut, isStrongPassword, isValidRut } = require('../auth/auth.service');
 const adminModel = require('./admin.model');
 const { normalizeEstimatedBirthDate } = require('../../utils/petAge');
+const { isCommuneInRegion, isKnownRegion } = require('../../utils/chileLocations');
 
 const ADMIN_ROLES = new Set(['administrador', 'admin']);
 const USER_ROLES = new Set(['administrador', 'adoptante', 'fundacion']);
@@ -168,10 +169,15 @@ function normalizeUserPayload(payload = {}, { isUpdate = false } = {}) {
   const rol = normalizeRole(payload.rol);
   const estado = cleanText(payload.estado || 'activo');
   const telefono = normalizeChileanPhone(payload.telefono);
+  const region = normalizeNullableText(payload.region, 120);
   const direccion = normalizeNullableText(payload.direccion, 255);
   const ciudad = normalizeNullableText(payload.ciudad, 120);
   const comuna = normalizeNullableText(payload.comuna, 120);
   const numeracion = normalizeNullableText(payload.numeracion, 40);
+  const complementoDireccion = normalizeNullableText(
+    payload.complemento_direccion ?? payload.complementoDireccion,
+    255
+  );
   const redSocialTipo = normalizeSocialType(payload.red_social_tipo ?? payload.redSocialTipo);
   const redSocialValor = normalizeNullableText(
     payload.red_social_valor ?? payload.redSocialValor,
@@ -207,12 +213,20 @@ function normalizeUserPayload(payload = {}, { isUpdate = false } = {}) {
     throw createServiceError(400, 'Teléfono es obligatorio.');
   }
 
-  if (!ciudad) {
-    throw createServiceError(400, 'Ciudad es obligatoria.');
+  if (!region) {
+    throw createServiceError(400, 'Regi\u00f3n es obligatoria.');
+  }
+
+  if (!isKnownRegion(region)) {
+    throw createServiceError(400, 'Regi\u00f3n no v\u00e1lida.');
   }
 
   if (!comuna) {
     throw createServiceError(400, 'Comuna es obligatoria.');
+  }
+
+  if (!isCommuneInRegion(region, comuna)) {
+    throw createServiceError(400, 'La comuna seleccionada no pertenece a la regi\u00f3n indicada.');
   }
 
   if (!direccion) {
@@ -244,10 +258,12 @@ function normalizeUserPayload(payload = {}, { isUpdate = false } = {}) {
   return {
     ciudad,
     comuna,
+    complementoDireccion,
     direccion,
     estado,
     nombre,
     numeracion,
+    region,
     redSocialTipo: rol === 'fundacion' ? redSocialTipo : null,
     redSocialValor: rol === 'fundacion' ? redSocialValor : null,
     rol,
