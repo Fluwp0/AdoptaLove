@@ -2145,6 +2145,10 @@ button.header-button {
   overflow-wrap: anywhere;
 }
 
+.profile-summary-card .profile-summary-card-full {
+  grid-column: 1 / -1;
+}
+
 .adoption-profile-summary div {
   background: var(--surface-soft);
   border-color: var(--border);
@@ -2437,6 +2441,13 @@ button.header-button {
   grid-template-columns: minmax(0, 1fr) minmax(280px, 400px);
 }
 
+.profile-clean-layout {
+  align-items: start;
+  grid-template-columns: minmax(0, 1fr);
+  margin-inline: auto;
+  max-width: 1040px;
+}
+
 .auth-card,
 .auth-side-card,
 .profile-card {
@@ -2682,13 +2693,35 @@ button.header-button {
   display: grid;
   gap: 0.8rem;
   grid-template-columns: 1fr 1fr;
-  margin-top: 1.2rem;
+  margin-top: 0;
+}
+
+.profile-primary-actions {
+  justify-self: center;
+  max-width: 560px;
+  width: 100%;
 }
 
 .profile-logout-button {
   background: var(--white);
   border: 2px solid var(--pink);
   color: var(--pink);
+}
+
+.profile-main-card > .section-kicker,
+.profile-adoption-card .section-kicker {
+  align-items: center;
+  background: var(--pink-soft);
+  border: 1px solid #ffd1df;
+  border-radius: 999px;
+  color: var(--pink);
+  display: inline-flex;
+  font-size: 0.82rem;
+  font-weight: 950;
+  justify-self: start;
+  line-height: 1;
+  padding: 0.35rem 0.65rem;
+  width: fit-content;
 }
 
 .profile-adoption-card {
@@ -2698,7 +2731,7 @@ button.header-button {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8);
   display: grid;
   gap: 1rem;
-  margin-top: 1.4rem;
+  margin-top: 0;
   padding: 1.1rem;
 }
 

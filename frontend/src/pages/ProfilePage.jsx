@@ -3,6 +3,7 @@ import { apiClient } from '../services/apiClient';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 import { clearSession, getCurrentUser, getToken, saveSession } from '../services/authSession';
 import { ModalPortal } from '../components/ModalPortal';
+import { formatAddress } from '../utils/addressDisplay';
 import { displayText } from '../utils/displayText';
 import { getMediaUrl } from '../utils/mediaUrl';
 import { formatPetAge } from '../utils/petDisplay';
@@ -64,7 +65,8 @@ function PetProcessImage({ name, url }) {
 }
 
 export function ProfilePage() {
-  const [user, setUser] = useState(getCurrentUser());
+  const initialUser = getCurrentUser();
+  const [user, setUser] = useState(initialUser);
   const [status, setStatus] = useState(getToken() ? 'loading' : 'guest');
   const [feedback, setFeedback] = useState('');
   const [adoptionRequests, setAdoptionRequests] = useState([]);
@@ -236,8 +238,8 @@ export function ProfilePage() {
 
   return (
     <section className="auth-page">
-      <div className="profile-layout">
-        <div className="profile-card">
+      <div className="profile-layout profile-clean-layout">
+        <div className="profile-card profile-main-card">
           <p className="section-kicker">Mi perfil</p>
           <h2>Hola, {displayText(user.nombre)}</h2>
           <p className="auth-subtitle">
@@ -261,18 +263,19 @@ export function ProfilePage() {
               <dt>Teléfono</dt>
               <dd>{user.telefono || 'No indicado'}</dd>
             </div>
-            <div>
-              <dt>Dirección</dt>
-              <dd>{displayText(user.direccion, 'No indicada') || 'No indicada'}</dd>
+            <div className="profile-summary-card-full">
+              <dt>Dirección completa</dt>
+              <dd>{formatAddress(user)}</dd>
             </div>
             <div>
               <dt>Rol</dt>
               <dd>{user.rol}</dd>
             </div>
           </dl>
+        </div>
 
-          {isAdopter && (
-            <section className="profile-adoption-card" aria-label="Mi proceso de adopción">
+        {isAdopter && (
+          <section className="profile-adoption-card profile-process-card" aria-label="Mi proceso de adopción">
               <div className="profile-adoption-heading">
                 <div>
                   <p className="section-kicker">Mi proceso de adopción</p>
@@ -367,25 +370,15 @@ export function ProfilePage() {
               {adoptionFeedback && adoptionStatus !== 'error' && (
                 <p className="profile-adoption-feedback">{displayText(adoptionFeedback)}</p>
               )}
-            </section>
-          )}
+          </section>
+        )}
 
-          <div className="profile-actions">
-            <a className="auth-submit-link" href="/">Ver compañeros</a>
-            <button className="profile-logout-button" onClick={handleLogout} type="button">
-              Cerrar sesión
-            </button>
-          </div>
+        <div className="profile-actions profile-primary-actions">
+          <a className="auth-submit-link" href="/">Ver compañeros</a>
+          <button className="profile-logout-button" onClick={handleLogout} type="button">
+            Cerrar sesión
+          </button>
         </div>
-
-        <aside className="auth-side-card">
-          <span>Cuenta activa</span>
-          <h3>Tu información acompaña cada solicitud</h3>
-          <p>
-            Al postular, AdoptaLove usará tu usuario autenticado para registrar
-            la solicitud con tu identidad.
-          </p>
-        </aside>
       </div>
 
       {cancelTarget && (
