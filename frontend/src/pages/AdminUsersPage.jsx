@@ -3,6 +3,12 @@ import { apiClient } from '../services/apiClient';
 import { useBodyScrollLock } from '../hooks/useBodyScrollLock';
 import { getCurrentUser } from '../services/authSession';
 import { ModalPortal } from '../components/ModalPortal';
+import {
+  CHILE_REGIONS,
+  getCommunesByRegion,
+  inferRegionFromCommune,
+  isCommuneInRegion
+} from '../data/chileLocations';
 
 const ADMIN_ROLES = new Set(['administrador', 'admin']);
 const USERS_PER_PAGE = 5;
@@ -15,10 +21,12 @@ const EMPTY_USER_FORM = {
   rut: '',
   email: '',
   phone: '',
+  region: '',
   city: '',
   commune: '',
   address: '',
   addressNumber: '',
+  addressComplement: '',
   password: '',
   password_confirmation: '',
   rol: 'adoptante',
@@ -147,16 +155,26 @@ function normalizeAdminFieldValue(field, value) {
   return value;
 }
 
+function applyAdminFieldChange(currentForm, field, value) {
+  return {
+    ...currentForm,
+    [field]: normalizeAdminFieldValue(field, value),
+    ...(field === 'region' ? { commune: '' } : {})
+  };
+}
+
 function buildUserPayload(form, { includePassword }) {
   return {
     ciudad: form.city.trim(),
     comuna: form.commune.trim(),
+    complemento_direccion: form.addressComplement.trim(),
     direccion: form.address.trim(),
     email: form.email.trim().toLowerCase(),
     estado: form.estado,
     first_name: form.firstName.trim(),
     last_name: form.lastName.trim(),
     numeracion: form.addressNumber.trim(),
+    region: form.region.trim(),
     password: includePassword ? form.password : form.password.trim(),
     password_confirmation: includePassword
       ? form.password_confirmation
@@ -176,6 +194,7 @@ function mapUserToForm(user) {
     ...EMPTY_USER_FORM,
     address: user?.direccion || '',
     addressNumber: user?.numeracion || '',
+    addressComplement: user?.complemento_direccion || '',
     city: user?.ciudad || '',
     commune: user?.comuna || '',
     email: user?.email || '',
@@ -185,6 +204,7 @@ function mapUserToForm(user) {
     phone: extractPhoneBody(user?.telefono || ''),
     red_social_tipo: user?.red_social_tipo || 'instagram',
     red_social_valor: user?.red_social_valor || '',
+    region: inferRegionFromCommune(user?.comuna, user?.region || ''),
     rol: user?.rol || 'adoptante',
     rut: user?.rut || ''
   };
@@ -291,17 +311,11 @@ export function AdminUsersPage() {
   }, [isAdmin, userSearchDraft]);
 
   function updateFormField(field, value) {
-    setForm((currentForm) => ({
-      ...currentForm,
-      [field]: normalizeAdminFieldValue(field, value)
-    }));
+    setForm((currentForm) => applyAdminFieldChange(currentForm, field, value));
   }
 
   function updateEditField(field, value) {
-    setEditForm((currentForm) => ({
-      ...currentForm,
-      [field]: normalizeAdminFieldValue(field, value)
-    }));
+    setEditForm((currentForm) => applyAdminFieldChange(currentForm, field, value));
   }
 
   function validatePasswordFields(currentForm, { required }) {
@@ -369,12 +383,16 @@ function validateFoundationFields(currentForm) {
       return 'El teléfono es obligatorio.';
     }
 
-    if (!currentForm.city.trim()) {
-      return 'La ciudad es obligatoria.';
+    if (!currentForm.region.trim()) {
+      return 'La región es obligatoria.';
     }
 
     if (!currentForm.commune.trim()) {
       return 'La comuna es obligatoria.';
+    }
+
+    if (!isCommuneInRegion(currentForm.region, currentForm.commune)) {
+      return 'La comuna seleccionada no pertenece a la región.';
     }
 
     if (!currentForm.address.trim()) {
@@ -629,19 +647,42 @@ function validateFoundationFields(currentForm) {
           </div>
         </label>
         <label>
-          Ciudad
-          <input
-            onChange={(event) => onChange('city', event.target.value)}
-            placeholder="Santiago"
-            value={currentForm.city}
-          />
+          Región
+          <select
+            onChange={(event) => onChange('region', event.target.value)}
+            value={currentForm.region}
+          >
+            <option value="">Selecciona una región</option>
+            {CHILE_REGIONS.map((region) => (
+              <option key={region.name} value={region.name}>
+                {region.name}
+              </option>
+            ))}
+          </select>
         </label>
         <label>
           Comuna
-          <input
+          <select
+            disabled={!currentForm.region}
             onChange={(event) => onChange('commune', event.target.value)}
-            placeholder="Puente Alto"
             value={currentForm.commune}
+          >
+            <option value="">
+              {currentForm.region ? 'Selecciona una comuna' : 'Selecciona primero una región'}
+            </option>
+            {getCommunesByRegion(currentForm.region).map((commune) => (
+              <option key={commune} value={commune}>
+                {commune}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Ciudad, localidad o sector
+          <input
+            onChange={(event) => onChange('city', event.target.value)}
+            placeholder="Opcional"
+            value={currentForm.city}
           />
         </label>
         <label>
@@ -658,6 +699,14 @@ function validateFoundationFields(currentForm) {
             onChange={(event) => onChange('addressNumber', event.target.value)}
             placeholder="1234"
             value={currentForm.addressNumber}
+          />
+        </label>
+        <label>
+          Complemento o referencia
+          <input
+            onChange={(event) => onChange('addressComplement', event.target.value)}
+            placeholder="Depto 22, casa interior..."
+            value={currentForm.addressComplement}
           />
         </label>
         <label>
@@ -770,7 +819,7 @@ function validateFoundationFields(currentForm) {
               Buscar usuarios actuales
               <input
                 onChange={(event) => setUserSearchDraft(event.target.value)}
-                placeholder="Buscar por nombre, correo, RUT, rol, ciudad o comuna"
+                placeholder="Buscar por nombre, correo, RUT, rol, región, ciudad o comuna"
                 value={userSearchDraft}
               />
             </label>
@@ -820,6 +869,7 @@ function validateFoundationFields(currentForm) {
                     <span className={`admin-user-pill admin-user-state-${user.estado}`}>
                       {getStateLabel(user.estado)}
                     </span>
+                    {user.region && <span>{user.region}</span>}
                     {user.comuna && <span>{user.comuna}</span>}
                   </div>
                   <div className="admin-user-actions">

@@ -7,10 +7,12 @@ const PUBLIC_USER_FIELDS = `
   email,
   rut,
   telefono,
+  region,
   direccion,
   ciudad,
   comuna,
   numeracion,
+  complemento_direccion,
   red_social_tipo,
   red_social_valor,
   rol,
@@ -231,10 +233,11 @@ function buildUserSearch(search = '') {
       OR LOWER(COALESCE(email, '')) LIKE ?
       OR LOWER(${NORMALIZED_RUT_SQL}) LIKE ?
       OR LOWER(COALESCE(rol, '')) LIKE ?
+      OR LOWER(COALESCE(region, '')) LIKE ?
       OR LOWER(COALESCE(ciudad, '')) LIKE ?
       OR LOWER(COALESCE(comuna, '')) LIKE ?
     )`,
-    params: [likeTerm, likeTerm, rutLikeTerm, roleLikeTerm, likeTerm, likeTerm]
+    params: [likeTerm, likeTerm, rutLikeTerm, roleLikeTerm, likeTerm, likeTerm, likeTerm]
   };
 }
 
@@ -343,26 +346,30 @@ async function createUser(user) {
         rut,
         password_hash,
         telefono,
+        region,
         direccion,
         ciudad,
         comuna,
         numeracion,
+        complemento_direccion,
         red_social_tipo,
         red_social_valor,
         rol,
         estado
       )
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [
       user.nombre,
       user.email,
       user.rut,
       user.passwordHash,
       user.telefono,
+      user.region,
       user.direccion,
       user.ciudad,
       user.comuna,
       user.numeracion,
+      user.complementoDireccion,
       user.redSocialTipo,
       user.redSocialValor,
       user.rol,
@@ -379,10 +386,12 @@ async function updateUser(id, user) {
     'email = ?',
     'rut = ?',
     'telefono = ?',
+    'region = ?',
     'direccion = ?',
     'ciudad = ?',
     'comuna = ?',
     'numeracion = ?',
+    'complemento_direccion = ?',
     'red_social_tipo = ?',
     'red_social_valor = ?',
     'rol = ?',
@@ -395,10 +404,12 @@ async function updateUser(id, user) {
     user.email,
     user.rut,
     user.telefono,
+    user.region,
     user.direccion,
     user.ciudad,
     user.comuna,
     user.numeracion,
+    user.complementoDireccion,
     user.redSocialTipo,
     user.redSocialValor,
     user.rol,

@@ -2,6 +2,7 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const env = require('../../config/env');
 const authModel = require('./auth.model');
+const { isCommuneInRegion, isKnownRegion } = require('../../utils/chileLocations');
 
 const PASSWORD_SALT_ROUNDS = 10;
 
@@ -85,10 +86,12 @@ function toPublicUser(user) {
     email: user.email,
     rut: user.rut,
     telefono: user.telefono,
+    region: user.region,
     direccion: user.direccion,
     ciudad: user.ciudad,
     comuna: user.comuna,
     numeracion: user.numeracion,
+    complemento_direccion: user.complemento_direccion,
     rol: user.rol
   };
 }
@@ -104,16 +107,66 @@ function signToken(user) {
   );
 }
 
+function normalizeLocationPayload(payload = {}) {
+  const region = normalizeText(payload.region, 120);
+  const ciudad = normalizeText(payload.ciudad, 120);
+  const comuna = normalizeText(payload.comuna, 120);
+  const direccion = normalizeText(payload.direccion, 255);
+  const numeracion = normalizeText(payload.numeracion, 40);
+  const complementoDireccion = normalizeText(
+    payload.complemento_direccion ?? payload.complementoDireccion,
+    255
+  );
+
+  if (!region) {
+    throw createServiceError(400, 'Regi\u00f3n es obligatoria');
+  }
+
+  if (!isKnownRegion(region)) {
+    throw createServiceError(400, 'Regi\u00f3n no v\u00e1lida');
+  }
+
+  if (!comuna) {
+    throw createServiceError(400, 'Comuna es obligatoria');
+  }
+
+  if (!isCommuneInRegion(region, comuna)) {
+    throw createServiceError(400, 'La comuna seleccionada no pertenece a la regi\u00f3n indicada');
+  }
+
+  if (!direccion) {
+    throw createServiceError(400, 'Direcci\u00f3n es obligatoria');
+  }
+
+  if (!numeracion) {
+    throw createServiceError(400, 'Numeraci\u00f3n es obligatoria');
+  }
+
+  return {
+    ciudad,
+    comuna,
+    complementoDireccion,
+    direccion,
+    numeracion,
+    region
+  };
+}
+
 async function register(payload = {}) {
   const nombre = typeof payload.nombre === 'string' ? payload.nombre.trim() : '';
   const email = normalizeEmail(payload.email);
   const rut = formatRut(payload.rut);
   const password = typeof payload.password === 'string' ? payload.password : '';
   const telefono = typeof payload.telefono === 'string' ? payload.telefono.trim() : '';
+  const region = normalizeText(payload.region, 120);
   const ciudad = normalizeText(payload.ciudad, 120);
   const comuna = normalizeText(payload.comuna, 120);
   const direccion = normalizeText(payload.direccion, 255);
   const numeracion = normalizeText(payload.numeracion, 40);
+  const complementoDireccion = normalizeText(
+    payload.complemento_direccion ?? payload.complementoDireccion,
+    255
+  );
 
   if (!nombre) {
     throw createServiceError(400, 'Nombre es obligatorio');
@@ -142,12 +195,20 @@ async function register(payload = {}) {
     );
   }
 
-  if (!ciudad) {
-    throw createServiceError(400, 'Ciudad es obligatoria');
+  if (!region) {
+    throw createServiceError(400, 'Regi\u00f3n es obligatoria');
+  }
+
+  if (!isKnownRegion(region)) {
+    throw createServiceError(400, 'Regi\u00f3n no v\u00e1lida');
   }
 
   if (!comuna) {
     throw createServiceError(400, 'Comuna es obligatoria');
+  }
+
+  if (!isCommuneInRegion(region, comuna)) {
+    throw createServiceError(400, 'La comuna seleccionada no pertenece a la regi\u00f3n indicada');
   }
 
   if (!direccion) {
@@ -180,10 +241,12 @@ async function register(payload = {}) {
     rut,
     passwordHash,
     telefono,
+    region,
     direccion,
     ciudad,
     comuna,
-    numeracion
+    numeracion,
+    complementoDireccion
   });
   const publicUser = toPublicUser(user);
 
@@ -235,6 +298,25 @@ async function getUserById(id) {
   return toPublicUser(await authModel.findPublicUserById(userId));
 }
 
+async function updateMyLocation(id, payload = {}) {
+  const userId = Number(id);
+
+  if (!Number.isInteger(userId) || userId <= 0) {
+    throw createServiceError(401, 'Debes iniciar sesi\u00f3n para actualizar tu ubicaci\u00f3n');
+  }
+
+  const currentUser = await authModel.findPublicUserById(userId);
+
+  if (!currentUser) {
+    throw createServiceError(404, 'Usuario no encontrado');
+  }
+
+  const location = normalizeLocationPayload(payload);
+  const updatedUser = await authModel.updateUserLocation(userId, location);
+
+  return toPublicUser(updatedUser);
+}
+
 module.exports = {
   formatRut,
   getUserById,
@@ -242,5 +324,6 @@ module.exports = {
   isValidRut,
   login,
   register,
+  updateMyLocation,
   toPublicUser
 };
