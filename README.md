@@ -1,6 +1,6 @@
 # AdoptaLove
 
-AdoptaLove es una aplicación web orientada a la adopción responsable de mascotas. El sistema permite registrar adoptantes, fundaciones y administradores; publicar mascotas; gestionar solicitudes de adopción; calcular compatibilidad; recibir donaciones para la sostenibilidad de la plataforma; y entregar apoyo mediante un chatbot con IA.
+AdoptaLove es una aplicación web orientada a la adopción responsable de mascotas. El sistema permite registrar adoptantes, fundaciones y administradores; publicar mascotas; gestionar solicitudes de adopción; calcular compatibilidad; recibir donaciones simuladas para la sostenibilidad de la plataforma; y entregar apoyo mediante un chatbot con respuestas internas y opción de IA mediante OpenAI.
 
 ## Estado del proyecto
 
@@ -21,7 +21,7 @@ La arquitectura del proyecto es cliente-servidor con API REST y backend modular.
 - Base de datos: MySQL
 - Autenticación: JWT + bcrypt
 - Subida de imágenes: Multer + carpeta `backend/uploads/`
-- Chatbot: módulo interno conectado a OpenAI mediante `OPENAI_API_KEY`
+- Chatbot: respuestas internas/FAQ con opción de OpenAI mediante `OPENAI_API_KEY`
 - Arquitectura: API REST + monolito modular
 
 ## Funcionalidades principales
@@ -72,12 +72,14 @@ La arquitectura del proyecto es cliente-servidor con API REST y backend modular.
 ### Chatbot
 
 - Módulo de chatbot para preguntas frecuentes y apoyo al usuario.
-- Configuración opcional con OpenAI usando las variables `OPENAI_API_KEY` y `OPENAI_MODEL`.
+- Funciona con respuestas internas/FAQ y reglas definidas del proyecto.
+- Si `OPENAI_API_KEY` está configurada, puede responder usando OpenAI mediante `OPENAI_MODEL`; si no, mantiene las respuestas internas.
 
 ### Donaciones
 
-- Módulo de donaciones para apoyar la sostenibilidad financiera de la plataforma.
-- Registro de monto, método de pago, estado y mensaje opcional.
+- Módulo de donaciones simuladas para apoyar la sostenibilidad financiera de la plataforma.
+- Registro de monto, método de pago, estado, referencia y mensaje opcional.
+- Actualmente no tiene integración real con Webpay, Transbank u otra pasarela de pago.
 
 ### Página pública
 
