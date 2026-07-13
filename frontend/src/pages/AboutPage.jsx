@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import logoAdoptaLove from '../assets/logo-adoptalove.png';
+import { getAssetUrl } from '../utils/assetUrl';
 import { apiClient } from '../services/apiClient';
 
 const CONTACT_EMAIL = 'Adopta.Love2026@gmail.com';
@@ -198,7 +199,7 @@ export function AboutPage() {
 
         <aside className="about-visual-card" aria-label="AdoptaLove conecta hogares">
           <div className="about-logo-badge">
-            <img alt="AdoptaLove" src={logoAdoptaLove} />
+            <img alt="AdoptaLove" src={getAssetUrl(logoAdoptaLove)} />
           </div>
           <div className="about-visual-icons">
             <span aria-hidden="true">🐾</span>

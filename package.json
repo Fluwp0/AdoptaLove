@@ -5,7 +5,7 @@
   "description": "AdoptaLove compatible con OpenAI Sites mediante Next.js y OpenNext.",
   "scripts": {
     "build": "next build --webpack && opennextjs-cloudflare build --skipNextBuild && node scripts/package-sites-dist.js",
-    "dev": "next dev",
+    "dev": "next dev --webpack",
     "start": "next start",
     "sites:build": "npm run build",
     "sites:preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",

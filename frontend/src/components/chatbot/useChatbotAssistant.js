@@ -10,7 +10,10 @@ import {
   getRelatedOptionsForMessage
 } from './chatbotFlow';
 
-const CHATBOT_AI_ENABLED = import.meta.env.VITE_CHATBOT_AI_ENABLED === 'true';
+const CHATBOT_AI_ENABLED =
+  import.meta.env?.VITE_CHATBOT_AI_ENABLED === 'true' ||
+  (typeof process !== 'undefined' &&
+    process.env.NEXT_PUBLIC_CHATBOT_AI_ENABLED === 'true');
 
 function getStoredConversation(storageKey) {
   if (!storageKey || typeof window === 'undefined') {

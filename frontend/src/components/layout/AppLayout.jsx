@@ -11,6 +11,7 @@ import {
   getStoredTheme,
   saveTheme
 } from '../../services/themePreference';
+import { getAssetUrl } from '../../utils/assetUrl';
 import { displayText } from '../../utils/displayText';
 
 export function AppLayout({ children }) {
@@ -86,7 +87,7 @@ export function AppLayout({ children }) {
             alt=""
             aria-hidden="true"
             className="brand-logo"
-            src={logoAdoptaLove}
+            src={getAssetUrl(logoAdoptaLove)}
           />
           <span className="brand-name">AdoptaLove</span>
         </a>

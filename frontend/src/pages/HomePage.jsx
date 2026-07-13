@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import logoAdoptaLove from '../assets/logo-adoptalove.png';
 import { apiClient } from '../services/apiClient';
+import { getAssetUrl } from '../utils/assetUrl';
 import { displayText } from '../utils/displayText';
 import { getMediaUrl } from '../utils/mediaUrl';
 import { formatPetAge } from '../utils/petDisplay';
@@ -120,7 +121,7 @@ export function HomePage() {
 
         <aside className="home-hero-visual" aria-label="AdoptaLove en acción">
           <div className="home-hero-logo-card">
-            <img alt="AdoptaLove" src={logoAdoptaLove} />
+            <img alt="AdoptaLove" src={getAssetUrl(logoAdoptaLove)} />
             <span>Amor que encuentra hogar</span>
           </div>
           <div className="home-visual-grid">
