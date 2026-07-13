@@ -183,6 +183,19 @@ function normalizeEstimatedBirthDate(payload = {}, fallback = {}, { required = f
 }
 
 function buildAgeYearsSql(alias = 'm', outputAlias = 'edad_anios') {
+  if (process.env.DATABASE_DRIVER === 'd1') {
+    const totalMonths = `MAX(
+      (CAST(strftime('%Y', 'now') AS INTEGER) - CAST(strftime('%Y', ${alias}.fecha_nacimiento_estimada) AS INTEGER)) * 12 +
+      (CAST(strftime('%m', 'now') AS INTEGER) - CAST(strftime('%m', ${alias}.fecha_nacimiento_estimada) AS INTEGER)),
+      0
+    )`;
+
+    return `CASE
+      WHEN ${alias}.fecha_nacimiento_estimada IS NOT NULL THEN CAST(${totalMonths} / 12 AS INTEGER)
+      ELSE ${alias}.edad_anios
+    END AS ${outputAlias}`;
+  }
+
   const totalMonths = `GREATEST(TIMESTAMPDIFF(MONTH, ${alias}.fecha_nacimiento_estimada, CURDATE()), 0)`;
 
   return `CASE
@@ -192,6 +205,19 @@ function buildAgeYearsSql(alias = 'm', outputAlias = 'edad_anios') {
 }
 
 function buildAgeMonthsSql(alias = 'm', outputAlias = 'edad_meses') {
+  if (process.env.DATABASE_DRIVER === 'd1') {
+    const totalMonths = `MAX(
+      (CAST(strftime('%Y', 'now') AS INTEGER) - CAST(strftime('%Y', ${alias}.fecha_nacimiento_estimada) AS INTEGER)) * 12 +
+      (CAST(strftime('%m', 'now') AS INTEGER) - CAST(strftime('%m', ${alias}.fecha_nacimiento_estimada) AS INTEGER)),
+      0
+    )`;
+
+    return `CASE
+      WHEN ${alias}.fecha_nacimiento_estimada IS NOT NULL THEN (${totalMonths}) % 12
+      ELSE ${alias}.edad_meses
+    END AS ${outputAlias}`;
+  }
+
   const totalMonths = `GREATEST(TIMESTAMPDIFF(MONTH, ${alias}.fecha_nacimiento_estimada, CURDATE()), 0)`;
 
   return `CASE

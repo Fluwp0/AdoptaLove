@@ -33,6 +33,8 @@ dist/
 build/
 out/
 .output/
+.next/
+.open-next/
 build/Release/
 
 # Environment
@@ -104,3 +106,10 @@ Thumbs.db
 
 # User uploads
 backend/uploads/
+
+# Local Sites migration exports (may contain personal data and password hashes)
+.sites-migration/
+
+# Local Cloudflare/Sites state and credentials
+.wrangler/
+.dev.vars

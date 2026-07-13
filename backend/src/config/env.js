@@ -1,15 +1,25 @@
-require('dotenv').config();
+const path = require('path');
+
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config({ path: path.join(process.cwd(), 'backend', '.env') });
+}
 
 module.exports = {
   port: Number(process.env.PORT) || 3000,
   nodeEnv: process.env.NODE_ENV || 'development',
   corsOrigin: process.env.CORS_ORIGIN || 'http://localhost:5173',
   database: {
+    driver: process.env.DATABASE_DRIVER || 'mysql',
     host: process.env.DB_HOST || 'localhost',
     port: Number(process.env.DB_PORT) || 3306,
     user: process.env.DB_USER || 'root',
     password: process.env.DB_PASSWORD || '',
     name: process.env.DB_NAME || 'adoptalove'
+  },
+  storage: {
+    driver: process.env.STORAGE_DRIVER || 'filesystem',
+    d1Binding: process.env.D1_BINDING || 'DB',
+    r2Binding: process.env.R2_BINDING || 'UPLOADS'
   },
   jwt: {
     secret: process.env.JWT_SECRET || 'change_me',

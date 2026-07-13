@@ -1,13 +1,13 @@
-const fs = require('fs/promises');
 const foundationService = require('./foundation.service');
+const { deleteUploadedFile } = require('../../services/fileStorage');
 
 async function removeUploadedFile(file) {
-  if (!file?.path) {
+  if (!file) {
     return;
   }
 
   try {
-    await fs.unlink(file.path);
+    await deleteUploadedFile(file);
   } catch (_error) {
     // If cleanup fails, keep the original validation or service error.
   }

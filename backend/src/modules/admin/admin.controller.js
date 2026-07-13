@@ -1,13 +1,13 @@
-const fs = require('fs/promises');
 const adminService = require('./admin.service');
+const { deleteUploadedFile } = require('../../services/fileStorage');
 
 async function removeUploadedFile(file) {
-  if (!file?.path) {
+  if (!file) {
     return;
   }
 
   try {
-    await fs.unlink(file.path);
+    await deleteUploadedFile(file);
   } catch (_error) {
     // Keep the original validation or service error.
   }

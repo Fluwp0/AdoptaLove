@@ -1,8 +1,4 @@
-const API_URL = import.meta.env.VITE_API_URL ?? '/api';
-const isAbsoluteApiUrl = /^https?:\/\//i.test(API_URL);
-const API_ORIGIN = isAbsoluteApiUrl
-  ? API_URL.replace(/\/api\/?$/, '')
-  : (import.meta.env.VITE_API_ORIGIN ?? '');
+const API_ORIGIN = '';
 
 export function getMediaUrl(url = '') {
   if (!url) {
