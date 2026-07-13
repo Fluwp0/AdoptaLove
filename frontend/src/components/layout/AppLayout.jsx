@@ -1,4 +1,4 @@
-﻿import { useEffect, useState } from 'react';
+﻿import { useEffect, useLayoutEffect, useState } from 'react';
 import logoAdoptaLove from '../../assets/logo-adoptalove.png';
 import { ChatbotWidget } from '../ChatbotWidget';
 import { Footer } from '../Footer';
@@ -16,7 +16,7 @@ import { displayText } from '../../utils/displayText';
 
 export function AppLayout({ children }) {
   const [user, setUser] = useState(getCurrentUser());
-  const [theme, setTheme] = useState(getStoredTheme);
+  const [theme, setTheme] = useState(() => getStoredTheme());
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const currentPath = window.location.pathname;
   const isHomeActive = currentPath === '/';
@@ -35,6 +35,10 @@ export function AppLayout({ children }) {
   const userName = displayText(user?.nombre);
   const greetingText = isAdminUser || canAccessFoundationPanel ? 'Hola' : `Hola, ${userName}`;
   const isDarkTheme = theme === DARK_THEME;
+
+  useLayoutEffect(() => {
+    applyTheme(theme);
+  }, [theme]);
 
   useEffect(() => onSessionChange(setUser), []);
 
@@ -59,7 +63,9 @@ export function AppLayout({ children }) {
   useEffect(() => {
     function handleThemeStorage(event) {
       if (event.key === THEME_STORAGE_KEY) {
-        setTheme(applyTheme(getStoredTheme()));
+        const storedTheme = getStoredTheme();
+        applyTheme(storedTheme);
+        setTheme(storedTheme);
       }
     }
 
@@ -76,11 +82,12 @@ export function AppLayout({ children }) {
   }
 
   function handleThemeToggle() {
-    setTheme(saveTheme(isDarkTheme ? LIGHT_THEME : DARK_THEME));
+    const nextTheme = isDarkTheme ? LIGHT_THEME : DARK_THEME;
+    setTheme(saveTheme(nextTheme));
   }
 
   return (
-    <div className={`app-shell app-shell-${theme}`} key={theme}>
+    <div className={`app-shell app-shell-${theme}`}>
       <header className={isMobileMenuOpen ? 'app-header app-header-menu-open' : 'app-header'}>
         <a className="brand" href={isAdminUser ? '/admin' : '/'} aria-label="Ir al inicio de AdoptaLove">
           <img

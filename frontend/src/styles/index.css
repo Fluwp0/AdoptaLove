@@ -157,7 +157,8 @@
 
 html,
 body,
-#root {
+#root,
+#__next {
   background: var(--app-background);
   min-height: 100%;
 }
@@ -8421,7 +8422,8 @@ a {
 
 html,
 body,
-#root {
+#root,
+#__next {
   background: var(--app-background);
   color: var(--color-text);
   min-height: 100%;
@@ -8430,6 +8432,7 @@ body,
 :root,
 :root body,
 :root #root,
+:root #__next,
 :root .app-shell {
   color: #2f2730;
 }
@@ -8437,6 +8440,7 @@ body,
 :root[data-theme="dark"],
 :root[data-theme="dark"] body,
 :root[data-theme="dark"] #root,
+:root[data-theme="dark"] #__next,
 :root[data-theme="dark"] .app-shell {
   color: #f8edf3;
 }
@@ -8467,6 +8471,7 @@ body,
 
 body,
 #root,
+#__next,
 .app-shell {
   min-height: 100vh;
 }
