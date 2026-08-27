@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const path = require('path');
 const jwt = require('jsonwebtoken');
 const db = require('../config/database');
@@ -15,6 +16,12 @@ const foundationController = require('../modules/foundation/foundation.controlle
 const petController = require('../modules/pets/pet.controller');
 
 const routes = [];
+const IMAGE_MIME_BY_EXTENSION = new Map([
+  ['.jpg', 'image/jpeg'],
+  ['.jpeg', 'image/jpeg'],
+  ['.png', 'image/png'],
+  ['.webp', 'image/webp']
+]);
 
 function route(method, pattern, controller, options = {}) {
   routes.push({ method, pattern, controller, ...options });
@@ -94,18 +101,72 @@ function sanitizeFileName(value = '') {
     .slice(0, 48) || 'mascota';
 }
 
+function hasExpectedImageSignature(buffer, mimetype) {
+  if (!Buffer.isBuffer(buffer)) {
+    return false;
+  }
+
+  if (mimetype === 'image/jpeg') {
+    return buffer.length >= 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff;
+  }
+
+  if (mimetype === 'image/png') {
+    return (
+      buffer.length >= 8 &&
+      buffer[0] === 0x89 &&
+      buffer[1] === 0x50 &&
+      buffer[2] === 0x4e &&
+      buffer[3] === 0x47 &&
+      buffer[4] === 0x0d &&
+      buffer[5] === 0x0a &&
+      buffer[6] === 0x1a &&
+      buffer[7] === 0x0a
+    );
+  }
+
+  if (mimetype === 'image/webp') {
+    return (
+      buffer.length >= 12 &&
+      buffer.toString('ascii', 0, 4) === 'RIFF' &&
+      buffer.toString('ascii', 8, 12) === 'WEBP'
+    );
+  }
+
+  return false;
+}
+
+async function cleanupUploadedFile(file) {
+  if (!file) {
+    return;
+  }
+
+  try {
+    await deleteUploadedFile(file);
+  } catch (error) {
+    console.warn('No se pudo limpiar una imagen subida tras un error:', error.message);
+  }
+}
+
 async function parseBody(request, multipart) {
   if (multipart) {
     const form = await request.formData();
     const body = {};
     let file = null;
+
     for (const [key, value] of form.entries()) {
       if (typeof value === 'string') {
         body[key] = value;
       } else if (key === 'imagen' && value.size > 0) {
+        if (file) {
+          const error = new Error('Sólo puedes subir una imagen por solicitud.');
+          error.statusCode = 400;
+          throw error;
+        }
+
         const extension = path.extname(value.name).toLowerCase();
-        if (!['.jpg', '.jpeg', '.png', '.webp'].includes(extension) || !['image/jpeg', 'image/png', 'image/webp'].includes(value.type)) {
-          const error = new Error('La imagen debe ser JPG, JPEG, PNG o WEBP.');
+        const expectedMimeType = IMAGE_MIME_BY_EXTENSION.get(extension);
+        if (!expectedMimeType || value.type !== expectedMimeType) {
+          const error = new Error('La imagen debe ser JPG, JPEG, PNG o WEBP y su extensión debe coincidir con el archivo.');
           error.statusCode = 400;
           throw error;
         }
@@ -114,16 +175,28 @@ async function parseBody(request, multipart) {
           error.statusCode = 400;
           throw error;
         }
+
+        const buffer = Buffer.from(await value.arrayBuffer());
+        if (!hasExpectedImageSignature(buffer, value.type)) {
+          const error = new Error('El contenido de la imagen no coincide con un formato permitido.');
+          error.statusCode = 400;
+          throw error;
+        }
+
         file = {
-          buffer: Buffer.from(await value.arrayBuffer()),
-          filename: `${Date.now()}-${sanitizeFileName(path.basename(value.name, extension))}${extension}`,
+          buffer,
+          filename: `${Date.now()}-${crypto.randomBytes(8).toString('hex')}-${sanitizeFileName(path.basename(value.name, extension))}${extension}`,
           mimetype: value.type,
           originalname: value.name,
           size: value.size
         };
-        await storeUploadedFile(file, 'mascotas');
       }
     }
+
+    if (file) {
+      await storeUploadedFile(file, 'mascotas');
+    }
+
     return { body, file };
   }
 
@@ -226,7 +299,7 @@ async function handleSitesApiRequest(request) {
       const params = Object.fromEntries(
         (definition.params || []).map((name, index) => [name, match[index + 1]])
       );
-      return await invokeController(definition.controller, {
+      const controllerResponse = await invokeController(definition.controller, {
         body: parsed.body,
         file: parsed.file,
         headers: Object.fromEntries(request.headers),
@@ -234,8 +307,14 @@ async function handleSitesApiRequest(request) {
         query: Object.fromEntries(url.searchParams),
         user
       });
+
+      if (parsed.file && controllerResponse.status >= 400) {
+        await cleanupUploadedFile(parsed.file);
+      }
+
+      return controllerResponse;
     } catch (error) {
-      if (parsed?.file) await deleteUploadedFile(parsed.file).catch(() => {});
+      await cleanupUploadedFile(parsed?.file);
       return json({ message: error.statusCode ? error.message : 'Internal server error' }, error.statusCode || 500);
     }
   }
