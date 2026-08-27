@@ -75,6 +75,11 @@ class ClientApplicationBoundary extends Component {
   }
 
   handleRetry = () => {
+    if (typeof window !== 'undefined') {
+      window.location.reload();
+      return;
+    }
+
     this.setState({ error: null });
   };
 
