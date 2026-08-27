@@ -1,0 +1,53 @@
+name: AdoptaLove CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - codex/sites-migration
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            frontend/package-lock.json
+            backend/package-lock.json
+
+      - name: Install Sites dependencies
+        run: npm ci
+
+      - name: Install frontend dependencies
+        run: npm ci --prefix frontend
+
+      - name: Install backend dependencies
+        run: npm ci --prefix backend
+
+      - name: Check Sites API syntax
+        run: node --check backend/src/sites/fetchApi.js
+
+      - name: Build legacy frontend
+        run: npm run build --prefix frontend
+
+      - name: Build Sites package
+        run: npm run build
+
+      - name: Audit production dependencies
+        run: |
+          npm audit --omit=dev --audit-level=high
+          npm audit --omit=dev --audit-level=high --prefix backend
