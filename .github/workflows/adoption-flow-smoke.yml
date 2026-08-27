@@ -1,0 +1,186 @@
+name: Adoption flow smoke
+
+on:
+  push:
+    branches:
+      - codex/fix-adoption-form
+
+permissions:
+  contents: read
+
+jobs:
+  adoption-flow:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install project dependencies
+        run: npm ci
+
+      - name: Install browser test runtime
+        run: |
+          npm install --no-save --package-lock=false playwright@1.55.0
+          npx playwright install --with-deps chromium webkit
+
+      - name: Build application
+        run: npm run build
+
+      - name: Start application
+        run: |
+          nohup npm start > /tmp/adoptalove-next.log 2>&1 &
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:3000/ > /dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/adoptalove-next.log
+          exit 1
+
+      - name: Verify adoption flow in Chromium and WebKit
+        run: |
+          node <<'NODE'
+          const { chromium, webkit } = require('playwright');
+
+          const pet = {
+            id: 'test-pet',
+            nombre: 'Luna',
+            especie: 'perro',
+            raza: 'mestiza',
+            sexo: 'hembra',
+            estado: 'disponible',
+            tamano: 'mediano',
+            descripcion: 'Mascota de prueba',
+            publicada_por: 'Fundación de prueba',
+            foto_url: null,
+            edad_anios: 2,
+            edad_meses: 0
+          };
+
+          const user = {
+            id: 99,
+            nombre: 'Usuario Prueba',
+            email: 'usuario@example.com',
+            rut: '12.345.678-5',
+            telefono: '+56911111111',
+            region: 'Metropolitana de Santiago',
+            comuna: 'Santiago',
+            ciudad: 'Santiago',
+            direccion: 'Calle Prueba',
+            numeracion: '123',
+            rol: 'adoptante'
+          };
+
+          async function mockApi(page) {
+            await page.route('**/api/mascotas/test-pet', async (route) => {
+              await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({ data: pet })
+              });
+            });
+
+            await page.route('**/api/auth/me', async (route) => {
+              await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({ data: { user } })
+              });
+            });
+
+            await page.route('**/api/solicitudes-adopcion/me/activa', async (route) => {
+              await route.fulfill({
+                status: 200,
+                contentType: 'application/json',
+                body: JSON.stringify({ data: null })
+              });
+            });
+          }
+
+          async function verifyAnonymous(browserType, label) {
+            const browser = await browserType.launch({ headless: true });
+            const page = await browser.newPage();
+            const errors = [];
+            page.on('pageerror', (error) => errors.push(error.message));
+            await mockApi(page);
+
+            await page.goto('http://127.0.0.1:3000/mascotas/test-pet', { waitUntil: 'domcontentloaded' });
+            await page.getByRole('link', { name: 'Postular adopción' }).click();
+            await page.waitForSelector('.adoption-page', { timeout: 20000 });
+
+            const body = await page.locator('body').innerText();
+            if (body.includes('No pudimos iniciar AdoptaLove')) {
+              throw new Error(`${label} anonymous: runtime boundary shown`);
+            }
+            if (!body.includes('Debes iniciar sesión para postular a una adopción.')) {
+              throw new Error(`${label} anonymous: login requirement was not shown`);
+            }
+            if (!body.includes('Información sobre tu hogar')) {
+              throw new Error(`${label} anonymous: adoption form did not render`);
+            }
+            if (errors.length) {
+              throw new Error(`${label} anonymous page errors: ${errors.join(' | ')}`);
+            }
+
+            await browser.close();
+            console.log(`${label} anonymous adoption flow OK`);
+          }
+
+          async function verifySignedIn(browserType, label) {
+            const browser = await browserType.launch({ headless: true });
+            const context = await browser.newContext();
+            await context.addInitScript((storedUser) => {
+              window.localStorage.setItem('adoptalove_token', 'test-token');
+              window.localStorage.setItem('adoptalove_user', JSON.stringify(storedUser));
+            }, user);
+            const page = await context.newPage();
+            const errors = [];
+            page.on('pageerror', (error) => errors.push(error.message));
+            await mockApi(page);
+
+            await page.goto('http://127.0.0.1:3000/mascotas/test-pet', { waitUntil: 'domcontentloaded' });
+            await page.getByRole('link', { name: 'Postular adopción' }).click();
+            await page.waitForSelector('.adoption-page', { timeout: 20000 });
+            await page.getByText('Usuario Prueba').waitFor({ timeout: 20000 });
+
+            const body = await page.locator('body').innerText();
+            if (body.includes('No pudimos iniciar AdoptaLove')) {
+              throw new Error(`${label} signed-in: runtime boundary shown`);
+            }
+            if (!body.includes('Información sobre tu hogar')) {
+              throw new Error(`${label} signed-in: adoption form did not render`);
+            }
+            if (!body.includes('Dirección completa')) {
+              throw new Error(`${label} signed-in: profile data did not render`);
+            }
+            if (errors.length) {
+              throw new Error(`${label} signed-in page errors: ${errors.join(' | ')}`);
+            }
+
+            await browser.close();
+            console.log(`${label} signed-in adoption flow OK`);
+          }
+
+          (async () => {
+            for (const [browserType, label] of [[chromium, 'Chromium'], [webkit, 'WebKit']]) {
+              await verifyAnonymous(browserType, label);
+              await verifySignedIn(browserType, label);
+            }
+          })().catch((error) => {
+            console.error(error);
+            process.exit(1);
+          });
+          NODE
+
+      - name: Print server log on failure
+        if: failure()
+        run: cat /tmp/adoptalove-next.log || true
