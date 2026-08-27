@@ -80,7 +80,7 @@ jobs:
             rol: 'adoptante'
           };
 
-          async function mockApi(page) {
+          async function mockApi(page, submittedApplications) {
             await page.route('**/api/mascotas/test-pet', async (route) => {
               await route.fulfill({
                 status: 200,
@@ -104,18 +104,50 @@ jobs:
                 body: JSON.stringify({ data: null })
               });
             });
+
+            await page.route('**/api/solicitudes-adopcion', async (route) => {
+              if (route.request().method() !== 'POST') {
+                return route.continue();
+              }
+
+              submittedApplications.push(route.request().postDataJSON());
+              await route.fulfill({
+                status: 201,
+                contentType: 'application/json',
+                body: JSON.stringify({
+                  data: {
+                    id: 501,
+                    estado: 'pendiente',
+                    adoptante_usuario_id: user.id,
+                    mascota_id: pet.id
+                  }
+                })
+              });
+            });
+          }
+
+          async function openAdoptionForm(page) {
+            await page.goto('http://127.0.0.1:3000/mascotas/test-pet', {
+              waitUntil: 'domcontentloaded'
+            });
+            await page.getByRole('link', { name: 'Postular adopción' }).click();
+            await page.getByRole('heading', { name: 'Información de tu perfil' }).waitFor({
+              timeout: 20000
+            });
+            await page.getByRole('heading', { name: 'Información sobre tu hogar' }).waitFor({
+              timeout: 20000
+            });
           }
 
           async function verifyAnonymous(browserType, label) {
             const browser = await browserType.launch({ headless: true });
             const page = await browser.newPage();
             const errors = [];
+            const submittedApplications = [];
             page.on('pageerror', (error) => errors.push(error.message));
-            await mockApi(page);
+            await mockApi(page, submittedApplications);
 
-            await page.goto('http://127.0.0.1:3000/mascotas/test-pet', { waitUntil: 'domcontentloaded' });
-            await page.getByRole('link', { name: 'Postular adopción' }).click();
-            await page.waitForSelector('.adoption-page', { timeout: 20000 });
+            await openAdoptionForm(page);
 
             const body = await page.locator('body').innerText();
             if (body.includes('No pudimos iniciar AdoptaLove')) {
@@ -126,6 +158,12 @@ jobs:
             }
             if (!body.includes('Información sobre tu hogar')) {
               throw new Error(`${label} anonymous: adoption form did not render`);
+            }
+            if (await page.getByRole('button', { name: 'Enviar solicitud de adopción' }).isEnabled()) {
+              throw new Error(`${label} anonymous: submit button should be disabled`);
+            }
+            if (submittedApplications.length !== 0) {
+              throw new Error(`${label} anonymous: an application was submitted without login`);
             }
             if (errors.length) {
               throw new Error(`${label} anonymous page errors: ${errors.join(' | ')}`);
@@ -144,33 +182,63 @@ jobs:
             }, user);
             const page = await context.newPage();
             const errors = [];
+            const submittedApplications = [];
             page.on('pageerror', (error) => errors.push(error.message));
-            await mockApi(page);
+            await mockApi(page, submittedApplications);
 
-            await page.goto('http://127.0.0.1:3000/mascotas/test-pet', { waitUntil: 'domcontentloaded' });
-            await page.getByRole('link', { name: 'Postular adopción' }).click();
-            await page.waitForSelector('.adoption-page', { timeout: 20000 });
-            await page.getByText('Usuario Prueba', { exact: true }).waitFor({ timeout: 20000 });
+            await openAdoptionForm(page);
+            await page.locator('.adoption-profile-summary').waitFor({ timeout: 20000 });
+            await page.getByText('Dirección completa', { exact: true }).waitFor({ timeout: 20000 });
 
-            const body = await page.locator('body').innerText();
-            if (body.includes('No pudimos iniciar AdoptaLove')) {
+            const bodyBeforeSubmit = await page.locator('body').innerText();
+            if (bodyBeforeSubmit.includes('No pudimos iniciar AdoptaLove')) {
               throw new Error(`${label} signed-in: runtime boundary shown`);
             }
-            if (!body.includes('Información sobre tu hogar')) {
-              throw new Error(`${label} signed-in: adoption form did not render`);
-            }
-            if (!body.includes('Dirección completa')) {
-              throw new Error(`${label} signed-in: profile data did not render`);
-            }
-            if (body.includes('Debes iniciar sesión para postular a una adopción.')) {
+            if (bodyBeforeSubmit.includes('Debes iniciar sesión para postular a una adopción.')) {
               throw new Error(`${label} signed-in: user was incorrectly treated as anonymous`);
+            }
+
+            await page.locator('#home-type').selectOption('Casa');
+            await page.locator('#outdoor-space').selectOption('Sí, tengo patio o espacio al aire libre');
+            await page.locator('#household-people').selectOption('2 personas');
+            await page.locator('#other-pets').selectOption('No tengo otras mascotas');
+            await page.locator('#adoption-reason').fill('Quiero darle un hogar responsable y acompañarla toda su vida.');
+            await page.locator('#time-at-home').selectOption('Entre 4 y 8 horas al día');
+            await page.locator('#responsible-person').selectOption('Yo seré el principal responsable');
+            await page.locator('input[name="can-cover-costs"][value="Sí, puedo cubrir alimentación y salud"]').check();
+            await page.locator('input[name="accepts-follow-up"][value="Sí, acepto visitas de seguimiento"]').check();
+
+            const submitButton = page.getByRole('button', { name: 'Enviar solicitud de adopción' });
+            await submitButton.waitFor({ timeout: 20000 });
+            if (!(await submitButton.isEnabled())) {
+              throw new Error(`${label} signed-in: submit button remained disabled`);
+            }
+
+            await submitButton.click();
+            await page.getByText('Tu solicitud de adopción fue enviada correctamente.', { exact: true }).waitFor({
+              timeout: 20000
+            });
+
+            if (submittedApplications.length !== 1) {
+              throw new Error(`${label} signed-in: expected one POST, got ${submittedApplications.length}`);
+            }
+
+            const application = submittedApplications[0];
+            if (application.adoptante_usuario_id !== user.id) {
+              throw new Error(`${label} signed-in: wrong adoptante_usuario_id`);
+            }
+            if (application.mascota_id !== pet.id) {
+              throw new Error(`${label} signed-in: wrong mascota_id`);
+            }
+            if (!application.mensaje?.includes('Motivo: Quiero darle un hogar responsable')) {
+              throw new Error(`${label} signed-in: adoption answers were not serialized`);
             }
             if (errors.length) {
               throw new Error(`${label} signed-in page errors: ${errors.join(' | ')}`);
             }
 
             await browser.close();
-            console.log(`${label} signed-in adoption flow OK`);
+            console.log(`${label} signed-in adoption submission OK`);
           }
 
           (async () => {
