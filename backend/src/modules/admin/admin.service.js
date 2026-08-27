@@ -1,4 +1,4 @@
-const bcrypt = require('bcrypt');
+const bcrypt = require('bcryptjs');
 const { formatRut, isStrongPassword, isValidRut } = require('../auth/auth.service');
 const adminModel = require('./admin.model');
 const { normalizeEstimatedBirthDate } = require('../../utils/petAge');

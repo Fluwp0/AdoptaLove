@@ -1,4 +1,5 @@
 import logoAdoptaLove from '../assets/logo-adoptalove.png';
+import { getAssetUrl } from '../utils/assetUrl';
 
 const SOCIAL_LINKS = [
   {
@@ -17,7 +18,7 @@ export function Footer() {
       <div className="site-footer-grid">
         <section className="site-footer-brand" aria-label="AdoptaLove">
           <a className="site-footer-logo" href="/">
-            <img alt="" aria-hidden="true" src={logoAdoptaLove} />
+            <img alt="" aria-hidden="true" src={getAssetUrl(logoAdoptaLove)} />
             <span>AdoptaLove</span>
           </a>
           <p>

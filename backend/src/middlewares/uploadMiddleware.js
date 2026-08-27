@@ -1,15 +1,8 @@
-const fs = require('fs');
 const path = require('path');
 const multer = require('multer');
+const { storeUploadedFile } = require('../services/fileStorage');
 
-const petUploadsDirectory = path.join(__dirname, '..', '..', 'uploads', 'mascotas');
-const allowedMimeTypes = new Set([
-  'image/jpeg',
-  'image/png',
-  'image/webp'
-]);
-
-fs.mkdirSync(petUploadsDirectory, { recursive: true });
+const allowedMimeTypes = new Set(['image/jpeg', 'image/png', 'image/webp']);
 
 function sanitizeFileName(value = '') {
   return value
@@ -21,16 +14,11 @@ function sanitizeFileName(value = '') {
     .slice(0, 48) || 'mascota';
 }
 
-const storage = multer.diskStorage({
-  destination: (_req, _file, callback) => {
-    callback(null, petUploadsDirectory);
-  },
-  filename: (_req, file, callback) => {
-    const extension = path.extname(file.originalname).toLowerCase();
-    const baseName = sanitizeFileName(path.basename(file.originalname, extension));
-    callback(null, `${Date.now()}-${baseName}${extension}`);
-  }
-});
+function createFileName(file) {
+  const extension = path.extname(file.originalname).toLowerCase();
+  const baseName = sanitizeFileName(path.basename(file.originalname, extension));
+  return `${Date.now()}-${baseName}${extension}`;
+}
 
 function fileFilter(_req, file, callback) {
   const extension = path.extname(file.originalname).toLowerCase();
@@ -46,14 +34,35 @@ function fileFilter(_req, file, callback) {
   callback(null, true);
 }
 
-const uploadPetImage = multer({
+const parseUpload = multer({
   fileFilter,
-  limits: {
-    fileSize: 3 * 1024 * 1024
-  },
-  storage
+  limits: { fileSize: 3 * 1024 * 1024 },
+  storage: multer.memoryStorage()
 });
 
-module.exports = {
-  uploadPetImage
+const uploadPetImage = {
+  single(fieldName) {
+    const parseSingle = parseUpload.single(fieldName);
+
+    return function persistPetImage(req, res, next) {
+      parseSingle(req, res, async (error) => {
+        if (error) {
+          next(error);
+          return;
+        }
+
+        try {
+          if (req.file) {
+            req.file.filename = createFileName(req.file);
+            await storeUploadedFile(req.file, 'mascotas');
+          }
+          next();
+        } catch (storageError) {
+          next(storageError);
+        }
+      });
+    };
+  }
 };
+
+module.exports = { uploadPetImage };

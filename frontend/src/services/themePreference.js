@@ -7,6 +7,10 @@ function normalizeTheme(theme) {
 }
 
 export function getStoredTheme() {
+  if (typeof window === 'undefined') {
+    return LIGHT_THEME;
+  }
+
   try {
     return normalizeTheme(window.localStorage.getItem(THEME_STORAGE_KEY));
   } catch (_error) {
@@ -16,23 +20,39 @@ export function getStoredTheme() {
 
 export function applyTheme(theme) {
   const normalizedTheme = normalizeTheme(theme);
+
+  if (typeof document === 'undefined') {
+    return normalizedTheme;
+  }
+
   const themeTextColor = normalizedTheme === DARK_THEME ? '#f8edf3' : '#2f2730';
+  const themeBackground = 'var(--app-background)';
+  const documentRoot = document.documentElement;
 
-  document.documentElement.dataset.theme = normalizedTheme;
-  document.documentElement.style.colorScheme = normalizedTheme;
-  document.documentElement.style.color = themeTextColor;
-  document.body?.style.setProperty('color', themeTextColor);
-  document.getElementById('root')?.style.setProperty('color', themeTextColor);
-  document.documentElement.style.setProperty('--theme-refresh-token', normalizedTheme);
+  documentRoot.dataset.theme = normalizedTheme;
+  documentRoot.style.colorScheme = normalizedTheme;
+  documentRoot.style.color = themeTextColor;
+  documentRoot.style.background = themeBackground;
+  documentRoot.style.setProperty('--theme-refresh-token', normalizedTheme);
 
-  // Nudge the browser to recalculate theme-dependent styles immediately.
-  document.documentElement.getBoundingClientRect();
+  [
+    document.body,
+    document.getElementById('root'),
+    document.getElementById('__next')
+  ].forEach((element) => {
+    element?.style.setProperty('background', themeBackground);
+    element?.style.setProperty('color', themeTextColor);
+  });
 
   return normalizedTheme;
 }
 
 export function saveTheme(theme) {
   const normalizedTheme = applyTheme(theme);
+
+  if (typeof window === 'undefined') {
+    return normalizedTheme;
+  }
 
   try {
     window.localStorage.setItem(THEME_STORAGE_KEY, normalizedTheme);

@@ -2,10 +2,38 @@
   "name": "adoptalove",
   "version": "0.1.0",
   "private": true,
-  "description": "Monorepo para AdoptaLove.",
+  "description": "AdoptaLove compatible con OpenAI Sites mediante Next.js y OpenNext.",
   "scripts": {
-    "install:all": "npm install --prefix frontend && npm install --prefix backend",
+    "build": "next build --webpack && opennextjs-cloudflare build --skipNextBuild && node scripts/package-sites-dist.js",
+    "dev": "next dev --webpack",
+    "start": "next start",
+    "sites:build": "npm run build",
+    "sites:preview": "opennextjs-cloudflare build && opennextjs-cloudflare preview",
+    "sites:export-data": "node scripts/export-sites-data.js",
+    "install:all": "npm install && npm install --prefix frontend && npm install --prefix backend",
+    "install:legacy": "npm install --prefix frontend && npm install --prefix backend",
     "dev:frontend": "npm run dev --prefix frontend",
     "dev:backend": "npm run dev --prefix backend"
+  },
+  "dependencies": {
+    "@opennextjs/cloudflare": "^1.20.1",
+    "bcryptjs": "^3.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "multer": "^2.2.0",
+    "mysql2": "^3.15.3",
+    "next": "^16.1.0",
+    "openai": "^6.42.0",
+    "postcss": "^8.5.18",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3"
+  },
+  "devDependencies": {
+    "wrangler": "^4.59.0"
+  },
+  "overrides": {
+    "postcss": "$postcss"
   }
 }

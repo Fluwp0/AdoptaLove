@@ -362,3 +362,82 @@ El proyecto ya ignora archivos sensibles o generados, incluyendo:
 - `build/`
 - `logs/`
 - `backend/uploads/`
+
+## Compatibilidad con OpenAI Sites
+
+El proyecto está vinculado al Site existente `AdoptaLove` mediante `.openai/hosting.json`. No se debe crear otro proyecto de Sites.
+
+La adaptación conserva:
+
+- El frontend React, sus estilos, rutas y comportamiento visual.
+- La API Express bajo el mismo prefijo `/api`.
+- El registro y login por correo y contraseña con JWT y hashes bcrypt compatibles.
+- Los roles `adoptante`, `fundacion` y `administrador` con las mismas reglas de autorización.
+- D1 como base relacional durable en Sites.
+- R2 como almacenamiento durable para las imágenes que antes vivían en `backend/uploads/`.
+- MySQL y `backend/uploads/` como fuentes locales, sin modificarlas durante la exportación.
+
+### Variables de runtime en Sites
+
+Estas claves se configuran en Sites, nunca dentro de `.openai/hosting.json` ni en GitHub:
+
+```text
+DATABASE_DRIVER=d1
+STORAGE_DRIVER=r2
+D1_BINDING=DB
+R2_BINDING=UPLOADS
+JWT_SECRET=<secreto generado para producción>
+JWT_EXPIRES_IN=1d
+OPENAI_API_KEY=<opcional y secreto>
+OPENAI_MODEL=<opcional>
+```
+
+`MIGRATION_ENABLED=true` y `MIGRATION_TOKEN` se usan únicamente durante la carga inicial. Al terminar, se deben eliminar ambas variables de Sites y volver a desplegar la versión; sin la habilitación explícita, el endpoint responde `404` aunque existiera un token antiguo.
+
+### Preparar los datos actuales sin alterarlos
+
+```bash
+npm run sites:export-data
+```
+
+El comando hace lecturas de MySQL y de `backend/uploads/`, y genera:
+
+```text
+.sites-migration/data.json
+.sites-migration/manifest.json
+```
+
+La carpeta completa está ignorada por Git porque puede contener datos personales y hashes de contraseña. El manifiesto incluye tamaños y SHA-256 de las imágenes referenciadas para verificar integridad.
+
+### Importar en una versión desplegada
+
+Configurar las siguientes variables sólo en la terminal que ejecuta la migración:
+
+```text
+SITE_URL=<URL del despliegue de Sites>
+MIGRATION_TOKEN=<mismo secreto temporal configurado en Sites>
+SITES_AUTH_BYPASS_TOKEN=<token temporal si el Site es privado>
+```
+
+Luego ejecutar:
+
+```bash
+node scripts/import-sites-data.js
+```
+
+La importación es aditiva: usa inserciones `OR IGNORE` y no reemplaza filas ni objetos R2 existentes. Se puede repetir con seguridad; los registros y archivos ya presentes se informan como omitidos.
+
+### Validación local
+
+```bash
+npm run build
+npm run dev
+```
+
+El artefacto de Sites se genera con:
+
+```bash
+npm run sites:build
+```
+
+OpenNext recomienda WSL o Linux para ese último comando porque la fase de empaquetado crea enlaces simbólicos. `next build` funciona directamente en Windows; Sites realiza el empaquetado final en su entorno de construcción.

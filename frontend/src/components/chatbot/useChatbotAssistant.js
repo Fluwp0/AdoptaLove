@@ -10,22 +10,47 @@ import {
   getRelatedOptionsForMessage
 } from './chatbotFlow';
 
-const CHATBOT_AI_ENABLED = import.meta.env.VITE_CHATBOT_AI_ENABLED === 'true';
+const CHATBOT_AI_ENABLED =
+  import.meta.env?.VITE_CHATBOT_AI_ENABLED === 'true' ||
+  (typeof process !== 'undefined' &&
+    process.env.NEXT_PUBLIC_CHATBOT_AI_ENABLED === 'true');
+
+function getSessionStorage() {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  try {
+    return window.sessionStorage;
+  } catch (_error) {
+    return null;
+  }
+}
 
 function getStoredConversation(storageKey) {
-  if (!storageKey || typeof window === 'undefined') {
+  if (!storageKey) {
+    return getInitialMessages();
+  }
+
+  const storage = getSessionStorage();
+
+  if (!storage) {
     return getInitialMessages();
   }
 
   try {
-    const storedConversation = window.sessionStorage.getItem(storageKey);
+    const storedConversation = storage.getItem(storageKey);
     const parsedConversation = storedConversation ? JSON.parse(storedConversation) : null;
 
     if (Array.isArray(parsedConversation) && parsedConversation.length > 0) {
       return parsedConversation;
     }
   } catch (_error) {
-    window.sessionStorage.removeItem(storageKey);
+    try {
+      storage.removeItem(storageKey);
+    } catch (_cleanupError) {
+      // Ignore storage cleanup failures; the in-memory conversation remains usable.
+    }
   }
 
   return getInitialMessages();
@@ -72,12 +97,18 @@ export function useChatbotAssistant({ storageKey = null } = {}) {
   }, [storageKey]);
 
   useEffect(() => {
-    if (!storageKey || typeof window === 'undefined') {
+    if (!storageKey) {
+      return;
+    }
+
+    const storage = getSessionStorage();
+
+    if (!storage) {
       return;
     }
 
     try {
-      window.sessionStorage.setItem(storageKey, JSON.stringify(messages));
+      storage.setItem(storageKey, JSON.stringify(messages));
     } catch (_error) {
       // The chatbot still works normally if session storage is unavailable.
     }
@@ -141,11 +172,15 @@ export function useChatbotAssistant({ storageKey = null } = {}) {
   }, [isLoading]);
 
   const resetConversation = useCallback(() => {
-    if (storageKey && typeof window !== 'undefined') {
-      try {
-        window.sessionStorage.removeItem(storageKey);
-      } catch (_error) {
-        // Resetting local state is enough if storage cannot be updated.
+    if (storageKey) {
+      const storage = getSessionStorage();
+
+      if (storage) {
+        try {
+          storage.removeItem(storageKey);
+        } catch (_error) {
+          // Resetting local state is enough if storage cannot be updated.
+        }
       }
     }
 
