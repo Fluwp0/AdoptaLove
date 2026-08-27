@@ -150,7 +150,7 @@ jobs:
             await page.goto('http://127.0.0.1:3000/mascotas/test-pet', { waitUntil: 'domcontentloaded' });
             await page.getByRole('link', { name: 'Postular adopción' }).click();
             await page.waitForSelector('.adoption-page', { timeout: 20000 });
-            await page.getByText('Usuario Prueba').waitFor({ timeout: 20000 });
+            await page.getByText('Usuario Prueba', { exact: true }).waitFor({ timeout: 20000 });
 
             const body = await page.locator('body').innerText();
             if (body.includes('No pudimos iniciar AdoptaLove')) {
@@ -161,6 +161,9 @@ jobs:
             }
             if (!body.includes('Dirección completa')) {
               throw new Error(`${label} signed-in: profile data did not render`);
+            }
+            if (body.includes('Debes iniciar sesión para postular a una adopción.')) {
+              throw new Error(`${label} signed-in: user was incorrectly treated as anonymous`);
             }
             if (errors.length) {
               throw new Error(`${label} signed-in page errors: ${errors.join(' | ')}`);
