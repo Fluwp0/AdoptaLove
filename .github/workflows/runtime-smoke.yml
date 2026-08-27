@@ -1,0 +1,118 @@
+name: Runtime smoke check
+
+on:
+  push:
+    branches:
+      - codex/fix-runtime-flow
+
+permissions:
+  contents: read
+
+jobs:
+  browser-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install project dependencies
+        run: npm ci
+
+      - name: Install browser test runtime
+        run: |
+          npm install --no-save --package-lock=false playwright@1.55.0
+          npx playwright install --with-deps chromium webkit
+
+      - name: Build Sites application
+        run: npm run build
+
+      - name: Start application
+        run: |
+          nohup npm start > /tmp/adoptalove-next.log 2>&1 &
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:3000/ > /dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/adoptalove-next.log
+          exit 1
+
+      - name: Verify public flow in Chromium and WebKit
+        run: |
+          node <<'NODE'
+          const { chromium, webkit } = require('playwright');
+
+          const routes = [
+            '/',
+            '/mascotas',
+            '/compatibilidad',
+            '/donaciones',
+            '/sobre-nosotros',
+            '/login',
+            '/registro'
+          ];
+
+          async function verifyBrowser(browserType, label, blockStorage = false) {
+            const browser = await browserType.launch({ headless: true });
+            const context = await browser.newContext();
+
+            if (blockStorage) {
+              await context.addInitScript(() => {
+                for (const storageName of ['localStorage', 'sessionStorage']) {
+                  Object.defineProperty(window, storageName, {
+                    configurable: true,
+                    get() {
+                      throw new DOMException(`${storageName} blocked for smoke test`, 'SecurityError');
+                    }
+                  });
+                }
+              });
+            }
+
+            const page = await context.newPage();
+            const pageErrors = [];
+            page.on('pageerror', (error) => pageErrors.push(error.message));
+
+            for (const route of routes) {
+              await page.goto(`http://127.0.0.1:3000${route}`, {
+                waitUntil: 'domcontentloaded',
+                timeout: 30000
+              });
+              await page.waitForSelector('.app-shell', { timeout: 20000 });
+              const bodyText = await page.locator('body').innerText();
+
+              if (bodyText.includes('No pudimos iniciar AdoptaLove')) {
+                throw new Error(`${label}: runtime boundary shown on ${route}`);
+              }
+            }
+
+            if (pageErrors.length > 0) {
+              throw new Error(`${label}: page errors: ${pageErrors.join(' | ')}`);
+            }
+
+            await browser.close();
+            console.log(`${label}: public flow OK`);
+          }
+
+          (async () => {
+            await verifyBrowser(chromium, 'Chromium');
+            await verifyBrowser(webkit, 'WebKit');
+            await verifyBrowser(webkit, 'WebKit storage-blocked', true);
+          })().catch((error) => {
+            console.error(error);
+            process.exit(1);
+          });
+          NODE
+
+      - name: Print server log on failure
+        if: failure()
+        run: cat /tmp/adoptalove-next.log || true
